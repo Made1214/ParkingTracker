@@ -126,8 +126,9 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 - [ ] **VERIFY AT IMPLEMENTATION**: choose service worker tooling (`@serwist/next`, Workbox, hand-rolled SW,
   `next-pwa`) — check maintenance status and Next.js version compatibility before committing to one
 - [ ] `public/sw.js` + `public/offline.html`: cache-first for `/_next/static/*`; network-first + offline fallback for
-  navigations; **network-only, never cached** for `**/rest/v1`, `**/auth/v1`, realtime (C1 — never cache a response
-  carrying an `Authorization` header or session cookie); stale-while-revalidate for Storage images
+  navigations; **network-only, never cached** for `**/rest/v1`, `**/auth/v1`, realtime, and Cloudinary delivery URLs
+  (C1 — never cache a response carrying an `Authorization` header/session cookie, and never cache a short-lived
+  signed URL past its own expiry)
   Registration from a client component after hydration
 - [ ] `shared/pwa/useInstallPrompt.ts`: capture/defer `beforeinstallprompt` (Chromium); detect iOS + `!navigator.standalone`
   and show manual "Add to Home Screen" instructional sheet; trigger after first high-value action (group join or
@@ -137,28 +138,31 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 - [ ] Document/verify the iOS 16.4+ home-screen-install prerequisite for future Web Push is met by this flow
   (no push implemented) — satisfies "Foundation for Future Web Push"
 
-### WU-8 — Media pipeline
+### WU-8 — Media pipeline (Cloudinary — supersedes the original Supabase Storage plan, see design.md §7)
 **Depends on**: WU-3, WU-4
-**Spec**: `media-storage-budget` — all four requirements
-**Size estimate**: ~320 changed lines
+**Spec**: `media-storage-budget` — all five requirements
+**Size estimate**: ~220 changed lines (smaller than the original Storage plan: no Web Worker/compression code needed)
 
-- [ ] Client-side validate: MIME in `image/jpeg|png|webp`, ≤ 10 MB pre-compression, visible rejection error (not silent)
-- [ ] **VERIFY AT IMPLEMENTATION**: choose compression library (`browser-image-compression`, `compressorjs`, or
-  hand-rolled Canvas) — check maintenance status and current iOS Safari `OffscreenCanvas` reliability; if unreliable,
-  plan the main-thread canvas fallback path now
-- [ ] Web Worker compression: `createImageBitmap` → `OffscreenCanvas` → `convertToBlob({type:'image/webp'})`; produce
-  `full` (1920px, ~300KB) and `thumb` (400px, ~40KB) derivatives
-- [ ] Read and apply EXIF orientation before re-encode (gotcha: canvas re-encode drops EXIF, including orientation)
-- [ ] Private Storage bucket, path `photos/{group_id}/{event_id}/{photo_id}_{full|thumb}.webp`
-- [ ] Storage RLS policies keyed off first path segment via `is_group_member(...)` (depends on WU-4)
-- [ ] Server/storage-policy enforcement of the 10 MB cap (must not depend solely on client-side check)
+- [ ] Client-side validate: MIME in `image/jpeg|png|webp`, ≤ 10 MB, visible rejection error (not silent)
+- [ ] **VERIFY AT IMPLEMENTATION**: choose Cloudinary SDK (`cloudinary` Node SDK vs. `next-cloudinary`) — check
+  maintenance status and compatibility with the Next.js runtime (Node vs. Edge) the upload route runs in
+- [ ] Server route/Server Action: generate Cloudinary signed-upload parameters using the API secret (server-only,
+  never shipped to the client), `type: authenticated`
+- [ ] Client uploads directly to Cloudinary using the signed params; on success, insert the `photos` row
+  (`cloudinary_public_id`, `bytes`, `width`, `height`, `event_id`, `group_id`, `uploaded_by`)
+- [ ] RLS policies on `photos` unchanged from the original plan — still gate on `is_group_member(group_id)` (depends
+  on WU-4)
+- [ ] Server route/Server Action: generate a short-lived signed **delivery** URL only after re-checking
+  `is_group_member(group_id)` for the requesting user — the client never constructs a Cloudinary URL itself
+- [ ] `CHECK` constraint on the `photos` table enforces the 10 MB cap (must not depend solely on client-side check)
 - [ ] `group_storage_usage(group_id, bytes_used, bytes_quota)` table/function, default 100 MB/group
-- [ ] `BEFORE INSERT` trigger rejects an upload that would exceed group quota; usage recomputed on insert and delete
-- [ ] Serving: short-lived signed URLs (~1h) cached in the Query layer — never a public bucket (C1)
-- [ ] Do **not** add the Supabase Storage hostname to `next.config` `images.remotePatterns`
+- [ ] `BEFORE INSERT` trigger on `photos` rejects a row that would exceed group quota; usage recomputed on insert
+  and delete
 - [ ] ESLint rule: no `next/image` import inside `features/gallery` or `features/history`
-- [ ] pgTAP: oversized upload rejected by storage policy even when the client check is bypassed
-- [ ] pgTAP: upload at/over group quota is rejected; upload under quota succeeds and usage increases
+- [ ] pgTAP: oversized `photos` insert rejected by the `CHECK` constraint even when the client check is bypassed
+- [ ] pgTAP: `photos` insert at/over group quota is rejected; insert under quota succeeds and usage increases
+- [ ] pgTAP/integration: a non-member requesting a delivery URL is refused, even when supplying a valid
+  `cloudinary_public_id` for another group's photo
 
 ### WU-9 — Unit/component test runner
 **Depends on**: WU-1

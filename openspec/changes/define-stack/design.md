@@ -228,7 +228,7 @@ Applied to: `proposals` (live poll results), `rsvp` (live counters), `comments`.
 | `/_next/static/*` | Cache-first, immutable | Content-hashed, safe forever |
 | Navigations | Network-first + `offline.html` fallback | Group data must be fresh; the fallback prevents a dead tab |
 | `**/rest/v1`, `**/auth/v1`, realtime | **Network-only. Never cached.** | Caching an authorized response risks serving group A's data to group B on a shared device after logout. This is a C1 violation. |
-| Supabase Storage images | Stale-while-revalidate, capped entries + max-age | Cuts storage egress on repeat gallery views |
+| Cloudinary delivery images | **Network-only. Never cached by the SW.** (Changed from the original Supabase Storage design.) | Gallery images are now served via short-lived signed Cloudinary URLs (§7). A stale-while-revalidate SW cache would happily serve a cached response after the signed URL it was fetched from has expired or after the viewer's membership changed — the same C1 shape as caching an authorized REST response. Cloudinary's own CDN already handles edge caching upstream; the SW does not need to duplicate it. |
 
 Hard rule: the SW never caches a response that carried an `Authorization` header or a Supabase session cookie.
 
@@ -244,32 +244,32 @@ Hard rule: the SW never caches a response that carried an `Authorization` header
 
 ---
 
-## 7. Media Pipeline (binding cost constraint C2/C3)
+## 7. Media Pipeline — Cloudinary (supersedes the original Supabase Storage design)
 
-Flow: **select → validate → compress in a worker → 2 derivatives → upload → DB row → quota trigger**.
+**Changed after the initial design pass: the gallery module (US-08) uses Cloudinary, not Supabase Storage.** Cloudinary does server-side compression and derivative generation (resize/format/quality via URL transformation parameters), so the client no longer needs a Web Worker, `OffscreenCanvas`, or hand-produced `full`/`thumb` blobs — one uploaded asset serves every derivative through the delivery URL. `next/image`'s Vercel Hobby transformation cap (C2) also stops applying, because gallery images never pass through Vercel's image optimizer at all; they are served directly by Cloudinary's own CDN.
+
+**What does NOT change**: RLS on the `photos` table is still the authorization source, `group_id` denormalization and the composite tenant-integrity FK to `events` are untouched, the 10 MB cap and the 100 MB/group quota (C3) still apply, and photos are still immutable once uploaded (no UPDATE policy).
+
+**What DOES change, and matters for C1**: Cloudinary has no RLS. It cannot answer "is this caller a member of this photo's group?" — only Postgres can. So the delivery boundary moves: instead of a signed Supabase Storage URL, the app signs Cloudinary requests itself, on the server, only after RLS has already proven membership.
+
+Flow: **select → validate client-side → signed upload → DB row → quota trigger → signed delivery URL on read**.
 
 | Stage | Rule |
 |---|---|
-| Validate | MIME in `image/jpeg|png|webp`; **≤ 10 MB pre-compression** (US-08). Rejected client-side *and* by a storage policy. |
-| Compress | Web Worker: `createImageBitmap` → `OffscreenCanvas` → `convertToBlob({type:'image/webp'})`. Produces `full` (longest edge 1920 px, ~300 KB target) and `thumb` (400 px, ~40 KB). |
-| Store | Private bucket, path `photos/{group_id}/{event_id}/{photo_id}_{full\|thumb}.webp`. Storage RLS policies key off the first path segment via `is_group_member(...)`. |
-| Serve | **Short-lived signed URLs (~1 h)** held in the Query cache. A public bucket would leak group-private photos to anyone holding a URL — a C1 violation. Grid renders `thumb`; `full` loads only when the lightbox opens. |
-| Render | Plain `<img loading="lazy">` with explicit `width`/`height`. |
-| Quota | `group_storage_usage(group_id, bytes_used, bytes_quota)`, default **100 MB/group**. A `BEFORE INSERT` trigger rejects an upload that would exceed it; usage is recomputed on insert and delete. The gallery shows a usage bar. |
+| Validate | MIME in `image/jpeg\|png\|webp`; **≤ 10 MB pre-upload** (US-08), checked client-side before the upload request is even signed. |
+| Sign upload | A Server Action / route handler generates Cloudinary signed-upload parameters using the **API secret** (server-only, never shipped to the client) with `type: authenticated`. The client then uploads directly to Cloudinary with those params — the API secret itself never leaves the server. |
+| Store | On upload success, insert the `photos` row: `cloudinary_public_id`, `bytes`, `width`, `height`, `event_id`, `group_id`, `uploaded_by`. RLS policies (`photos_select`/`photos_insert`/`photos_delete`) are unchanged from the original design — they still gate on `is_group_member(group_id)`. |
+| Serve | **The client never constructs a Cloudinary delivery URL itself.** It requests one from the server, which re-derives the caller's membership (the same `is_group_member` check RLS already applies to the `photos` row) and only then returns a **short-lived signed delivery URL** (`type: authenticated`, `sign_url: true`, a `w_400`/`f_auto`/`q_auto` transformation for the grid or the original for the lightbox). This is the same "narrow window, never a bare public link" shape the Supabase Storage design used — the mechanism moved, the security property didn't. |
+| Render | Plain `<img loading="lazy">` with explicit `width`/`height`; Cloudinary URLs are exempt from the `next/image` ban list below (they were never subject to it, since they're not a Supabase Storage asset). |
+| Quota | `group_storage_usage(group_id, bytes_used, bytes_quota)` unchanged, default **100 MB/group**. The `BEFORE INSERT` trigger on `photos` still rejects an upload that would exceed it — it fires on the `photos` row insert, which happens after the Cloudinary upload succeeds, so the trigger is what stops the row (and therefore the group's ability to ever *serve* that image) from being created, not the Cloudinary upload itself. `VERIFY AT IMPLEMENTATION`: whether to also reject the upload pre-flight (checking quota before signing) to avoid orphaned Cloudinary assets when the DB insert is rejected by the trigger. |
 
-### `next/image` is banned on Storage assets (C2)
+### `next/image` is still banned — now for a different, narrower reason
 
-Vercel Hobby caps image transformations at 5,000/month. Enforcement is layered, strongest first:
+The original C2 rule (Vercel Hobby's 5,000 transformations/month) no longer applies to gallery images, since they're not proxied through Vercel's optimizer. The ban is kept anyway, for a different, smaller reason: `next/image` would try to fetch and re-optimize an already-optimized, already-signed Cloudinary URL, which is redundant work and complicates the short-lived-URL refresh story (a `next/image`-cached response could outlive the signed URL it was generated from). ESLint rule (no `next/image` import inside `features/gallery` or `features/history`) and the review rule stay in place. `next/image` remains available for bundled static app assets.
 
-1. **Do not add the Supabase Storage hostname to `next.config` `images.remotePatterns`.** `next/image` then fails loudly on those URLs the first time anyone tries — in development, immediately.
-2. ESLint rule: no `next/image` import inside `features/gallery` or `features/history`.
-3. Review rule, written in the slice README.
+**Gotcha to handle:** none of the original EXIF-orientation concern applies — Cloudinary reads and normalizes orientation server-side during its own processing, so the client does not need to.
 
-`next/image` remains available for the handful of bundled static app assets.
-
-**Gotcha to handle:** canvas re-encoding drops EXIF. That is a privacy win (location metadata is stripped), but EXIF **orientation must be read and applied before re-encode**, or iPhone photos land sideways.
-
-`VERIFY AT IMPLEMENTATION` — compression library candidates: `browser-image-compression`, `compressorjs`, or a dependency-free Canvas/OffscreenCanvas implementation. Also verify `OffscreenCanvas` support in the current iOS Safari; if it is unreliable, fall back to a main-thread canvas path.
+`VERIFY AT IMPLEMENTATION` — Cloudinary Node/Edge SDK version and whether signed-upload generation is compatible with the Next.js runtime the upload route runs in (Node vs. Edge); Cloudinary's `authenticated` delivery type and signed-URL TTL configuration; whether the free tier's transformation/bandwidth limits need the same kind of binding-constraint treatment C2/C3 gave Supabase Storage.
 
 ---
 
@@ -320,8 +320,9 @@ The pgTAP mechanism that makes this work is impersonation inside a transaction �
 | Elevation | DEFINER only when no policy *can* permit the call | DEFINER by default for convenience | Each DEFINER function becomes its own authorization boundary — minimize the count |
 | Group scoping | `group_id` denormalized onto every table | Join through parent to reach the group | Every policy becomes one indexed check of identical shape; reviewable at a glance |
 | Realtime | Invalidate the Query cache | Write payloads into component or cache state | Aggregates (tallies, counts, balances) cannot be derived from a single raw row without duplicating logic |
-| Gallery serving | Signed URLs + plain `<img>` | `next/image` | Vercel Hobby: 5,000 transformations/month (C2) |
-| Photo bucket | Private + signed URLs | Public bucket | A public bucket leaks group-private photos to any URL holder (C1) |
+| Gallery storage | **Cloudinary (changed from Supabase Storage)** | Supabase Storage | Server-side compression/derivatives eliminate the client Web Worker pipeline; unrelated to Vercel Hobby's transformation cap (C2), which never applied to Cloudinary-served images |
+| Gallery serving | Server-signed short-lived Cloudinary URLs + plain `<img>` | `next/image`; client-constructed/unsigned Cloudinary URLs | A client-constructed URL has no membership check behind it — Cloudinary has no RLS, so the server must re-check `is_group_member` before signing (C1) |
+| Photo access | `type: authenticated` Cloudinary assets, signed on read | Public/unsigned Cloudinary assets | An unsigned public asset leaks group-private photos to any URL holder, same C1 violation the original private-bucket decision was made to avoid |
 | Structure | Feature-sliced, `index.ts` public API | Hexagonal / monorepo | Setup cost is not repaid when infrastructure is not expected to change; ownership boundaries are what 8 parallel developers actually need |
 | Auto-pause | Daily cron keep-alive | Accept and document | A pause during validation reads as an outage and feeds the top adoption risk |
 
@@ -337,7 +338,7 @@ No package below is asserted to be current, maintained, or recommended. Each mus
 |---|---|---|
 | Service worker tooling | `@serwist/next`, Workbox + hand-written SW, dependency-free SW, `next-pwa` | Maintenance status; compatibility with the Next.js version actually installed |
 | PWA icon generation | `pwa-asset-generator`, `sharp` script | Maintenance status |
-| Client image compression | `browser-image-compression`, `compressorjs`, hand-rolled Canvas | Maintenance status; `OffscreenCanvas` reliability in current iOS Safari |
+| Cloudinary SDK | `cloudinary` (Node), `next-cloudinary` | Maintenance status; signed-upload generation compatible with the Next.js runtime (Node vs. Edge) the upload route runs in; `authenticated` delivery type + signed-URL TTL configuration |
 | pgTAP user impersonation | Supabase CLI | Exact `request.jwt.claims` syntax for the installed CLI version |
 | Vercel Hobby cron limits | Vercel docs | Current minimum cron frequency on Hobby |
 | Supabase JS / SSR client factories | `@supabase/supabase-js`, `@supabase/ssr` | Current cookie-handling API surface (it has changed across majors) |
