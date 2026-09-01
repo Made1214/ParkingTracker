@@ -40,13 +40,37 @@ the app.
     `022_photos_cloudinary.sql` and `023_drop_supabase_storage_policies.sql`
     were skipped here — they only exist in Prod's history to correct an
     earlier decision). RLS forced on every table, 0 security advisor
-    findings. Development, testing, and seed data happen here; load
-    `supabase/seed.sql` once it exists.
+    findings. Development, testing, and seed data happen here — `supabase/seed.sql`
+    is loaded and verified against it (6 users, 1 group, 4 events across
+    every status, fully populated finished event).
+  - **Local (Docker)** — `supabase start` runs the same 24 migrations +
+    seed from a clean database; used to run the pgTAP suite below with
+    correctly scoped roles (the Supabase-hosted MCP connection used for
+    Prod/Staging work is a superuser and bypasses RLS, so it can't
+    validate isolation honestly). `analytics` and `studio` are disabled
+    in `supabase/config.toml` — Logflare's local image has a known
+    startup bug unrelated to this schema, and neither service is needed
+    for Postgres/Auth/PostgREST-level testing.
 
 Full design rationale (RLS policy shapes, the tenant-integrity attack
 composite FKs close, `FORCE ROW LEVEL SECURITY`, view security, RPC
-contracts, pgTAP test plan) is documented inline in the migration files
-themselves.
+contracts) is documented inline in the migration files themselves.
+
+## RLS test suite
+
+[supabase/tests/](supabase/tests/) is a pgTAP suite (7 files, 29
+assertions) proving the isolation model actually holds — not just that
+policies exist, but that a non-member gets zero rows, that the
+composite-FK tenant-integrity mechanism rejects a cross-group write RLS
+alone can't see, that `group_members` has no INSERT policy, that every
+view enforces `security_invoker`, and a canary test proving the suite
+itself would catch a dropped policy. Run it with:
+
+```
+supabase start   # local Docker stack; applies migrations + seed fresh
+supabase test db # runs the full suite — Result: PASS (29/29) as of last run
+supabase stop
+```
 
 ## Media (gallery photos)
 
