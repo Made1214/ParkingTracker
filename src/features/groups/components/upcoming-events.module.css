@@ -1,0 +1,42 @@
+.section {
+  margin: 36px 0;
+}
+.list {
+  display: grid;
+  gap: 12px;
+}
+.event {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.event h3 a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.event p {
+  margin-top: 4px;
+}
+.group {
+  color: var(--color-primary-hover);
+  font-size: 12px;
+  font-weight: 700;
+}
+.responses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.response button {
+  min-height: 44px;
+}
+.response button:disabled {
+  opacity: 1;
+  background: var(--color-primary-deep);
+}
