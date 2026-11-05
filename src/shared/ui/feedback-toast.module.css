@@ -7,21 +7,23 @@
   gap: var(--space-4);
   max-width: min(24rem, calc(100vw - 2 * var(--space-4)));
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--line);
+  border: 1px solid var(--success-text);
   border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--ink);
+  background: var(--success-bg);
+  color: var(--success-text);
   box-shadow: var(--shadow-md);
   font-size: var(--text-sm);
 }
 .toast[data-error="true"] {
   border-color: var(--danger-text);
+  background: var(--danger-bg);
+  color: var(--danger-text);
 }
 .toast button {
   flex: 0 0 auto;
   border: 0;
   background: transparent;
-  color: var(--muted);
+  color: inherit;
   font-size: var(--text-lg);
   cursor: pointer;
 }
