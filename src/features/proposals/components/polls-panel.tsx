@@ -37,7 +37,7 @@ export async function PollsPanel({
             rows={4}
           />
           <label htmlFor="poll-closes">
-            Fecha y hora de cierre (hora de Panam?)
+            Fecha y hora de cierre (hora de Panamá)
           </label>
           <Input
             id="poll-closes"
@@ -105,7 +105,7 @@ export async function PollsPanel({
                           v.option_id === option.id &&
                           v.is_winner &&
                           v.votes > 0,
-                      ) && <strong> ? Ganadora</strong>}
+                      ) && <strong> · Ganadora</strong>}
                   </label>
                 ))}
             </ActionForm>

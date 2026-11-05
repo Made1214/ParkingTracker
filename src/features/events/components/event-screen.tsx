@@ -121,7 +121,7 @@ export async function EventScreen({
         </div>
       )}
       {activeSection === "votaciones" && (
-        <>
+        <div className={styles.panels}>
           <PollsPanel
             groupId={groupId}
             eventId={eventId}
@@ -132,7 +132,7 @@ export async function EventScreen({
             eventId={eventId}
             open={event.status !== "finished" && event.status !== "cancelled"}
           />
-        </>
+        </div>
       )}
       {activeSection === "tareas" && (
         <TasksPanel

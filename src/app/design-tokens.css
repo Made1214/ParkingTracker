@@ -34,6 +34,18 @@
   --text-7xl: 3rem;
   --text-8xl: 3.375rem;
   --text-9xl: 4.5rem;
+  --text-display: clamp(2rem, 4.2vw, 3.375rem);
+  --text-display-auth: clamp(2.6875rem, 4.7vw, 4.3125rem);
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --control-height: 2.75rem;
+  --focus-width: 3px;
+  --focus-offset: 4px;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;

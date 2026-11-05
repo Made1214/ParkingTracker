@@ -13,10 +13,6 @@
   --muted: #475569;
   --paper: #f8fafc;
   --line: #e2e8f0;
-  /* Legacy aliases keep existing screens and task styles on the same palette. */
-  --lime: var(--color-primary-soft);
-  --forest: var(--color-primary);
-  --peach: #fef3c7;
   --surface: #ffffff;
   --surface-subtle: #f1f5f9;
   --surface-tint: #f0fdfa;
@@ -45,7 +41,6 @@
   --color-primary-soft: #164e4a;
   --accent-text: #99f6e4;
   --focus: #5eead4;
-  --peach: #713f12;
   --success-bg: #14532d;
   --success-text: #bbf7d0;
   --success-border: #4ade80;
@@ -61,7 +56,7 @@
   box-sizing: border-box;
 }
 ::selection {
-  background: var(--lime);
+  background: var(--color-primary-soft);
   color: var(--ink);
 }
 .sr-only {
@@ -80,8 +75,8 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
-  font-size: var(--text-sm);
-  line-height: 1.6;
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
 }
 a {
   color: inherit;
@@ -89,21 +84,28 @@ a {
 }
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
 button,
 a,
 input,
+select,
 textarea {
   -webkit-tap-highlight-color: transparent;
 }
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 4px;
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-primary);
 }
 button {
   cursor: pointer;
@@ -119,16 +121,16 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: clamp(32px, 4.2vw, 54px);
+  font-size: var(--text-display);
   line-height: 1.12;
   letter-spacing: -2px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   text-wrap: balance;
 }
 h2 {
   font-size: var(--text-2xl);
   letter-spacing: -0.7px;
-  line-height: 1.3;
+  line-height: var(--leading-tight);
 }
 h3 {
   font-size: var(--text-lg);
@@ -142,7 +144,7 @@ label {
   display: grid;
   gap: var(--space-2);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 .muted {
   color: var(--muted);
@@ -155,7 +157,7 @@ label {
 }
 .eyebrow {
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   letter-spacing: 1.6px;
   display: inline-flex;
   align-items: center;
@@ -166,14 +168,14 @@ label {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   letter-spacing: -0.8px;
   white-space: nowrap;
 }
 .brand-icon {
   display: grid;
   place-items: center;
-  background: var(--lime);
+  background: var(--color-primary-soft);
   color: var(--ink);
   width: 37px;
   height: 37px;
@@ -189,15 +191,15 @@ label {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: 44px;
+  min-height: var(--control-height);
   padding: var(--space-3) var(--space-5);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  background: var(--forest);
+  background: var(--color-primary);
   color: white;
   font-size: var(--text-xs);
-  font-weight: 600;
-  line-height: 1.5;
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
   transition:
     background-color 160ms var(--ease-out),
     border-color 160ms var(--ease-out),
@@ -226,13 +228,13 @@ label {
 }
 .input {
   width: 100%;
-  min-height: 45px;
+  min-height: var(--control-height);
   padding: var(--space-3) var(--space-3);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   color: var(--ink);
   background: var(--surface);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   font-size: var(--text-xs);
 }
 .input::placeholder {
@@ -254,6 +256,13 @@ textarea {
 }
 .form-stack .button {
   width: 100%;
+}
+.form-stack > label:has(> input[type="checkbox"]),
+.form-stack > label:has(> input[type="radio"]) {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height);
+  gap: var(--space-2);
 }
 .message {
   font-size: var(--text-xs);
@@ -303,14 +312,14 @@ textarea {
   pointer-events: none;
 }
 .auth-story h1 {
-  font-size: clamp(43px, 4.7vw, 69px);
-  font-weight: 500;
+  font-size: var(--text-display-auth);
+  font-weight: var(--weight-medium);
   letter-spacing: -2.7px;
   margin-top: var(--space-6);
 }
 .auth-story h1 em {
   font-family: Georgia, serif;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: #ccfbf1;
 }
 .auth-story p {
@@ -383,7 +392,7 @@ textarea {
   margin-top: var(--space-6);
 }
 .auth-switch a {
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -411,7 +420,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 .app-main {
   max-width: 1160px;
@@ -484,9 +493,9 @@ textarea {
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: var(--lime);
+  background: var(--color-primary-soft);
   font-size: 110px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   line-height: 1;
   transform: rotate(-8deg);
   margin-right: var(--space-12);
@@ -520,7 +529,7 @@ textarea {
   border-radius: 50%;
   background: var(--surface-subtle);
   color: var(--ink);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 .group-grid {
@@ -628,7 +637,7 @@ textarea {
   transform: scale(1.06) rotate(-4deg);
 }
 .tile-icon.peach {
-  background: var(--peach);
+  background: var(--warning-bg);
 }
 .empty-state {
   text-align: center;
@@ -645,7 +654,7 @@ textarea {
   gap: var(--space-2);
   color: var(--muted);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
   margin-left: -8px;
   border-radius: var(--radius-sm);
@@ -716,7 +725,7 @@ textarea {
   width: 38px;
   height: 38px;
   border-radius: var(--radius-sm);
-  background: var(--lime);
+  background: var(--color-primary-soft);
   color: var(--ink);
   display: grid;
   place-items: center;
@@ -766,14 +775,14 @@ textarea {
 }
 .invite-code-label {
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--muted);
 }
 .invite-code {
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   letter-spacing: 2px;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
@@ -784,9 +793,9 @@ textarea {
   padding: var(--space-2) var(--space-4);
 }
 .copy-invite-btn.is-copied {
-  background: var(--forest);
+  background: var(--color-primary);
   color: #fff;
-  border-color: var(--forest);
+  border-color: var(--color-primary);
 }
 .btn-morph-content {
   display: inline-flex;
@@ -812,7 +821,7 @@ textarea {
   display: grid;
   place-items: center;
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   transition: transform 180ms var(--ease-out);
 }
 .avatar-stack span:hover {
@@ -820,7 +829,7 @@ textarea {
   z-index: 2;
 }
 .avatar-stack span:nth-child(even) {
-  background: var(--peach);
+  background: var(--warning-bg);
 }
 .content-columns {
   display: grid;
@@ -897,13 +906,13 @@ textarea {
     transform 200ms var(--ease-out);
 }
 .event-card:hover .date-tile {
-  background: var(--lime);
+  background: var(--color-primary-soft);
   border-color: var(--color-primary);
   transform: scale(1.04) rotate(-2deg);
 }
 .date-tile span {
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 1.2px;
   color: var(--muted);
@@ -915,7 +924,7 @@ textarea {
 .date-tile strong {
   font-size: var(--text-2xl);
   line-height: 1.2;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
@@ -930,7 +939,7 @@ textarea {
 }
 .event-hero:hover .date-tile-lg {
   transform: rotate(-3deg) scale(1.04);
-  background: var(--lime);
+  background: var(--color-primary-soft);
   border-color: var(--color-primary);
 }
 .date-tile-lg span {
@@ -983,7 +992,7 @@ textarea {
     transform 200ms var(--ease-out);
 }
 .event-card:hover .event-arrow-pill {
-  background: var(--forest);
+  background: var(--color-primary);
   color: #ffffff;
   transform: translate(2px, -2px) scale(1.06);
 }
@@ -998,7 +1007,7 @@ textarea {
   color: var(--accent-text);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-full);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 .status-beacon {
   width: 6px;
@@ -1049,7 +1058,7 @@ textarea {
 }
 .event-tz-pill {
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--muted);
   background: var(--surface-subtle);
   border: 1px solid var(--line);
@@ -1112,14 +1121,14 @@ textarea {
     transform 200ms var(--ease-out);
 }
 .detail-line:hover .detail-icon {
-  background: var(--lime);
+  background: var(--color-primary-soft);
   border-color: var(--color-primary);
   transform: scale(1.06) rotate(-4deg);
 }
 .detail-label {
   display: block;
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--muted);
@@ -1143,7 +1152,7 @@ textarea {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--muted);
@@ -1202,13 +1211,13 @@ textarea {
 }
 .rsvp-form .button {
   width: 100%;
-  min-height: 44px;
+  min-height: var(--control-height);
   padding: var(--space-2) var(--space-3);
   background: var(--surface-subtle);
   color: var(--ink);
   border: 1px solid var(--line);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   transition:
     background-color 180ms var(--ease-out),
     border-color 180ms var(--ease-out),
@@ -1225,9 +1234,9 @@ textarea {
   transform: scale(0.96);
 }
 .rsvp-form.selected .button {
-  background: var(--forest);
+  background: var(--color-primary);
   color: white;
-  border-color: var(--forest);
+  border-color: var(--color-primary);
   box-shadow: 0 6px 14px -4px rgba(32, 56, 43, 0.28);
 }
 .rsvp-form.rsvp-going.selected .button {
@@ -1301,7 +1310,7 @@ textarea {
 }
 .attendance-group h3 {
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -1339,7 +1348,7 @@ textarea {
   border-radius: var(--radius-full);
   padding: var(--space-half) var(--space-2) var(--space-half) var(--space-1);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   animation: morphIn 240ms var(--ease-out) both;
   transition:
     transform 160ms var(--ease-out),
@@ -1353,12 +1362,12 @@ textarea {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--lime);
+  background: var(--color-primary-soft);
   color: var(--ink);
   display: grid;
   place-items: center;
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 hr {
   border: 0;
@@ -1437,7 +1446,7 @@ hr {
     display: none;
   }
   .auth-story .eyebrow {
-    font-size: 9px;
+    font-size: var(--text-xs);
   }
   .auth-panel {
     padding: var(--space-9) var(--space-6) var(--space-12);
