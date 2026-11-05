@@ -58,7 +58,7 @@ select ok(
 
 select throws_ok(
   $$ insert into public.events (group_id, title, starts_at, ends_at, created_by)
-     values ('10000000-0000-0000-0000-000000000001', 'hostile insert', now(), now() + interval '1 hour',
+     values ('10000000-0000-0000-0000-000000000001', 'hostile insert', now() + interval '1 hour', now() + interval '2 hours',
              '99999999-0000-0000-0000-000000000099') $$,
   '42501',
   null,

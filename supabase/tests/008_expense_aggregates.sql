@@ -5,7 +5,7 @@ set local role authenticated;
 
 insert into public.events (id, group_id, title, starts_at, ends_at, created_by)
 values ('80000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001',
-  'Expense regression', now(), now() + interval '1 hour', '00000000-0000-0000-0000-000000000001');
+  'Expense regression', now() + interval '1 hour', now() + interval '2 hours', '00000000-0000-0000-0000-000000000001');
 insert into public.expenses (id, group_id, event_id, description, amount, paid_by, created_by)
 values ('81000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001',
   '80000000-0000-0000-0000-000000000001', 'Dinner', 30,

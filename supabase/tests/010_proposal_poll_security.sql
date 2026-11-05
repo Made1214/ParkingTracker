@@ -1,4 +1,4 @@
-﻿begin;
+begin;
 select plan(16);
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
@@ -19,10 +19,14 @@ select throws_ok($$select public.close_poll((select id from public.polls where e
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
 select lives_ok($$select public.close_poll((select id from public.polls where event_id = '90000000-0000-0000-0000-000000000099'))$$, 'creator closes poll');
 select throws_ok($$select public.cast_vote((select id from public.polls where event_id = '90000000-0000-0000-0000-000000000099'), array[(select id from public.poll_options where label = 'A' and poll_id = (select id from public.polls where event_id = '90000000-0000-0000-0000-000000000099'))])$$, '55000', null, 'cannot vote after close');
+reset role;
 update public.events set status = 'cancelled' where id = '90000000-0000-0000-0000-000000000099';
+set local role authenticated;
 select throws_ok($$select public.create_activity_proposal('90000000-0000-0000-0000-000000000099', 'Idea', '')$$, '55000', null, 'cannot propose to cancelled event');
 select throws_ok($$select public.create_poll('90000000-0000-0000-0000-000000000099', 'Question', array['A','B'], false, now() + interval '1 day')$$, '55000', null, 'cannot create poll for cancelled event');
+reset role;
 update public.events set status = 'finished' where id = '90000000-0000-0000-0000-000000000099';
+set local role authenticated;
 select throws_ok($$select public.create_activity_proposal('90000000-0000-0000-0000-000000000099', 'Idea', '')$$, '55000', null, 'cannot propose to finished event');
 select throws_ok($$select public.create_poll('90000000-0000-0000-0000-000000000099', 'Question', array['A','B'], false, now() + interval '1 day')$$, '55000', null, 'cannot create poll for finished event');
 set constraints all immediate;
