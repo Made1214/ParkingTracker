@@ -1,0 +1,27 @@
+## Summary
+
+<!-- What does this PR do and why? -->
+
+## Changes
+
+<!-- One bullet per change. -->
+
+-
+
+## How to test
+
+<!-- Steps to verify it works. -->
+
+1.
+
+## Notes
+
+<!-- Decisions, risks, or dependencies on other PRs. -->
+
+## Checklist
+
+- [ ] `npm run typecheck`
+- [ ] `npm run lint`
+- [ ] `npm test`
+- [ ] `npm run format:check`
+- [ ] `PLAN.md` updated if a phase was completed or a decision was made
