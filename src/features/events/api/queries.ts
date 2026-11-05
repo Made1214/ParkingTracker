@@ -42,8 +42,9 @@ export async function getEvent(groupId: string, eventId: string) {
     user,
     canManage:
       (data.created_by === user.id || membership?.role === "admin") &&
-      data.status === "published" &&
-      Date.parse(data.starts_at) > Date.now(),
+      (data.status === "draft" ||
+        (data.status === "published" &&
+          Date.parse(data.starts_at) > Date.now())),
     canRespond:
       data.status === "published" && Date.parse(data.starts_at) > Date.now(),
   };

@@ -9,6 +9,7 @@ export function ActionForm({
   className,
   disabled,
   hideSubmit,
+  secondary,
 }: {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
   children?: ReactNode;
@@ -16,6 +17,7 @@ export function ActionForm({
   className?: string;
   disabled?: boolean;
   hideSubmit?: boolean;
+  secondary?: ReactNode;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   return (
@@ -40,6 +42,7 @@ export function ActionForm({
           {pending ? "Guardando…" : label}
         </Button>
       )}
+      {secondary}
     </form>
   );
 }

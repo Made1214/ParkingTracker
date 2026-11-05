@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
-import { updateEvent, cancelEvent } from "../api/actions";
+import { updateEvent, cancelEvent, publishEvent } from "../api/actions";
 
 function panamaDate(value: string) {
   const date = new Date(Date.parse(value) - 5 * 60 * 60 * 1000);
@@ -21,6 +21,7 @@ export function ManageEvent({
     location: string | null;
     starts_at: string;
     ends_at: string;
+    status: "draft" | "published" | "cancelled" | "finished";
   };
 }) {
   const [title, setTitle] = useState(event.title);
@@ -30,6 +31,12 @@ export function ManageEvent({
   const [end, setEnd] = useState(() => panamaDate(event.ends_at));
   return (
     <div className="card form-stack">
+      {event.status === "draft" && (
+        <ActionForm action={publishEvent} label="Publicar evento">
+          <input type="hidden" name="event_id" value={event.id} />
+          <input type="hidden" name="group_id" value={event.group_id} />
+        </ActionForm>
+      )}
       <details>
         <summary>Editar evento</summary>
         <ActionForm action={updateEvent} label="Guardar cambios">
@@ -96,16 +103,18 @@ export function ManageEvent({
           </label>
         </ActionForm>
       </details>
-      <details>
-        <summary>Cancelar evento</summary>
-        <p className="small muted">
-          El evento dejará de aceptar respuestas y aparecerá como cancelado.
-        </p>
-        <ActionForm action={cancelEvent} label="Confirmar cancelación">
-          <input type="hidden" name="event_id" value={event.id} />
-          <input type="hidden" name="group_id" value={event.group_id} />
-        </ActionForm>
-      </details>
+      {event.status === "published" && (
+        <details>
+          <summary>Cancelar evento</summary>
+          <p className="small muted">
+            El evento dejará de aceptar respuestas y aparecerá como cancelado.
+          </p>
+          <ActionForm action={cancelEvent} label="Confirmar cancelación">
+            <input type="hidden" name="event_id" value={event.id} />
+            <input type="hidden" name="group_id" value={event.group_id} />
+          </ActionForm>
+        </details>
+      )}
     </div>
   );
 }

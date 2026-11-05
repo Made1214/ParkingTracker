@@ -136,14 +136,14 @@ export async function EventScreen({
             <PollsPanel
               groupId={groupId}
               eventId={eventId}
-              open={event.status !== "finished" && event.status !== "cancelled"}
+              open={event.status === "published"}
             />
           </Suspense>
           <Suspense fallback={<PanelSkeleton label="propuestas" />}>
             <ProposalsPanel
               groupId={groupId}
               eventId={eventId}
-              open={event.status !== "finished" && event.status !== "cancelled"}
+              open={event.status === "published"}
             />
           </Suspense>
         </div>
@@ -153,9 +153,7 @@ export async function EventScreen({
           <TasksPanel
             groupId={groupId}
             eventId={eventId}
-            readOnly={
-              event.status === "finished" || event.status === "cancelled"
-            }
+            readOnly={event.status !== "published"}
           />
         </Suspense>
       )}
