@@ -8,7 +8,7 @@ describe("auth redirect destination", () => {
     "/\nLocation: evil",
     null,
   ])("rejects external or malformed target %s", (target) => {
-    expect(safeNext(target)).toBe("/groups");
+    expect(safeNext(target)).toBe("/");
   });
   it("preserves a private invitation through sign in", () => {
     expect(safeNext("/join/ABCD1234")).toBe("/join/ABCD1234");
