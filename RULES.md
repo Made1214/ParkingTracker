@@ -8,7 +8,7 @@ Reglas de trabajo del proyecto. Aplican a personas y agentes. Complementan [AGEN
 2. No trabajar ni hacer commits directamente en `main`. Crear o continuar una rama `tipo/descripcion-corta` en kebab-case; por ejemplo `feat/…`, `fix/…`, `docs/…`.
 3. Mantener los cambios relacionados en commits lógicos. Usar Conventional Commits **en inglés** para el título, por ejemplo `feat(home): improve the home screen`. Tipos permitidos: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`. Todo commit lleva además una descripción (ver [Descripciones](#descripciones)).
 4. Antes de terminar, ejecutar `pnpm typecheck`, `pnpm lint`, `pnpm test` y `pnpm format:check`.
-5. Publicar la rama y abrir o actualizar un PR dirigido a `main`, con su descripción (ver [Descripciones](#descripciones)). El dueño revisa y fusiona el PR.
+5. Presentar los cambios locales al dueño para su revisión. No hacer push de la rama ni abrir o actualizar un PR hasta que el dueño revise los cambios y autorice explícitamente su publicación al remoto. Una vez autorizado, publicar la rama y abrir o actualizar un PR dirigido a `main`, con su descripción (ver [Descripciones](#descripciones)). El dueño revisa y fusiona el PR.
 6. No editar migraciones existentes: cada cambio de esquema es un archivo SQL nuevo en `supabase/migrations/` (ver [CLAUDE.md](CLAUDE.md)).
 7. Actualizar `PLAN.md` cuando se complete una fase o haya decisiones nuevas.
 
