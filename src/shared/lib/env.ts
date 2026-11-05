@@ -1,10 +1,12 @@
 export function publicEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (!url || !key || !appUrl) {
     throw new Error(
-      "Faltan NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY o NEXT_PUBLIC_APP_URL. Copia .env.example a .env.local.",
+      "Faltan NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY (o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) o NEXT_PUBLIC_APP_URL. Copia .env.example a .env.local.",
     );
   }
   for (const value of [url, appUrl]) {
