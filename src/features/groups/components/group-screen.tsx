@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { EventList, CreateEventForm } from "@/features/events";
 import { publicEnv } from "@/shared/lib/env";
 import { getGroup } from "../api/queries";
 import { InviteCard } from "./invite-card";
@@ -28,6 +29,17 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
         </div>
       </div>
       <InviteCard code={group.invite_code} appUrl={publicEnv().appUrl} />
+      <div className="content-columns">
+        <section>
+          <div className="section-heading">
+            <h2>Los planes del grupo</h2>
+          </div>
+          <EventList groupId={groupId} />
+        </section>
+        <aside>
+          <CreateEventForm groupId={groupId} />
+        </aside>
+      </div>
     </>
   );
 }
