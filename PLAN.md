@@ -26,7 +26,6 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 
 ## Notas
 
-- Las migraciones `024` y `025` están escritas pero aún no se han verificado en Staging ni desplegado.
-- Producción contiene `000`–`023`. Verificar el historial remoto antes de promover nuevas migraciones.
-
-- US-06 incorpora encuestas y propuestas; la migraci?n `026` requiere verificaci?n en Staging y coordinaci?n con otras ramas antes de desplegarse.
+- Staging tiene registradas las migraciones `000`–`026` y `20261105052540_secure_task_access_guards`. Una prueba transaccional verificó la creación, votación y cierre de una encuesta, además de la creación de una tarea. La suite completa sigue pendiente: pgTAP no está disponible en ese entorno.
+- La suite local de base de datos pasó con estas migraciones; esto no sustituye la verificación de Staging.
+- Producción estaba pausada en la última revisión y su historial no se pudo verificar. Confirmarlo antes de promover nuevas migraciones.
