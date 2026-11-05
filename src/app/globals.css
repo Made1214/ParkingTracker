@@ -1,16 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #20382b;
-  --muted: #707b72;
-  --paper: #f8f9f4;
-  --line: #e0e5da;
-  --lime: #dcf37c;
-  --forest: #233c2d;
-  --peach: #f5dcca;
+  --color-primary: #0f766e;
+  --color-primary-hover: #115e59;
+  --color-primary-deep: #134e4a;
+  --color-primary-soft: #ccfbf1;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+  --ink: #1e293b;
+  --muted: #475569;
+  --paper: #f8fafc;
+  --line: #e2e8f0;
+  /* Legacy aliases keep existing screens and task styles on the same palette. */
+  --lime: var(--color-primary-soft);
+  --forest: var(--color-primary);
+  --peach: #fef3c7;
   --surface: #ffffff;
-  --surface-subtle: #f2f5ec;
-  --surface-tint: #ecf1e1;
+  --surface-subtle: #f1f5f9;
+  --surface-tint: #f0fdfa;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 * {
@@ -58,7 +66,7 @@ a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid #7a9636;
+  outline: 3px solid var(--color-primary);
   outline-offset: 4px;
 }
 button {
@@ -161,7 +169,7 @@ label {
     transform 160ms var(--ease-out);
 }
 .button:hover:not(:disabled) {
-  background: #38563e;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
 }
 .button:active:not(:disabled) {
@@ -230,7 +238,7 @@ textarea {
   grid-template-columns: 1.05fr 1fr;
 }
 .auth-story {
-  background: var(--forest);
+  background: var(--color-primary-deep);
   color: #f9faef;
   padding: 44px 8%;
   display: flex;
@@ -1127,14 +1135,19 @@ textarea {
   animation: morphIn 220ms var(--ease-out) both;
 }
 .rsvp-current-pill.status-going {
-  background: #e8efcf;
-  border-color: #cfe0a2;
-  color: #2d471a;
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
 }
 .rsvp-current-pill.status-maybe {
-  background: #f6eadc;
-  border-color: #ead1b7;
-  color: #6b4423;
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+.rsvp-current-pill.status-declined {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
 }
 .rsvp-options {
   display: grid;
@@ -1178,10 +1191,16 @@ textarea {
   box-shadow: 0 6px 14px -4px rgba(32, 56, 43, 0.28);
 }
 .rsvp-form.rsvp-going.selected .button {
-  background: var(--forest);
-  box-shadow:
-    0 0 0 2px var(--lime),
-    0 6px 14px -4px rgba(32, 56, 43, 0.28);
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+.rsvp-form.rsvp-maybe.selected .button {
+  background: var(--color-warning);
+  border-color: var(--color-warning);
+}
+.rsvp-form.rsvp-declined.selected .button {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
 }
 .rsvp-form .message {
   display: none;
@@ -1204,13 +1223,13 @@ textarea {
   border-radius: 999px;
 }
 .seg-going {
-  background: #4e7a27;
+  background: var(--color-success);
 }
 .seg-maybe {
-  background: #d89b56;
+  background: var(--color-warning);
 }
 .seg-declined {
-  background: #b9bab4;
+  background: var(--color-danger);
 }
 .rsvp-meter-caption {
   display: flex;
@@ -1257,10 +1276,13 @@ textarea {
   background: #b9bab4;
 }
 .group-going .group-status-dot {
-  background: #4e7a27;
+  background: var(--color-success);
 }
 .group-maybe .group-status-dot {
-  background: #d89b56;
+  background: var(--color-warning);
+}
+.group-declined .group-status-dot {
+  background: var(--color-danger);
 }
 .attendance-group p {
   margin-top: 6px;
