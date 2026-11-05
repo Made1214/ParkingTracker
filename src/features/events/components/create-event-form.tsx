@@ -10,14 +10,18 @@ export function CreateEventForm({ groupId }: { groupId: string }) {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   return (
-    <Card>
-      <span className="tile-icon">
-        <CalendarPlus size={20} />
-      </span>
-      <h2>Arma el próximo plan</h2>
-      <p className="muted small">
-        Ponle fecha. Tu grupo se encarga de la compañía.
-      </p>
+    <Card className="create-event-card">
+      <div className="card-header-inline">
+        <span className="tile-icon">
+          <CalendarPlus size={19} />
+        </span>
+        <div>
+          <h2>Arma el próximo plan</h2>
+          <p className="muted small">
+            Ponle fecha. Tu grupo se encarga de la compañía.
+          </p>
+        </div>
+      </div>
       <ActionForm action={createEvent} label="Publicar evento">
         <input name="group_id" type="hidden" value={groupId} />
         <label>
@@ -37,25 +41,27 @@ export function CreateEventForm({ groupId }: { groupId: string }) {
             placeholder="Lugar o punto de encuentro"
           />
         </label>
-        <label>
-          Inicio · hora de Panamá
-          <Input
-            type="datetime-local"
-            required
-            value={start}
-            onChange={(event) => setStart(event.target.value)}
-          />
-        </label>
-        <label>
-          Fin · hora de Panamá
-          <Input
-            type="datetime-local"
-            required
-            min={start}
-            value={end}
-            onChange={(event) => setEnd(event.target.value)}
-          />
-        </label>
+        <div className="date-field-grid">
+          <label>
+            Inicio · hora de Panamá
+            <Input
+              type="datetime-local"
+              required
+              value={start}
+              onChange={(event) => setStart(event.target.value)}
+            />
+          </label>
+          <label>
+            Fin · hora de Panamá
+            <Input
+              type="datetime-local"
+              required
+              min={start}
+              value={end}
+              onChange={(event) => setEnd(event.target.value)}
+            />
+          </label>
+        </div>
         <input
           type="hidden"
           name="starts_at"

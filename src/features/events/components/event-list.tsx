@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, MapPin, CalendarDays } from "lucide-react";
+import { ArrowUpRight, MapPin, CalendarDays, Clock } from "lucide-react";
 import { dateLabel } from "@/shared/lib/utils";
 import { listEvents } from "../api/queries";
 export const statusLabels = {
@@ -22,11 +22,12 @@ export async function EventList({ groupId }: { groupId: string }) {
     );
   return (
     <div className="event-list">
-      {events.map((event) => (
+      {events.map((event, index) => (
         <Link
           className="event-card"
           key={event.id}
           href={`/groups/${groupId}/events/${event.id}`}
+          style={{ animationDelay: `${index * 55}ms` }}
         >
           <div className="date-tile">
             <span>
@@ -43,19 +44,31 @@ export async function EventList({ groupId }: { groupId: string }) {
             </strong>
           </div>
           <div className="event-info">
-            <span className={`badge badge-${event.status}`}>
-              {statusLabels[event.status]}
-            </span>
+            <div className="event-meta-top">
+              <span className={`badge badge-${event.status}`}>
+                {event.status === "published" && (
+                  <span className="status-beacon" aria-hidden="true" />
+                )}
+                {statusLabels[event.status]}
+              </span>
+              <span className="event-time">
+                <Clock size={12} />
+                {dateLabel(event.starts_at)}
+              </span>
+            </div>
             <h3>{event.title}</h3>
-            <p className="small muted">{dateLabel(event.starts_at)}</p>
-            {event.location && (
+            {event.location ? (
               <p className="small muted location">
                 <MapPin size={13} />
-                {event.location}
+                <span>{event.location}</span>
               </p>
+            ) : (
+              <p className="small muted">Ubicación por definir</p>
             )}
           </div>
-          <ArrowUpRight className="event-arrow" size={21} />
+          <span className="event-arrow-pill" aria-hidden="true">
+            <ArrowUpRight className="event-arrow" size={18} />
+          </span>
         </Link>
       ))}
     </div>
