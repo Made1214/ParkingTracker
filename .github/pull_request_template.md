@@ -20,8 +20,8 @@
 
 ## Checklist
 
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] `npm test`
-- [ ] `npm run format:check`
+- [ ] `pnpm typecheck`
+- [ ] `pnpm lint`
+- [ ] `pnpm test`
+- [ ] `pnpm format:check`
 - [ ] `PLAN.md` updated if a phase was completed or a decision was made

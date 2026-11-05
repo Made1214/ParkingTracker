@@ -4,7 +4,7 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 
 ## Decisiones
 
-- Next.js (App Router) + Supabase (Postgres, Auth, RLS). Gestor de paquetes: **npm**.
+- Next.js (App Router) + Supabase (Postgres, Auth, RLS). Gestor de paquetes: **pnpm**.
 - Esquema mediante migraciones SQL inmutables (`supabase/migrations`). Sin Drizzle.
 - Cada grupo es un tenant; RLS es la autoridad de autorización. Solo clave pública + JWT del usuario en la app; nunca clave de servicio.
 - Estructura: `src/app` (rutas delgadas), `src/features/<modulo>` (API pública en `index.ts`), `src/shared` (UI, utilidades, clientes Supabase).
@@ -15,8 +15,8 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 | #   | Fase                                                                                     | Rama                  | Estado      |
 | --- | ---------------------------------------------------------------------------------------- | --------------------- | ----------- |
 | 0   | Base de datos (migraciones 000–023, RLS, pgTAP)                                          | — (en `main`)         | Hecho       |
-| 1   | Scaffold de la app (tooling, shell)                                                      | `chore/scaffold-base` | En revisión |
-| 2   | Módulo login (registro, sesión, Google)                                                  | `feat/auth-login`     | Pendiente   |
+| 1   | Scaffold de la app (tooling, shell)                                                      | `chore/scaffold-base` | Hecho       |
+| 2   | Módulo login (registro, sesión, Google)                                                  | `feat/auth-login`     | En revisión |
 | 3   | Módulo grupos (crear, invitar, unirse)                                                   | `feat/groups`         | Pendiente   |
 | 4   | Módulo eventos + RSVP                                                                    | `feat/events-rsvp`    | Pendiente   |
 | 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)                             | `feat/db-024-025`     | Pendiente   |

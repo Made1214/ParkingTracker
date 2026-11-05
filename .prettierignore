@@ -1,6 +1,6 @@
 .next
 node_modules
-package-lock.json
+pnpm-lock.yaml
 supabase/database.types.ts
 src/shared/supabase/types.generated.ts
 playwright-report

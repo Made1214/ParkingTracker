@@ -9,7 +9,7 @@ export function safeNext(value: unknown) {
     !value.startsWith("//") &&
     !/[\\\r\n]/.test(value)
     ? value
-    : "/groups";
+    : "/";
 }
 export function dateLabel(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
