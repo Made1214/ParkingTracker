@@ -29,9 +29,21 @@ export async function getEvent(groupId: string, eventId: string) {
     .maybeSingle();
   if (error) throw new Error("No se pudo cargar el evento.");
   if (!data) notFound();
+  const { data: membership, error: membershipError } = await supabase
+    .from("group_members")
+    .select("role")
+    .eq("group_id", groupId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (membershipError)
+    throw new Error("No se pudieron comprobar los permisos del evento.");
   return {
     event: data,
     user,
+    canManage:
+      (data.created_by === user.id || membership?.role === "admin") &&
+      data.status === "published" &&
+      Date.parse(data.starts_at) > Date.now(),
     canRespond:
       data.status === "published" && Date.parse(data.starts_at) > Date.now(),
   };
