@@ -1,0 +1,30 @@
+# Sistema de diseño
+
+La interfaz usa Inter, una paleta teal con temas claro y oscuro, y los tokens CSS
+compartidos de `src/app/design-tokens.css` y `src/app/globals.css`.
+
+## Escalas
+
+- **Espaciado:** `--space-1` equivale a 4 px y cada paso aumenta 4 px. Para
+  detalles pequeños existen `--space-px` y `--space-half` (2 px). Usa los
+  tokens en márgenes, rellenos y separaciones.
+- **Tipografía:** `--text-xs` a `--text-9xl` definen tamaños desde 12 px hasta
+  72 px. Usa `--text-sm` para texto secundario, `--text-base` para el cuerpo y
+  los tamaños mayores para títulos. Los títulos fluidos pueden usar `clamp`.
+- **Radios:** `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl` y
+  `--radius-full` cubren controles, tarjetas y elementos redondos.
+- **Sombras:** `--shadow-sm` y `--shadow-md` son las elevaciones compartidas.
+- **Colores:** usa los tokens semánticos de texto, superficie, borde, foco y
+  estados de `globals.css`; `.dark` cambia los valores para el modo oscuro.
+
+## Componentes
+
+Reutiliza `Button`, `Card`, `Input` y `ActionForm` de `src/shared/ui`. Los
+estilos de una pantalla o función se mantienen en su CSS Module; las reglas
+existentes de `globals.css` se migran gradualmente. Los controles interactivos
+deben conservar foco visible, etiquetas, estados de error y tamaños táctiles.
+
+El proyecto está configurado para shadcn/ui. Es una colección de componentes
+cuyo código se incorpora al proyecto y se puede adaptar; no obliga a reemplazar
+un componente funcional. Al añadir componentes, adáptalos a estos tokens y
+comprueba su accesibilidad y comportamiento en ambos temas.
