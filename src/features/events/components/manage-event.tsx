@@ -23,6 +23,9 @@ export function ManageEvent({
     ends_at: string;
   };
 }) {
+  const [title, setTitle] = useState(event.title);
+  const [location, setLocation] = useState(event.location ?? "");
+  const [description, setDescription] = useState(event.description ?? "");
   const [start, setStart] = useState(() => panamaDate(event.starts_at));
   const [end, setEnd] = useState(() => panamaDate(event.ends_at));
   return (
@@ -36,7 +39,8 @@ export function ManageEvent({
             Título
             <Input
               name="title"
-              defaultValue={event.title}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={120}
             />
@@ -45,7 +49,8 @@ export function ManageEvent({
             Lugar
             <Input
               name="location"
-              defaultValue={event.location ?? ""}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               maxLength={200}
             />
           </label>
@@ -83,7 +88,8 @@ export function ManageEvent({
             <textarea
               className="input"
               name="description"
-              defaultValue={event.description ?? ""}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={3}
               maxLength={5000}
             />
