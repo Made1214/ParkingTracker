@@ -72,6 +72,27 @@ supabase test db # runs the full suite — Result: PASS (29/29) as of last run
 supabase stop
 ```
 
+## CI and end-to-end tests
+
+The CI workflow runs quality checks, pgTAP and Playwright as separate jobs on
+pull requests and pushes to `main`. Repository branch protection must require
+the `quality`, `database` and `e2e` checks to prevent merging on failure.
+
+To run the browser test locally, start the local Supabase stack with
+`pnpm db:start`, set `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` from `pnpm exec supabase status`, and set
+`NEXT_PUBLIC_APP_URL=http://127.0.0.1:3100`. Then run:
+
+```sh
+pnpm exec playwright install chromium
+pnpm build
+pnpm test:e2e
+```
+
+Playwright starts the production server on port 3100. The test creates two
+unique local users, groups and an event, and leaves those records in the local
+database. It rejects non-local Supabase URLs; use a disposable local stack.
+
 ## Media (gallery photos)
 
 Event gallery photos (PRD US-08) are hosted on **Cloudinary**, not

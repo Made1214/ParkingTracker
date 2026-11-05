@@ -20,10 +20,12 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 | 3   | Módulo grupos (crear, invitar, unirse)                                                   | `feat/groups`         | Hecho       |
 | 4   | Módulo eventos + RSVP                                                                    | `feat/events-rsvp`    | Hecho       |
 | 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)                             | `feat/db-024-025`     | En revisión |
-| 6   | CI y pruebas E2E (Playwright)                                                            | `chore/ci-e2e`        | Pendiente   |
+| 6   | CI y pruebas E2E (Playwright)                                                            | `chore/ci-e2e`        | En revisión |
 | 7   | Resto de módulos del PRD (propuestas, gastos, tareas, galería, historial, Realtime, PWA) | —                     | Pendiente   |
 
 ## Notas
 
 - Las migraciones `024` y `025` están escritas pero aún no se han verificado en Staging ni desplegado.
 - Producción contiene `000`–`023`. Verificar el historial remoto antes de promover nuevas migraciones.
+- CI requiere configurar los trabajos `quality`, `database` y `e2e` como comprobaciones obligatorias en la protección de `main`; el workflow por sí solo no bloquea la fusión.
+- La decisión sobre TDD estricto se tomará cuando los tres tipos de pruebas estén verdes en CI.
