@@ -1,0 +1,22 @@
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.control select {
+  min-height: 40px;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+.control select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}

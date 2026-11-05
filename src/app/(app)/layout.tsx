@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Compass, LogOut } from "lucide-react";
 import { logout } from "@/features/auth";
 import { Button } from "@/shared/ui/button";
+import { ThemeSelect } from "@/shared/ui/theme-select";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
@@ -10,11 +11,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <span className="brand-icon">p.</span>parking tracker
         </Link>
         <nav aria-label="Principal">
+          <ThemeSelect />
           <Link href="/groups">
             <Compass size={18} /> Mis grupos
           </Link>
           <form action={logout}>
-            <Button variant="ghost" type="submit">
+            <Button variant="ghost" type="submit" aria-label="Cerrar sesión">
               <LogOut size={17} />
               <span>Salir</span>
             </Button>
