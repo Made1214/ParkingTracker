@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, MapPin, AlignLeft } from "lucide-react";
 import { AttendancePanel } from "@/features/rsvp";
@@ -122,25 +123,50 @@ export async function EventScreen({
       )}
       {activeSection === "votaciones" && (
         <div className={styles.panels}>
-          <PollsPanel
-            groupId={groupId}
-            eventId={eventId}
-            open={event.status !== "finished" && event.status !== "cancelled"}
-          />
-          <ProposalsPanel
-            groupId={groupId}
-            eventId={eventId}
-            open={event.status !== "finished" && event.status !== "cancelled"}
-          />
+          <Suspense fallback={<PanelSkeleton label="votaciones" />}>
+            <PollsPanel
+              groupId={groupId}
+              eventId={eventId}
+              open={event.status !== "finished" && event.status !== "cancelled"}
+            />
+          </Suspense>
+          <Suspense fallback={<PanelSkeleton label="propuestas" />}>
+            <ProposalsPanel
+              groupId={groupId}
+              eventId={eventId}
+              open={event.status !== "finished" && event.status !== "cancelled"}
+            />
+          </Suspense>
         </div>
       )}
       {activeSection === "tareas" && (
-        <TasksPanel
-          groupId={groupId}
-          eventId={eventId}
-          readOnly={event.status === "finished" || event.status === "cancelled"}
-        />
+        <Suspense fallback={<PanelSkeleton label="tareas" />}>
+          <TasksPanel
+            groupId={groupId}
+            eventId={eventId}
+            readOnly={
+              event.status === "finished" || event.status === "cancelled"
+            }
+          />
+        </Suspense>
       )}
     </>
+  );
+}
+
+function PanelSkeleton({ label }: { label: string }) {
+  return (
+    <div
+      className={styles.skeleton}
+      role="status"
+      aria-label={`Cargando ${label}`}
+    >
+      <span className="sr-only">Cargando {label}...</span>
+      <div aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+    </div>
   );
 }

@@ -8,16 +8,22 @@ export function ActionForm({
   label,
   className,
   disabled,
+  hideSubmit,
 }: {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
   children?: ReactNode;
   label: string;
   className?: string;
   disabled?: boolean;
+  hideSubmit?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <form action={formAction} className={className ?? "form-stack"}>
+    <form
+      action={formAction}
+      className={className ?? "form-stack"}
+      aria-busy={pending}
+    >
       {children}
       {state.error && (
         <p role="alert" className="message error">
@@ -29,9 +35,11 @@ export function ActionForm({
           {state.success}
         </p>
       )}
-      <Button disabled={pending || disabled} type="submit">
-        {pending ? "Guardando…" : label}
-      </Button>
+      {!hideSubmit && (
+        <Button disabled={pending || disabled} type="submit">
+          {pending ? "Guardando…" : label}
+        </Button>
+      )}
     </form>
   );
 }
