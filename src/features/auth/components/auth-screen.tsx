@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Users, Check } from "lucide-react";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
+import { ThemeSelect } from "@/shared/ui/theme-select";
 import { login, register, googleLogin } from "../api/actions";
 export function AuthScreen({
   mode,
@@ -47,6 +48,7 @@ export function AuthScreen({
       </section>
       <section className="auth-panel">
         <div className="auth-box">
+          <ThemeSelect />
           <span className="eyebrow">
             EL PRÓXIMO PLAN TE ESPERA <ArrowUpRight size={15} />
           </span>

@@ -8,6 +8,7 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 - Esquema mediante migraciones SQL inmutables (`supabase/migrations`). Sin Drizzle.
 - Cada grupo es un tenant; RLS es la autoridad de autorización. Solo clave pública + JWT del usuario en la app; nunca clave de servicio.
 - Estructura: `src/app` (rutas delgadas), `src/features/<modulo>` (API pública en `index.ts`), `src/shared` (UI, utilidades, clientes Supabase).
+- Sistema visual: tokens compartidos de color, espaciado, tipografía, radios y sombras; ver [design-system.md](docs/design-system.md).
 - Desarrollo **por módulos**, una rama y un PR por módulo.
 
 ## Fases

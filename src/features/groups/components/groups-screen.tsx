@@ -5,6 +5,7 @@ import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
 import { listGroups } from "../api/queries";
 import { createGroup, joinGroup } from "../api/actions";
+import { UpcomingEvents } from "./upcoming-events";
 export async function GroupsScreen() {
   const { groups, user } = await listGroups();
   const name = String(user.user_metadata.full_name ?? "").split(" ")[0];
@@ -26,6 +27,7 @@ export async function GroupsScreen() {
           ↗
         </span>
       </div>
+      <UpcomingEvents />
       <div className="section-heading">
         <h2>
           Mis grupos <span className="count">{groups.length}</span>

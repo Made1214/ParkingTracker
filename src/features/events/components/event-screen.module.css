@@ -1,0 +1,65 @@
+.sections {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  margin: var(--space-6) 0;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.sections a {
+  flex: 0 0 auto;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  color: var(--muted);
+  font-weight: var(--weight-semibold);
+}
+
+.panels {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.sections a:hover {
+  background: var(--surface-tint);
+  color: var(--accent-text);
+}
+
+.sections a[aria-current="page"] {
+  color: var(--accent-text);
+  box-shadow: inset 0 -3px var(--color-primary);
+}
+
+.skeleton {
+  padding: var(--space-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+.skeleton > div {
+  display: grid;
+  gap: var(--space-3);
+}
+.skeleton span:not(:global(.sr-only)) {
+  display: block;
+  height: 1rem;
+  border-radius: var(--radius-full);
+  background: var(--surface-subtle);
+}
+.skeleton span:nth-child(1) {
+  width: 40%;
+  height: 1.5rem;
+}
+.skeleton span:nth-child(2) {
+  width: 80%;
+}
+.skeleton span:nth-child(3) {
+  width: 60%;
+}
+
+@media (min-width: 1000px) {
+  .panels {
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+    align-items: start;
+  }
+}

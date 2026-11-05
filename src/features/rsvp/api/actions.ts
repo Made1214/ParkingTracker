@@ -32,5 +32,6 @@ export async function respond(
   revalidatePath(
     `/groups/${parsed.data.group_id}/events/${parsed.data.event_id}`,
   );
+  revalidatePath("/groups");
   return { success: "Tu respuesta quedó guardada." };
 }

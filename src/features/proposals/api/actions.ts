@@ -75,7 +75,7 @@ export async function createPoll(
   });
   if (error) return { error: databaseError(error.code) };
   revalidatePath(`/groups/${groupId}/events/${eventId}`);
-  return { success: "Votaci?n creada." };
+  return { success: "Votación creada." };
 }
 
 export async function vote(
@@ -93,7 +93,7 @@ export async function vote(
     ) ||
     !options.length
   )
-    return { error: "Selecciona una opci?n v?lida." };
+    return { error: "Selecciona una opción válida." };
   const { error } = await supabase.rpc("cast_vote", {
     p_poll_id: pollId,
     p_option_ids: options,
@@ -102,11 +102,11 @@ export async function vote(
     return {
       error:
         error.code === "55000"
-          ? "La votaci?n est? cerrada."
+          ? "La votación está cerrada."
           : databaseError(error.code),
     };
   revalidatePath(`/groups/${groupId}/events/${eventId}`);
-  return { success: "Tu voto qued? guardado." };
+  return { success: "Tu voto quedó guardado." };
 }
 
 export async function closePoll(
@@ -118,9 +118,9 @@ export async function closePoll(
     groupId = text(form, "group_id"),
     eventId = text(form, "event_id");
   if (![pollId, groupId, eventId].every((x) => z.uuid().safeParse(x).success))
-    return { error: "Votaci?n inv?lida." };
+    return { error: "Votación inválida." };
   const { error } = await supabase.rpc("close_poll", { p_poll_id: pollId });
   if (error) return { error: databaseError(error.code) };
   revalidatePath(`/groups/${groupId}/events/${eventId}`);
-  return { success: "Votaci?n cerrada." };
+  return { success: "Votación cerrada." };
 }
