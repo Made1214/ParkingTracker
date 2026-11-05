@@ -17,14 +17,14 @@
   background: var(--surface);
 }
 .event h3 a:hover {
-  color: var(--color-primary);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 .event p {
   margin-top: 4px;
 }
 .group {
-  color: var(--color-primary-hover);
+  color: var(--accent-text);
   font-size: 12px;
   font-weight: 700;
 }
