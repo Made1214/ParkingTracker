@@ -1,0 +1,11 @@
+.next
+node_modules
+package-lock.json
+supabase/database.types.ts
+src/shared/supabase/types.generated.ts
+playwright-report
+test-results
+README.md
+CLAUDE.md
+docs
+openspec
