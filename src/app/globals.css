@@ -1202,9 +1202,6 @@ textarea {
   background: var(--color-danger);
   border-color: var(--color-danger);
 }
-.rsvp-form .message {
-  display: none;
-}
 .rsvp-meter-wrap {
   margin-top: 12px;
 }
