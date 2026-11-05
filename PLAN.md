@@ -18,8 +18,8 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 | 1   | Scaffold de la app (tooling, shell)                                                      | `chore/scaffold-base` | Hecho       |
 | 2   | Módulo login (registro, sesión, Google)                                                  | `feat/auth-login`     | Hecho       |
 | 3   | Módulo grupos (crear, invitar, unirse)                                                   | `feat/groups`         | Hecho       |
-| 4   | Módulo eventos + RSVP                                                                    | `feat/events-rsvp`    | En revisión |
-| 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)                             | `feat/db-024-025`     | Pendiente   |
+| 4   | Módulo eventos + RSVP                                                                    | `feat/events-rsvp`    | Hecho       |
+| 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)                             | `feat/db-024-025`     | En revisión |
 | 6   | CI y pruebas E2E (Playwright)                                                            | `chore/ci-e2e`        | Pendiente   |
 | 7   | Resto de módulos del PRD (propuestas, gastos, tareas, galería, historial, Realtime, PWA) | —                     | Pendiente   |
 
