@@ -27,3 +27,5 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 
 - Las migraciones `024` y `025` están escritas pero aún no se han verificado en Staging ni desplegado.
 - Producción contiene `000`–`023`. Verificar el historial remoto antes de promover nuevas migraciones.
+
+- US-06 incorpora encuestas y propuestas; la migraci?n `026` requiere verificaci?n en Staging y coordinaci?n con otras ramas antes de desplegarse.

@@ -875,6 +875,9 @@ export type Database = {
       }
     }
     Functions: {
+      create_activity_proposal: { Args: { p_event_id: string; p_title: string; p_description: string }; Returns: undefined }
+      create_poll: { Args: { p_event_id: string; p_question: string; p_options: string[]; p_allow_multiple: boolean; p_closes_at: string }; Returns: string }
+      close_poll: { Args: { p_poll_id: string }; Returns: undefined }
       cast_vote: {
         Args: { p_option_ids: string[]; p_poll_id: string }
         Returns: undefined

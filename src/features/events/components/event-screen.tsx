@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, MapPin, AlignLeft } from "lucide-react";
 import { AttendancePanel } from "@/features/rsvp";
+import { ProposalsPanel, PollsPanel } from "@/features/proposals";
 import { TasksPanel } from "@/features/tasks";
 import { Card } from "@/shared/ui/card";
 import { dateLabel } from "@/shared/lib/utils";
@@ -96,6 +97,16 @@ export async function EventScreen({
           open={canRespond}
         />
       </div>
+      <PollsPanel
+        groupId={groupId}
+        eventId={eventId}
+        open={event.status !== "finished" && event.status !== "cancelled"}
+      />
+      <ProposalsPanel
+        groupId={groupId}
+        eventId={eventId}
+        open={event.status !== "finished" && event.status !== "cancelled"}
+      />
       <TasksPanel
         groupId={groupId}
         eventId={eventId}
