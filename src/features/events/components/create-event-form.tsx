@@ -98,7 +98,8 @@ export function CreateEventForm({ groupId }: { groupId: string }) {
           />
         </label>
         <p className="small muted">
-          Los borradores son visibles para los miembros del grupo.
+          Los borradores son visibles para los miembros del grupo. Puedes añadir
+          la portada en el detalle después de guardar.
         </p>
       </ActionForm>
     </Card>

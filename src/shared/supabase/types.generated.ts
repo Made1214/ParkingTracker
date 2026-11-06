@@ -1,10 +1,3 @@
-// Generated via `supabase gen types typescript` against Parking Tracker
-// Staging (xyubdpmdrvaxvtiwbnro). Do NOT hand-edit -- regenerate after
-// every migration (see CLAUDE.md). Once the Next.js app exists, this
-// file's canonical home is src/shared/supabase/types.generated.ts;
-// kept here under supabase/ until that scaffold lands so it has a
-// place to live and can be reviewed alongside the schema it describes.
-
 export type Json =
   | string
   | number
@@ -14,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       activity_proposals: {
@@ -33,6 +21,7 @@ export type Database = {
           title: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           created_by?: string | null
@@ -91,6 +80,7 @@ export type Database = {
           parent_id: string | null
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           author_id?: string | null
           body: string
@@ -98,7 +88,7 @@ export type Database = {
           event_id: string
           group_id: string
           id?: string
-          is_reply?: boolean | null
+          is_reply?: never
           parent_id?: string | null
           updated_at?: string
         }
@@ -109,7 +99,7 @@ export type Database = {
           event_id?: string
           group_id?: string
           id?: string
-          is_reply?: boolean | null
+          is_reply?: never
           parent_id?: string | null
           updated_at?: string
         }
@@ -153,6 +143,7 @@ export type Database = {
           status: Database["public"]["Enums"]["attendance_status"]
           user_id: string
         }
+        ComputedFields: never
         Insert: {
           event_id: string
           group_id: string
@@ -195,6 +186,7 @@ export type Database = {
       }
       events: {
         Row: {
+          cover_public_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -207,7 +199,9 @@ export type Database = {
           title: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
+          cover_public_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -221,6 +215,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_public_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -260,6 +255,7 @@ export type Database = {
           share_amount: number
           user_id: string
         }
+        ComputedFields: never
         Insert: {
           expense_id: string
           group_id: string
@@ -308,6 +304,7 @@ export type Database = {
           paid_by: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           amount: number
           created_at?: string
@@ -370,6 +367,7 @@ export type Database = {
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
         }
+        ComputedFields: never
         Insert: {
           group_id: string
           joined_at?: string
@@ -405,6 +403,7 @@ export type Database = {
           bytes_used: number
           group_id: string
         }
+        ComputedFields: never
         Insert: {
           bytes_quota?: number
           bytes_used?: number
@@ -435,6 +434,7 @@ export type Database = {
           photo_url: string | null
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           created_by?: string | null
@@ -476,6 +476,7 @@ export type Database = {
           uploaded_by: string | null
           width: number | null
         }
+        ComputedFields: never
         Insert: {
           bytes: number
           cloudinary_public_id: string
@@ -532,6 +533,7 @@ export type Database = {
           poll_id: string
           position: number
         }
+        ComputedFields: never
         Insert: {
           group_id: string
           id?: string
@@ -565,6 +567,7 @@ export type Database = {
           poll_id: string
           user_id: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           group_id: string
@@ -618,6 +621,7 @@ export type Database = {
           status: Database["public"]["Enums"]["poll_status"]
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           allow_multiple?: boolean
           closes_at?: string | null
@@ -674,6 +678,7 @@ export type Database = {
           id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           avatar_url?: string | null
           created_at?: string
@@ -704,6 +709,7 @@ export type Database = {
           title: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           created_by?: string | null
@@ -767,6 +773,7 @@ export type Database = {
           title: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           assignee_id?: string | null
           created_at?: string
@@ -826,15 +833,16 @@ export type Database = {
     Views: {
       event_expense_summary: {
         Row: {
-          event_id: string | null
+          event_id: string
           expense_count: number | null
-          group_id: string | null
+          group_id: string
           participant_count: number | null
           settled_amount: number | null
-          starts_at: string | null
-          title: string | null
+          starts_at: string
+          title: string
           total_amount: number | null
         }
+        ComputedFields: never
         Relationships: [
           {
             foreignKeyName: "events_group_id_fkey"
@@ -848,14 +856,15 @@ export type Database = {
       member_participation: {
         Row: {
           attendance_pct: number | null
-          display_name: string | null
+          display_name: string
           events_attended: number | null
           events_declined: number | null
           events_invited: number | null
           events_maybe: number | null
-          group_id: string | null
-          user_id: string | null
+          group_id: string
+          user_id: string
         }
+        ComputedFields: never
         Relationships: [
           {
             foreignKeyName: "group_members_group_id_fkey"
@@ -875,11 +884,13 @@ export type Database = {
       }
     }
     Functions: {
-      create_activity_proposal: { Args: { p_event_id: string; p_title: string; p_description: string }; Returns: undefined }
-      create_poll: { Args: { p_event_id: string; p_question: string; p_options: string[]; p_allow_multiple: boolean; p_closes_at: string }; Returns: string }
-      close_poll: { Args: { p_poll_id: string }; Returns: undefined }
       cast_vote: {
         Args: { p_option_ids: string[]; p_poll_id: string }
+        Returns: undefined
+      }
+      close_poll: { Args: { p_poll_id: string }; Returns: undefined }
+      create_activity_proposal: {
+        Args: { p_description: string; p_event_id: string; p_title: string }
         Returns: undefined
       }
       create_group: {
@@ -899,6 +910,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      create_poll: {
+        Args: {
+          p_allow_multiple: boolean
+          p_closes_at: string
+          p_event_id: string
+          p_options: string[]
+          p_question: string
+        }
+        Returns: string
       }
       get_group_balances: {
         Args: { p_group_id: string }
@@ -965,12 +986,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -992,13 +1013,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1017,13 +1037,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1042,13 +1061,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1061,11 +1079,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

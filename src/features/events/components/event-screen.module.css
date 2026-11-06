@@ -1,3 +1,15 @@
+.cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 28rem;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-xl);
+  background: var(--surface-subtle);
+  margin-top: var(--space-4);
+}
+
 .sections {
   display: flex;
   gap: var(--space-2);

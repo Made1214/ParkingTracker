@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
 import { updateEvent, cancelEvent, publishEvent } from "../api/actions";
+import { updateEventCover } from "../api/cover-actions";
 
 function panamaDate(value: string) {
   const date = new Date(Date.parse(value) - 5 * 60 * 60 * 1000);
@@ -22,6 +23,7 @@ export function ManageEvent({
     starts_at: string;
     ends_at: string;
     status: "draft" | "published" | "cancelled" | "finished";
+    cover_public_id: string | null;
   };
 }) {
   const [title, setTitle] = useState(event.title);
@@ -31,6 +33,33 @@ export function ManageEvent({
   const [end, setEnd] = useState(() => panamaDate(event.ends_at));
   return (
     <div className="card form-stack">
+      <details>
+        <summary>Portada del evento</summary>
+        <p className="small muted">
+          Solo los miembros del grupo pueden ver la imagen.
+        </p>
+        <ActionForm action={updateEventCover} label="Guardar portada">
+          <input type="hidden" name="event_id" value={event.id} />
+          <input type="hidden" name="group_id" value={event.group_id} />
+          <label>
+            Imagen de portada
+            <Input
+              type="file"
+              name="cover"
+              accept="image/jpeg,image/png,image/webp"
+              required
+            />
+          </label>
+          <p className="small muted">JPG, PNG o WebP. Máximo 5 MB.</p>
+        </ActionForm>
+        {event.cover_public_id && (
+          <ActionForm action={updateEventCover} label="Eliminar portada">
+            <input type="hidden" name="event_id" value={event.id} />
+            <input type="hidden" name="group_id" value={event.group_id} />
+            <input type="hidden" name="remove" value="true" />
+          </ActionForm>
+        )}
+      </details>
       {event.status === "draft" && (
         <ActionForm action={publishEvent} label="Publicar evento">
           <input type="hidden" name="event_id" value={event.id} />

@@ -9,6 +9,7 @@ import { dateLabel } from "@/shared/lib/utils";
 import { getEvent } from "../api/queries";
 import { statusLabels } from "./event-list";
 import { ManageEvent } from "./manage-event";
+import { EventCover } from "./event-cover";
 import styles from "./event-screen.module.css";
 export async function EventScreen({
   groupId,
@@ -40,6 +41,14 @@ export async function EventScreen({
       <Link className="back-link" href={`/groups/${groupId}`}>
         <ArrowLeft size={16} /> Volver al grupo
       </Link>
+      {event.cover_public_id && (
+        <EventCover
+          key={event.updated_at}
+          groupId={groupId}
+          eventId={eventId}
+          revision={event.updated_at}
+        />
+      )}
       <div className="event-hero">
         <div className="event-hero-main">
           <div className="event-hero-badges">
