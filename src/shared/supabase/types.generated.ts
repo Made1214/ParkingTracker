@@ -928,7 +928,7 @@ export type Database = {
       create_poll: {
         Args: {
           p_allow_multiple: boolean
-          p_closes_at: string
+          p_closes_at?: string
           p_event_id: string
           p_options: string[]
           p_question: string
@@ -970,6 +970,13 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      review_activity_proposal: {
+        Args: {
+          p_proposal_id: string
+          p_status: Database["public"]["Enums"]["proposal_status"]
+        }
+        Returns: undefined
       }
       suggest_settlements: {
         Args: { p_group_id: string }
