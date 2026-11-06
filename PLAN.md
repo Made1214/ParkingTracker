@@ -10,6 +10,8 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 - Estructura: `src/app` (rutas delgadas), `src/features/<modulo>` (API pública en `index.ts`), `src/shared` (UI, utilidades, clientes Supabase).
 - Sistema visual: tokens compartidos de color, espaciado, tipografía, radios y sombras; ver [design-system.md](docs/design-system.md).
 - Desarrollo **por módulos**, una rama y un PR por módulo.
+- Gestión de eventos: edición/cancelación antes del inicio, borradores visibles al grupo, portada privada de hasta 5 MB (JPG/PNG/WebP, normalizada por Cloudinary) y cierre automático al terminar. Las mutaciones de tareas, propuestas y votaciones verifican también la hora de fin, sin depender del siguiente ciclo del cron.
+- Las portadas se solicitan a una ruta que revalida membresía mediante RLS y transmite la imagen sin caché compartida. El servidor firma una URL de Cloudinary válida por 60 segundos; no entrega esa URL al cliente. Añadir portada es un paso posterior a guardar el evento.
 
 ## Fases
 
@@ -26,7 +28,8 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 
 ## Notas
 
-- Las migraciones `024` y `025` están escritas pero aún no se han verificado en Staging ni desplegado.
-- Producción contiene `000`–`023`. Verificar el historial remoto antes de promover nuevas migraciones.
-
-- US-06 incorpora encuestas y propuestas; la migraci?n `026` requiere verificaci?n en Staging y coordinaci?n con otras ramas antes de desplegarse.
+- Staging tiene registradas las migraciones `000`–`026` y `20261105052540_secure_task_access_guards`. Una prueba transaccional verificó la creación, votación y cierre de una encuesta, además de la creación de una tarea. La suite completa sigue pendiente: pgTAP no está disponible en ese entorno.
+- La suite local de base de datos pasó con estas migraciones; esto no sustituye la verificación de Staging.
+- Producción estaba pausada en la última revisión y su historial no se pudo verificar. Confirmarlo antes de promover nuevas migraciones.
+- Las pruebas de medios con Cloudinary real requieren configurar las tres variables de `.env.example`; no hay credenciales de medios en el entorno local. Las pruebas automatizadas cubren autorización, aislamiento de referencias y entrega mediante un proveedor simulado.
+- Staging tiene aplicadas las migraciones de gestión de eventos `20261105120000` a `20261105133000` (cuatro archivos). El cron de cierre está programado cada minuto. Producción no recibió estos cambios.

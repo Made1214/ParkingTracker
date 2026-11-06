@@ -3,7 +3,7 @@
 -- as a risk in the design plan), and one-level comment nesting.
 
 begin;
-select plan(7);
+select plan(8);
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
@@ -38,6 +38,19 @@ select throws_ok(
   'a photo over 10 MB fails the CHECK constraint'
 );
 
+-- Direct writes are revoked for authenticated users by migration 026.
+select throws_ok(
+  $$ insert into public.polls (group_id, event_id, question, created_by)
+     values ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000004',
+             'Direct write', '00000000-0000-0000-0000-000000000001') $$,
+  '42501', null,
+  'authenticated users cannot directly create polls'
+);
+
+-- Poll arity is a database constraint and must also hold for privileged
+-- writes. Temporarily test it as the original database role; this does not
+-- grant application users permission to bypass the RPC.
+reset role;
 -- Poll arity: creating a poll with only 1 option fails once the
 -- deferred constraint trigger is checked. A PL/pgSQL function is the
 -- correct pgTAP vehicle for a multi-statement attempt (throws_ok takes
@@ -62,6 +75,7 @@ select throws_ok(
   null,
   'a poll left with only 1 option fails the deferred arity check'
 );
+set local role authenticated;
 
 -- One-level comment nesting: a reply-to-a-reply is rejected.
 select throws_ok(

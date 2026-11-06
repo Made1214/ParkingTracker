@@ -9,10 +9,14 @@ select lives_ok($$insert into public.event_attendance (group_id, event_id, user_
 values ('10000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001',
  '00000000-0000-0000-0000-000000000001', 'going')$$, 'can RSVP to upcoming published event');
 select lives_ok($$update public.event_attendance set status = 'maybe' where event_id = '90000000-0000-0000-0000-000000000001'$$, 'can change RSVP before start');
+reset role;
 update public.events set starts_at = now() - interval '1 hour' where id = '90000000-0000-0000-0000-000000000001';
+set local role authenticated;
 select throws_ok($$update public.event_attendance set status = 'declined' where event_id = '90000000-0000-0000-0000-000000000001'$$,
   '42501', null, 'cannot change RSVP after start');
+reset role;
 update public.events set starts_at = now() + interval '1 day', status = 'cancelled' where id = '90000000-0000-0000-0000-000000000001';
+set local role authenticated;
 select throws_ok($$update public.event_attendance set status = 'declined' where event_id = '90000000-0000-0000-0000-000000000001'$$,
   '42501', null, 'cannot change RSVP for cancelled event');
 select throws_ok($$update public.event_attendance set event_id = '20000000-0000-0000-0000-000000000001' where event_id = '90000000-0000-0000-0000-000000000001'$$,

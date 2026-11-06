@@ -1,4 +1,4 @@
-﻿begin;
+begin;
 select plan(14);
 insert into auth.users (id, email, raw_user_meta_data) values
  ('00000000-0000-0000-0000-000000000099', 'outsider-task-test@example.com', '{"name":"Outsider"}');
@@ -20,10 +20,14 @@ select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000
 select lives_ok($$update public.tasks set status='in_progress', assignee_id='00000000-0000-0000-0000-000000000003' where id='99000000-0000-0000-0000-000000000001'$$, 'assignee changes status and assignment');
 select throws_ok($$update public.tasks set title='Hijacked' where id='99000000-0000-0000-0000-000000000001'$$, '42501', 'assignee can only change status and assignment', 'assignee cannot edit title');
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+reset role;
 update public.events set status='finished' where id='20000000-0000-0000-0000-000000000001';
+set local role authenticated;
 select results_eq($$with changed as (update public.tasks set status='done' where id='99000000-0000-0000-0000-000000000001' returning 1) select count(*) from changed$$, $$values (0::bigint)$$, 'finished event blocks update even for admin');
 select results_eq($$with changed as (delete from public.tasks where id='99000000-0000-0000-0000-000000000001' returning 1) select count(*) from changed$$, $$values (0::bigint)$$, 'finished event blocks delete');
+reset role;
 update public.events set status='cancelled' where id='20000000-0000-0000-0000-000000000001';
+set local role authenticated;
 select results_eq($$with changed as (update public.tasks set status='done' where id='99000000-0000-0000-0000-000000000001' returning 1) select count(*) from changed$$, $$values (0::bigint)$$, 'cancelled event blocks update');
 select results_eq($$with changed as (delete from public.tasks where id='99000000-0000-0000-0000-000000000001' returning 1) select count(*) from changed$$, $$values (0::bigint)$$, 'cancelled event blocks delete');
 select * from finish();
