@@ -10,6 +10,7 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 - Estructura: `src/app` (rutas delgadas), `src/features/<modulo>` (API pública en `index.ts`), `src/shared` (UI, utilidades, clientes Supabase).
 - Sistema visual: tokens compartidos de color, espaciado, tipografía, radios y sombras; ver [design-system.md](docs/design-system.md).
 - Desarrollo **por módulos**, una rama y un PR por módulo.
+- Perfil y recuperación: rutas `/profile`, `/forgot-password` y `/reset-password`; recuperación PKCE mediante `/auth/callback`. Los nombres de usuario se guardan en minúsculas, son únicos y admiten de 3 a 24 letras, números o guiones bajos. Los avatares personalizados usan Cloudinary privado, con lectura limitada al usuario y a personas con grupos en común.
 - Gestión de eventos: edición/cancelación antes del inicio, borradores visibles al grupo, portada privada de hasta 5 MB (JPG/PNG/WebP, normalizada por Cloudinary) y cierre automático al terminar. Las mutaciones de tareas, propuestas y votaciones verifican también la hora de fin, sin depender del siguiente ciclo del cron.
 - Las portadas se solicitan a una ruta que revalida membresía mediante RLS y transmite la imagen sin caché compartida. El servidor firma una URL de Cloudinary válida por 60 segundos; no entrega esa URL al cliente. Añadir portada es un paso posterior a guardar el evento.
 

@@ -1,0 +1,13 @@
+begin;
+select plan(6);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
+set local role authenticated;
+select lives_ok($$update public.profiles set username='bruno_test', display_name='Bruno updated' where id='00000000-0000-0000-0000-000000000002'$$, 'member edits own identity');
+select throws_ok($$update public.profiles set username='Bruno_TEST' where id='00000000-0000-0000-0000-000000000002'$$, '23514', null, 'database requires canonical lowercase usernames');
+select is_empty($$update public.profiles set display_name='Hijacked' where id='00000000-0000-0000-0000-000000000001' returning id$$, 'member cannot edit someone else');
+select throws_ok($$update public.profiles set avatar_public_id='profiles/00000000-0000-0000-0000-000000000001/11111111-1111-4111-8111-111111111111' where id='00000000-0000-0000-0000-000000000002'$$, '23514', null, 'member cannot use an asset belonging to someone else');
+select lives_ok($$update public.profiles set avatar_public_id='profiles/00000000-0000-0000-0000-000000000002/11111111-1111-4111-8111-111111111111' where id='00000000-0000-0000-0000-000000000002'$$, 'member can use an asset scoped to their profile');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+select throws_ok($$update public.profiles set username='bruno_test' where id='00000000-0000-0000-0000-000000000001'$$, '23505', null, 'usernames are unique across accounts');
+select * from finish();
+rollback;
