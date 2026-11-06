@@ -1,0 +1,18 @@
+begin;
+select plan(7);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
+set local role authenticated;
+select lives_ok($$select public.create_poll('20000000-0000-0000-0000-000000000001','No deadline',array['A','B'],false)$$, 'poll can omit a closure deadline');
+select throws_ok($$select public.create_poll('20000000-0000-0000-0000-000000000001','Past',array['A','B'],false,now()-interval '1 hour')$$, '22023', null, 'explicit past deadlines are rejected');
+select public.create_activity_proposal('20000000-0000-0000-0000-000000000001','Review test','');
+select throws_ok($$select public.review_activity_proposal((select id from public.activity_proposals where title='Review test'),'accepted')$$, '42501', null, 'proposal author cannot self-approve without organizer permissions');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+select lives_ok($$select public.review_activity_proposal((select id from public.activity_proposals where title='Review test'),'accepted')$$, 'organizer/admin can approve proposal');
+select is((select status::text from public.activity_proposals where title='Review test'), 'accepted', 'approved status persists');
+select throws_ok($$select public.review_activity_proposal((select id from public.activity_proposals where title='Review test'),'open')$$, '22023', null, 'invalid review transition is rejected');
+reset role;
+update public.events set ends_at=now()-interval '1 hour',starts_at=now()-interval '2 hours' where id='20000000-0000-0000-0000-000000000001';
+set local role authenticated;
+select throws_ok($$select public.review_activity_proposal((select id from public.activity_proposals where title='Review test'),'rejected')$$, '55000', null, 'elapsed event rejects review before cron');
+select * from finish();
+rollback;

@@ -52,7 +52,7 @@ export async function createPoll(
     .map((x) => x.trim())
     .filter(Boolean);
   const closesAt = text(form, "closes_at");
-  const date = new Date(`${closesAt}-05:00`);
+  const date = closesAt ? new Date(`${closesAt}-05:00`) : null;
   if (
     !z.uuid().safeParse(eventId).success ||
     !z.uuid().safeParse(groupId).success ||
@@ -62,8 +62,7 @@ export async function createPoll(
     options.length > 10 ||
     options.some((x) => x.length > 100) ||
     new Set(options).size !== options.length ||
-    !Number.isFinite(date.getTime()) ||
-    date.getTime() <= Date.now()
+    (date && (!Number.isFinite(date.getTime()) || date.getTime() <= Date.now()))
   )
     return { error: "Revisa la pregunta, las opciones y la fecha de cierre." };
   const { error } = await supabase.rpc("create_poll", {
@@ -71,11 +70,50 @@ export async function createPoll(
     p_question: question,
     p_options: options,
     p_allow_multiple: form.has("allow_multiple"),
-    p_closes_at: date.toISOString(),
+    p_closes_at: date?.toISOString(),
   });
   if (error) return { error: databaseError(error.code) };
   revalidatePath(`/groups/${groupId}/events/${eventId}`);
   return { success: "Votación creada." };
+}
+
+export async function reviewProposal(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const parsed = z
+    .object({
+      group_id: z.uuid(),
+      event_id: z.uuid(),
+      proposal_id: z.uuid(),
+      status: z.enum(["accepted", "rejected"]),
+    })
+    .safeParse(
+      Object.fromEntries(
+        ["group_id", "event_id", "proposal_id", "status"].map((key) => [
+          key,
+          text(form, key),
+        ]),
+      ),
+    );
+  if (!parsed.success)
+    return { error: "No se pudo identificar la propuesta o decisión." };
+  const { supabase } = await requireUser();
+  const { error } = await supabase.rpc("review_activity_proposal", {
+    p_proposal_id: parsed.data.proposal_id,
+    p_status: parsed.data.status,
+  });
+  if (error)
+    return {
+      error:
+        error.code === "55000"
+          ? "El evento ya no admite cambios."
+          : databaseError(error.code),
+    };
+  revalidatePath(
+    `/groups/${parsed.data.group_id}/events/${parsed.data.event_id}`,
+  );
+  return { success: "Decisión guardada." };
 }
 
 export async function vote(
