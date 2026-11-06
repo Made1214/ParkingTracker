@@ -108,6 +108,11 @@ export function AuthScreen({
               />
             </label>
           </ActionForm>
+          {!signup && (
+            <p className="small">
+              <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
+            </p>
+          )}
           <div className="divider">o continúa con</div>
           <ActionForm action={googleLogin} label="Continuar con Google">
             <input type="hidden" name="next" value={next} />

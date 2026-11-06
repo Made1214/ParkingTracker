@@ -1,0 +1,25 @@
+.columns {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+}
+.avatar,
+.initials {
+  width: 7rem;
+  height: 7rem;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+.initials {
+  display: grid;
+  place-items: center;
+  color: var(--accent-text);
+  background: var(--surface-tint);
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-semibold);
+}
+@media (min-width: 760px) {
+  .columns {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
