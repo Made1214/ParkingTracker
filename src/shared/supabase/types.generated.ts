@@ -426,8 +426,10 @@ export type Database = {
       }
       groups: {
         Row: {
+          avatar_public_id: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           id: string
           invite_code: string
           name: string
@@ -436,8 +438,10 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          avatar_public_id?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
           invite_code: string
           name: string
@@ -445,8 +449,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_public_id?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
           invite_code?: string
           name?: string
@@ -902,8 +908,10 @@ export type Database = {
       create_group: {
         Args: { p_name: string; p_photo_url?: string }
         Returns: {
+          avatar_public_id: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           id: string
           invite_code: string
           name: string
@@ -946,8 +954,10 @@ export type Database = {
       join_group_by_invite: {
         Args: { p_code: string }
         Returns: {
+          avatar_public_id: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           id: string
           invite_code: string
           name: string

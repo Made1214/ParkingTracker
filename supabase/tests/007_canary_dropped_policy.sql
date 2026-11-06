@@ -17,10 +17,15 @@ select ok(
 );
 
 -- Drop every policy on `events` inside this transaction only.
-drop policy if exists events_select on public.events;
-drop policy if exists events_insert on public.events;
-drop policy if exists events_update on public.events;
-drop policy if exists events_delete on public.events;
+do $$
+declare target record;
+begin
+  for target in select policyname from pg_policies where schemaname = 'public' and tablename = 'events'
+  loop
+    execute format('drop policy %I on public.events', target.policyname);
+  end loop;
+end;
+$$;
 
 -- This is the assertion that proves the suite has teeth: the exact
 -- catalog check from 001_rls_cross_group_isolation's Test 2 now finds

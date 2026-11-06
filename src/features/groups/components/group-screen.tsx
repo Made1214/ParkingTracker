@@ -4,6 +4,7 @@ import { EventList, CreateEventForm } from "@/features/events";
 import { publicEnv } from "@/shared/lib/env";
 import { getGroup } from "../api/queries";
 import { InviteCard } from "./invite-card";
+import { GroupImage } from "./group-image";
 export async function GroupScreen({ groupId }: { groupId: string }) {
   const { group, members } = await getGroup(groupId);
   return (
@@ -18,6 +19,16 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
             {members.length === 1 ? "MIEMBRO" : "MIEMBROS"}
           </span>
           <h1>{group.name}</h1>
+          {group.avatar_public_id && (
+            <GroupImage
+              key={group.updated_at}
+              groupId={groupId}
+              revision={group.updated_at}
+            />
+          )}
+          {group.description && (
+            <p className="description">{group.description}</p>
+          )}
           <p className="muted">
             {members.length} {members.length === 1 ? "persona" : "personas"} ·
             Un montón de planes por hacer.
@@ -49,6 +60,11 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
         </div>
       </div>
       <InviteCard code={group.invite_code} appUrl={publicEnv().appUrl} />
+      <p>
+        <Link href={`/groups/${groupId}/settings`}>
+          Miembros y ajustes del grupo
+        </Link>
+      </p>
       <div className="content-columns">
         <section className="events-column">
           <div className="section-heading">

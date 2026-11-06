@@ -1,0 +1,30 @@
+.layout {
+  display: grid;
+  align-items: start;
+  gap: var(--space-6);
+}
+.members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.members > li {
+  padding: var(--space-5) 0;
+  border-bottom: 1px solid var(--line);
+}
+.memberHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.memberHeading strong {
+  overflow-wrap: anywhere;
+}
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
