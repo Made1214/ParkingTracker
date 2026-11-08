@@ -18,20 +18,22 @@ export function AuthScreen({
     <main className="auth-layout">
       <section className="auth-story">
         <Link href="/" className="brand">
-          <span className="brand-icon">p.</span>parking tracker
+          <span className="brand-icon" aria-hidden="true">
+            P
+          </span>
+          Parking Tracker
         </Link>
         <div>
           <span className="eyebrow">MENOS CHAT. MÁS PLANES.</span>
           <h1>
-            Los mejores planes
-            <br />
-            empiezan con
-            <br />
-            <em>tu gente.</em>
+            Planes claros. <br />
+            <em>Cero caos</em> <br />
+            de chat.
           </h1>
           <p>
-            Un lugar para organizar la próxima salida.
-            <br />Y todas las historias que vienen después.
+            Quién va, qué se hace y quién lleva qué, en un solo lugar.
+            <br />
+            Solo para tu grupo.
           </p>
         </div>
         <div className="story-notes">

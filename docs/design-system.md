@@ -1,7 +1,31 @@
 # Sistema de diseño
 
-La interfaz usa Inter, una paleta teal con temas claro y oscuro, y los tokens CSS
-compartidos de `src/app/design-tokens.css` y `src/app/globals.css`.
+La interfaz sigue el diseño **Noche serena**: Manrope para texto e interfaz,
+Instrument Serif para títulos y cifras destacadas, y la paleta Lavanda con
+temas claro y oscuro. Los tokens CSS compartidos viven en
+`src/app/design-tokens.css` y `src/app/globals.css`.
+
+## Paleta Noche serena
+
+| Rol | Claro | Oscuro | Uso |
+| --- | --- | --- | --- |
+| Fondo (`--paper`) | `#f7f6f3` | `#121120` | Fondo de página; blanco neutro, no azulado |
+| Superficie (`--surface`) | `#ffffff` | `#1a1930` | Tarjetas, menú lateral |
+| Principal (`--color-primary`) | `#2e2a6b` | `#b8b8ff` | Botones, enlaces activos, "Voy" |
+| Texto sobre principal (`--on-primary`) | `#ffffff` | `#12111f` | Texto de botones principales |
+| Periwinkle (`--color-warning`) | `#6b5ed6` | `#9381ff` | Votos, "Quizás", estados en curso |
+| Jade (`--color-success`, `--spark`) | `#0e7f63` / `#2fcb9f` | `#5ee6be` | Único acento vivo: confirmaciones, "en vivo" |
+| Tarjeta destacada (`--hero-bg`) | `#1e1a3d` | `#1e1b3e` | Cabecera de la salida y panel de acceso |
+
+Reglas:
+
+- Sin bloques grandes de crema o durazno: las superficies grandes son neutras o
+  índigo profundo.
+- Base calmada con un solo acento vivo (jade), en pocas zonas.
+- "Voy" usa el principal, "Quizás" el periwinkle y "No voy" un neutro; los
+  rojos (`--color-danger`) quedan solo para errores.
+- Las tarjetas destacadas (`.event-hero`, `.auth-story`) redefinen tokens
+  dentro de sí para que su contenido herede tinta clara sobre índigo.
 
 ## Escalas
 
