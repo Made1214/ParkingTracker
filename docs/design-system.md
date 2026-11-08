@@ -62,3 +62,27 @@ un componente funcional. La configuración inicial no equivale a tener todos los
 componentes de shadcn instalados ni a que sus tokens estén conectados de forma
 automática. Al añadir uno, adáptalo a estos tokens y comprueba su accesibilidad
 y comportamiento en ambos temas.
+
+## Marca
+
+El logo es un ticket en diagonal con una "P" en jade y destellos: el ticket
+representa cada salida y los destellos, el plan nocturno. Los archivos viven en
+`public/brand/`:
+
+| Archivo | Uso |
+| --- | --- |
+| `logotipo.svg` / `logotipo-oscuro.svg` | Logotipo horizontal sobre fondo claro / oscuro |
+| `logotipo-vertical.svg` / `logotipo-vertical-oscuro.svg` | Versión apilada para portadas y redes |
+| `isotipo.svg` / `isotipo-oscuro.svg` / `isotipo-mono.svg` | Símbolo solo, a color o en un tinta |
+| `app-icon.svg` / `app-icon-claro.svg` | Ícono de app (oscuro por defecto) |
+
+- `src/app/icon.svg` es el favicon (versión simplificada para tamaños pequeños)
+  y `src/app/apple-icon.png`, el ícono de iOS.
+- En la interfaz se usa `BrandMark` (`src/shared/ui/brand-mark.tsx`), que toma
+  los colores del tema mediante `--mark-ticket`, `--mark-letter` y
+  `--mark-accent`.
+- El nombre usa Instrument Serif y el lema "ORGANIZADOR DE SALIDAS", Manrope
+  SemiBold con espaciado amplio. Los textos de los SVG están convertidos a
+  trazos, así que no dependen de tener las fuentes instaladas.
+- No deformar el símbolo, no cambiar sus colores fuera de la paleta ni usarlo
+  por debajo de 16 px; por debajo de 32 px, usar el favicon simplificado.

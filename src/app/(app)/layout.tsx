@@ -4,14 +4,13 @@ import { logout } from "@/features/auth";
 import { Button } from "@/shared/ui/button";
 import { NavLink } from "@/shared/ui/nav-link";
 import { ThemeSelect } from "@/shared/ui/theme-select";
+import { BrandMark } from "@/shared/ui/brand-mark";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <aside className="app-sidebar">
         <Link href="/groups" className="brand">
-          <span className="brand-icon" aria-hidden="true">
-            P
-          </span>
+          <BrandMark />
           Parking Tracker
         </Link>
         <nav aria-label="Principal" className="app-nav">

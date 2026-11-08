@@ -195,23 +195,21 @@ label {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--text-lg);
-  font-weight: var(--weight-bold);
-  letter-spacing: -0.8px;
-  white-space: nowrap;
-}
-.brand-icon {
-  display: grid;
-  place-items: center;
-  background: var(--color-primary);
-  color: var(--on-primary);
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-md);
   font-family: var(--font-display), Georgia, serif;
-  font-size: var(--text-3xl);
+  font-size: var(--text-2xl);
   font-weight: var(--weight-regular);
   line-height: 1;
+  white-space: nowrap;
+}
+/* Isotipo (src/shared/ui/brand-mark.tsx). Claro: ticket índigo y "P" jade;
+   oscuro: ticket periwinkle. */
+.brand-mark {
+  --mark-ticket: var(--color-primary);
+  --mark-letter: var(--spark);
+  --mark-accent: var(--color-warning);
+  width: 44px;
+  height: 44px;
+  flex: none;
 }
 .button {
   display: inline-flex;
@@ -320,9 +318,9 @@ textarea {
   position: relative;
   overflow: hidden;
 }
-.auth-story .brand-icon {
-  background: var(--hero-ink);
-  color: var(--hero-bg);
+.auth-story .brand-mark {
+  --mark-ticket: var(--hero-muted);
+  --mark-accent: var(--hero-ink);
 }
 .auth-story:after {
   content: "";
@@ -449,8 +447,7 @@ textarea {
   border-right: 1px solid var(--line);
 }
 .app-sidebar .brand {
-  font-size: var(--text-base);
-  letter-spacing: 0;
+  font-size: var(--text-2xl);
 }
 .app-nav {
   display: grid;
