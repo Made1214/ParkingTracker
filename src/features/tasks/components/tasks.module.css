@@ -179,7 +179,7 @@
 .item[data-status="done"] .completeButton > span,
 .item[data-status="done"] .staticStatus > span {
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--on-primary);
   border-color: var(--color-primary);
 }
 .taskTitle {
