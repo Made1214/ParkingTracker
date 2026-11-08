@@ -1,15 +1,8 @@
-import Link from "next/link";
 import { requireUser } from "@/features/auth";
 import { respond } from "@/features/rsvp";
 import { dateLabel } from "@/shared/lib/utils";
-import { ActionForm } from "@/shared/ui/action-form";
+import { UpcomingEventCard } from "./upcoming-event-card";
 import styles from "./upcoming-events.module.css";
-
-const responses = [
-  { value: "going", label: "Voy" },
-  { value: "maybe", label: "Quizás" },
-  { value: "declined", label: "No voy" },
-] as const;
 
 export async function UpcomingEvents() {
   const { supabase, user } = await requireUser("/groups");
@@ -46,52 +39,17 @@ export async function UpcomingEvents() {
               (item) => item.event_id === event.id,
             )?.status;
             return (
-              <article className={styles.event} key={event.id}>
-                <div>
-                  <p className={styles.group}>{event.groups?.name}</p>
-                  <h3>
-                    <Link href={`/groups/${event.group_id}/events/${event.id}`}>
-                      {event.title}
-                    </Link>
-                  </h3>
-                  <p className="small muted">
-                    {dateLabel(event.starts_at)}
-                    {event.location ? ` · ${event.location}` : ""}
-                  </p>
-                  <p className="small muted">
-                    {current
-                      ? `Tu respuesta: ${responses.find((item) => item.value === current)?.label}`
-                      : "Aún no has respondido"}
-                  </p>
-                </div>
-                <div
-                  className={styles.responses}
-                  role="group"
-                  aria-label={`Confirmar asistencia a ${event.title}`}
-                >
-                  {responses.map((response) => (
-                    <ActionForm
-                      key={response.value}
-                      action={respond}
-                      label={response.label}
-                      className={styles.response}
-                      disabled={current === response.value}
-                    >
-                      <input
-                        type="hidden"
-                        name="group_id"
-                        value={event.group_id}
-                      />
-                      <input type="hidden" name="event_id" value={event.id} />
-                      <input
-                        type="hidden"
-                        name="status"
-                        value={response.value}
-                      />
-                    </ActionForm>
-                  ))}
-                </div>
-              </article>
+              <UpcomingEventCard
+                key={event.id}
+                eventId={event.id}
+                groupId={event.group_id}
+                title={event.title}
+                groupName={event.groups?.name ?? ""}
+                date={dateLabel(event.starts_at)}
+                location={event.location}
+                current={current}
+                respond={respond}
+              />
             );
           })}
         </div>
