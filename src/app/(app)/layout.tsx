@@ -2,33 +2,40 @@ import Link from "next/link";
 import { Compass, LogOut } from "lucide-react";
 import { logout } from "@/features/auth";
 import { Button } from "@/shared/ui/button";
+import { NavLink } from "@/shared/ui/nav-link";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <header className="app-header">
+    <div className="app-shell">
+      <aside className="app-sidebar">
         <Link href="/groups" className="brand">
-          <span className="brand-icon">p.</span>parking tracker
+          <span className="brand-icon" aria-hidden="true">
+            P
+          </span>
+          Parking Tracker
         </Link>
-        <nav aria-label="Principal">
+        <nav aria-label="Principal" className="app-nav">
+          <NavLink href="/groups" label="Mis grupos">
+            <Compass size={18} aria-hidden="true" />
+          </NavLink>
+        </nav>
+        <div className="app-sidebar-foot">
           <ThemeSelect />
-          <Link href="/groups">
-            <Compass size={18} /> Mis grupos
-          </Link>
           <form action={logout}>
             <Button variant="ghost" type="submit" aria-label="Cerrar sesión">
-              <LogOut size={17} />
-              <span>Salir</span>
+              <LogOut size={17} aria-hidden="true" />
             </Button>
           </form>
-        </nav>
-      </header>
-      <main id="main" className="app-main">
-        {children}
-      </main>
-      <footer className="app-footer">
-        Buenos planes. Mejor compañía.<span>Parking Tracker</span>
-      </footer>
-    </>
+        </div>
+      </aside>
+      <div className="app-content">
+        <main id="main" className="app-main">
+          {children}
+        </main>
+        <footer className="app-footer">
+          Buenos planes. Mejor compañía.<span>Parking Tracker</span>
+        </footer>
+      </div>
+    </div>
   );
 }
