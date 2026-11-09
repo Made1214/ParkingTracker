@@ -4,6 +4,7 @@ import { useActionState, useOptimistic, useRef } from "react";
 import type { getAttendance } from "../api/queries";
 import { respond } from "../api/actions";
 import { Card } from "@/shared/ui/card";
+import { Motion } from "@/shared/ui/motion";
 import { FeedbackToast } from "@/shared/ui/feedback-toast";
 import styles from "./attendance.module.css";
 const options = [
@@ -126,20 +127,22 @@ export function AttendanceView({
         />
       )}
       {total > 0 && (
-        <div className={styles.meter} aria-hidden="true">
-          <span
-            data-status="going"
-            style={{ width: `${(goingCount / total) * 100}%` }}
-          />
-          <span
-            data-status="maybe"
-            style={{ width: `${(maybeCount / total) * 100}%` }}
-          />
-          <span
-            data-status="declined"
-            style={{ width: `${(declinedCount / total) * 100}%` }}
-          />
-        </div>
+        <Motion>
+          <div className={styles.meter} data-grow="x" aria-hidden="true">
+            <span
+              data-status="going"
+              style={{ width: `${(goingCount / total) * 100}%` }}
+            />
+            <span
+              data-status="maybe"
+              style={{ width: `${(maybeCount / total) * 100}%` }}
+            />
+            <span
+              data-status="declined"
+              style={{ width: `${(declinedCount / total) * 100}%` }}
+            />
+          </div>
+        </Motion>
       )}
       <dl className={styles.people}>
         {options.map((option) => {

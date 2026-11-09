@@ -5,6 +5,7 @@ import { Card } from "@/shared/ui/card";
 import { initials } from "@/shared/lib/utils";
 import { TaskBoard } from "./task-board";
 import styles from "./tasks.module.css";
+import { Motion } from "@/shared/ui/motion";
 
 export async function TasksPanel({
   groupId,
@@ -68,84 +69,87 @@ export async function TasksPanel({
         createAction={createTask}
         updateAction={updateTask}
       />
-      <aside className={styles.side} aria-label="Resumen de tareas">
-        <Card className={styles.summary}>
-          <span
-            className={styles.ring}
-            style={{ "--percent": `${percent}%` } as React.CSSProperties}
-            aria-hidden="true"
-          >
-            <span>{percent}%</span>
-          </span>
-          <div>
-            <span className="eyebrow">PROGRESO</span>
-            <strong className={styles.summaryCount}>
-              {done}/{tasks.length}
-            </strong>
-            <p className="small muted">
-              {tasks.length === 0
-                ? "Aún no hay tareas."
-                : done === tasks.length
-                  ? "¡Todo listo para salir!"
-                  : `${tasks.length - done} por resolver`}
-            </p>
-          </div>
-        </Card>
-        <Card>
-          <h3 className={styles.sideTitle}>Quién lleva qué</h3>
-          {people.length ? (
-            <ul className={styles.people}>
-              {people.map((person) => (
-                <li key={person.id}>
-                  <span className={styles.face} aria-hidden="true">
-                    {initials(person.name)}
-                  </span>
-                  <span className={styles.personInfo}>
-                    <strong>{person.name}</strong>
-                    <span className={styles.miniBar} aria-hidden="true">
-                      <span
-                        style={{
-                          width: `${(person.done / person.total) * 100}%`,
-                        }}
-                      />
+      <Motion>
+        <aside className={styles.side} aria-label="Resumen de tareas">
+          <Card className={styles.summary}>
+            <span
+              className={styles.ring}
+              style={{ "--percent": `${percent}%` } as React.CSSProperties}
+              aria-hidden="true"
+            >
+              <span data-count>{percent}%</span>
+            </span>
+            <div>
+              <span className="eyebrow">PROGRESO</span>
+              <strong className={styles.summaryCount} data-count="first">
+                {done}/{tasks.length}
+              </strong>
+              <p className="small muted">
+                {tasks.length === 0
+                  ? "Aún no hay tareas."
+                  : done === tasks.length
+                    ? "¡Todo listo para salir!"
+                    : `${tasks.length - done} por resolver`}
+              </p>
+            </div>
+          </Card>
+          <Card>
+            <h3 className={styles.sideTitle}>Quién lleva qué</h3>
+            {people.length ? (
+              <ul className={styles.people}>
+                {people.map((person) => (
+                  <li key={person.id}>
+                    <span className={styles.face} aria-hidden="true">
+                      {initials(person.name)}
                     </span>
-                  </span>
-                  <span className="small muted">
-                    {person.done}/{person.total}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="small muted">
-              Asigna responsables para ver aquí cómo va cada quien.
-            </p>
-          )}
-          {unassigned > 0 && (
-            <p className={styles.unassigned}>
-              {unassigned}{" "}
-              {unassigned === 1
-                ? "tarea sin responsable"
-                : "tareas sin responsable"}
-            </p>
-          )}
-        </Card>
-        <Card className={styles.mine}>
-          <h3 className={styles.sideTitle}>Lo tuyo</h3>
-          {mine.length ? (
-            <ul>
-              {mine.map((task) => (
-                <li key={task.id}>
-                  <span className={styles.dot} data-status={task.status} />
-                  {task.title}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="small muted">No tienes tareas pendientes.</p>
-          )}
-        </Card>
-      </aside>
+                    <span className={styles.personInfo}>
+                      <strong>{person.name}</strong>
+                      <span className={styles.miniBar} aria-hidden="true">
+                        <span
+                          data-grow="x"
+                          style={{
+                            width: `${(person.done / person.total) * 100}%`,
+                          }}
+                        />
+                      </span>
+                    </span>
+                    <span className="small muted">
+                      {person.done}/{person.total}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="small muted">
+                Asigna responsables para ver aquí cómo va cada quien.
+              </p>
+            )}
+            {unassigned > 0 && (
+              <p className={styles.unassigned}>
+                {unassigned}{" "}
+                {unassigned === 1
+                  ? "tarea sin responsable"
+                  : "tareas sin responsable"}
+              </p>
+            )}
+          </Card>
+          <Card className={styles.mine}>
+            <h3 className={styles.sideTitle}>Lo tuyo</h3>
+            {mine.length ? (
+              <ul>
+                {mine.map((task) => (
+                  <li key={task.id}>
+                    <span className={styles.dot} data-status={task.status} />
+                    {task.title}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="small muted">No tienes tareas pendientes.</p>
+            )}
+          </Card>
+        </aside>
+      </Motion>
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
   getExpenseSummary,
 } from "@/features/expenses";
 import { Card } from "@/shared/ui/card";
+import { Motion } from "@/shared/ui/motion";
 import { panamaTime, shortDate } from "@/shared/lib/utils";
 import { getEvent } from "../api/queries";
 import { statusLabels } from "./event-list";
@@ -143,29 +144,34 @@ export async function EventScreen({
                 open={canRespond}
               />
               {live.poll && (
-                <Link
-                  href={`${eventUrl}?section=votaciones`}
-                  className={styles.livePoll}
-                >
-                  <span className={styles.liveLabel}>
-                    <span className="status-beacon" aria-hidden="true" />
-                    VOTACIÓN EN VIVO
-                  </span>
-                  <h2>{live.poll.question}</h2>
-                  <ul>
-                    {live.poll.options.slice(0, 3).map((option) => (
-                      <li key={option.id}>
-                        <span>
-                          {option.label}
-                          <strong>{option.percent}%</strong>
-                        </span>
-                        <span className={styles.bar} aria-hidden="true">
-                          <span style={{ width: `${option.percent}%` }} />
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </Link>
+                <Motion>
+                  <Link
+                    href={`${eventUrl}?section=votaciones`}
+                    className={styles.livePoll}
+                  >
+                    <span className={styles.liveLabel}>
+                      <span className="status-beacon" aria-hidden="true" />
+                      VOTACIÓN EN VIVO
+                    </span>
+                    <h2>{live.poll.question}</h2>
+                    <ul>
+                      {live.poll.options.slice(0, 3).map((option) => (
+                        <li key={option.id}>
+                          <span>
+                            {option.label}
+                            <strong data-count>{option.percent}%</strong>
+                          </span>
+                          <span className={styles.bar} aria-hidden="true">
+                            <span
+                              data-grow="x"
+                              style={{ width: `${option.percent}%` }}
+                            />
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </Link>
+                </Motion>
               )}
               <Suspense fallback={null}>
                 <PlanStats groupId={groupId} eventId={eventId} />
@@ -221,30 +227,33 @@ async function PlanStats({
   ]);
   const eventUrl = `/groups/${groupId}/events/${eventId}`;
   return (
-    <div className={styles.stats}>
-      <Link href={`${eventUrl}?section=tareas`} className={styles.stat}>
-        <span className="eyebrow">TAREAS</span>
-        <strong>
-          {tasks.done}/{tasks.total}
-        </strong>
-        <span className={styles.bar} aria-hidden="true">
-          <span
-            style={{
-              width: `${tasks.total ? (tasks.done / tasks.total) * 100 : 0}%`,
-            }}
-          />
-        </span>
-      </Link>
-      <Link href={`${eventUrl}?section=gastos`} className={styles.stat}>
-        <span className="eyebrow">GASTOS</span>
-        <strong>{formatMoney(expenses.totalCents)}</strong>
-        <span className="small muted">
-          {expenses.count
-            ? `${formatMoney(expenses.perPersonCents)} por persona`
-            : "Sin gastos aún"}
-        </span>
-      </Link>
-    </div>
+    <Motion>
+      <div className={styles.stats}>
+        <Link href={`${eventUrl}?section=tareas`} className={styles.stat}>
+          <span className="eyebrow">TAREAS</span>
+          <strong data-count="first">
+            {tasks.done}/{tasks.total}
+          </strong>
+          <span className={styles.bar} aria-hidden="true">
+            <span
+              data-grow="x"
+              style={{
+                width: `${tasks.total ? (tasks.done / tasks.total) * 100 : 0}%`,
+              }}
+            />
+          </span>
+        </Link>
+        <Link href={`${eventUrl}?section=gastos`} className={styles.stat}>
+          <span className="eyebrow">GASTOS</span>
+          <strong data-count>{formatMoney(expenses.totalCents)}</strong>
+          <span className="small muted">
+            {expenses.count
+              ? `${formatMoney(expenses.perPersonCents)} por persona`
+              : "Sin gastos aún"}
+          </span>
+        </Link>
+      </div>
+    </Motion>
   );
 }
 

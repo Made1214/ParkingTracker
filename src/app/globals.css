@@ -1066,8 +1066,16 @@ hr {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     transition: none !important;
+  }
+  /* El spinner sigue girando: es el único aviso de que algo está guardando. */
+  *:not(.spinner),
+  *::before,
+  *::after {
+    animation: none !important;
   }
 }
 .appearance-card {

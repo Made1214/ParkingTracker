@@ -25,6 +25,7 @@ import { getDashboard } from "../api/dashboard";
 import { createGroup, joinGroup } from "../api/actions";
 import { RsvpBar } from "./rsvp-bar";
 import styles from "./home.module.css";
+import { Motion } from "@/shared/ui/motion";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const todoIcons = { poll: BarChart3, debt: Wallet, task: CheckSquare };
@@ -46,7 +47,7 @@ export async function GroupsScreen() {
   const firstDebt = data.todo.find((item) => item.kind === "debt");
 
   return (
-    <>
+    <Motion>
       <header className={styles.header}>
         <span className="eyebrow">{longDate(data.now).toUpperCase()}</span>
         <h1>
@@ -95,7 +96,7 @@ export async function GroupsScreen() {
                 <div className={styles.ticketStub}>
                   <div>
                     <span className={styles.ticketLabel}>FALTAN</span>
-                    <strong className={styles.countdown}>
+                    <strong className={styles.countdown} data-count>
                       {countdown(data.nextInMs ?? 0)}
                     </strong>
                   </div>
@@ -253,7 +254,7 @@ export async function GroupsScreen() {
 
           <div className={styles.balance}>
             <span className="eyebrow">TU SALDO EN TUS GRUPOS</span>
-            <strong>{money(data.balanceCents)}</strong>
+            <strong data-count>{money(data.balanceCents)}</strong>
             <p className="small">
               {data.balanceCents < 0
                 ? "Tienes pagos pendientes con tu gente."
@@ -313,6 +314,6 @@ export async function GroupsScreen() {
           </Card>
         </aside>
       </div>
-    </>
+    </Motion>
   );
 }

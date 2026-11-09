@@ -5,6 +5,7 @@ import { Card } from "@/shared/ui/card";
 import { initials, shortDate } from "@/shared/lib/utils";
 import { getGroupStats } from "../api/queries";
 import styles from "./stats.module.css";
+import { Motion } from "@/shared/ui/motion";
 
 const megabytes = (bytes: number) => `${Math.round(bytes / 1048576)} MB`;
 
@@ -14,7 +15,7 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
   const maxAttended = Math.max(1, ...data.ranking.map((row) => row.attended));
 
   return (
-    <>
+    <Motion>
       <header className={styles.header}>
         <Link className={styles.back} href={`/groups/${groupId}`}>
           <ArrowLeft size={16} aria-hidden="true" /> Volver al grupo
@@ -26,12 +27,12 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
       <div className={styles.kpis}>
         <div className={styles.kpi}>
           <span className="eyebrow">SALIDAS</span>
-          <strong>{data.history.length}</strong>
+          <strong data-count>{data.history.length}</strong>
           <span className="small muted">ya vividas</span>
         </div>
         <div className={styles.kpi}>
           <span className="eyebrow">ASISTENCIA MEDIA</span>
-          <strong>
+          <strong data-count>
             {data.averageAttendance === null
               ? "—"
               : `${data.averageAttendance}%`}
@@ -40,14 +41,14 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
         </div>
         <div className={styles.kpi}>
           <span className="eyebrow">GASTO MEDIO</span>
-          <strong>{formatMoney(data.averageCents)}</strong>
+          <strong data-count>{formatMoney(data.averageCents)}</strong>
           <span className="small muted">
             por salida · {formatMoney(data.totalCents)} en total
           </span>
         </div>
         <div className={styles.kpi}>
           <span className="eyebrow">FOTOS</span>
-          <strong>{data.photoCount}</strong>
+          <strong data-count>{data.photoCount}</strong>
           <span className="small muted">
             {megabytes(data.usedBytes)} de {megabytes(data.quotaBytes)}
           </span>
@@ -68,9 +69,12 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
           >
             {data.months.map((month) => (
               <li key={month.key}>
-                <span className={styles.barValue}>{month.total}</span>
+                <span className={styles.barValue} data-count>
+                  {month.total}
+                </span>
                 <span
                   className={styles.bar}
+                  data-grow="y"
                   data-current={month.current || undefined}
                   style={{
                     height: `${Math.max(4, (month.total / maxMonth) * 100)}%`,
@@ -109,13 +113,14 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
                     <strong>{row.name}</strong>
                     <span className={styles.rankBar} aria-hidden="true">
                       <span
+                        data-grow="x"
                         style={{
                           width: `${(row.attended / maxAttended) * 100}%`,
                         }}
                       />
                     </span>
                   </span>
-                  <span className={styles.rankValue}>
+                  <span className={styles.rankValue} data-count="first">
                     {row.attended}
                     <small> de {row.invited}</small>
                   </span>
@@ -189,6 +194,6 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
           </Card>
         )}
       </section>
-    </>
+    </Motion>
   );
 }

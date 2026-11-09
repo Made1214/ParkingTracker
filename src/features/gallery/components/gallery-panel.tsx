@@ -1,4 +1,5 @@
 import { Card } from "@/shared/ui/card";
+import { Motion } from "@/shared/ui/motion";
 import { deletePhoto, uploadPhoto } from "../api/actions";
 import { getPhotos } from "../api/queries";
 import { PhotoGallery } from "./photo-gallery";
@@ -32,7 +33,9 @@ export async function GalleryPanel({
             grupo
           </span>
           <span className={styles.bar} aria-hidden="true">
-            <span style={{ width: `${used}%` }} />
+            <Motion>
+              <span data-grow="x" style={{ width: `${used}%` }} />
+            </Motion>
           </span>
         </div>
       </div>

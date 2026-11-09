@@ -8,6 +8,7 @@ import { getGroup } from "../api/queries";
 import { InviteCode } from "./invite-code";
 import { GroupImage } from "./group-image";
 import styles from "./group.module.css";
+import { Motion } from "@/shared/ui/motion";
 
 export async function GroupScreen({ groupId }: { groupId: string }) {
   const [{ group, members, user }, events] = await Promise.all([
@@ -75,30 +76,32 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
         </div>
       </header>
 
-      <div className={styles.kpis}>
-        <div className={styles.kpi}>
-          <span className="eyebrow">SALIDAS</span>
-          <strong>{finished}</strong>
-          <span className="small muted">ya vividas</span>
+      <Motion>
+        <div className={styles.kpis}>
+          <div className={styles.kpi}>
+            <span className="eyebrow">SALIDAS</span>
+            <strong data-count>{finished}</strong>
+            <span className="small muted">ya vividas</span>
+          </div>
+          <div className={styles.kpi}>
+            <span className="eyebrow">PRÓXIMAS</span>
+            <strong data-count>{upcoming}</strong>
+            <span className="small muted">publicadas en el calendario</span>
+          </div>
+          <div className={styles.kpi}>
+            <span className="eyebrow">BORRADORES</span>
+            <strong data-count>{drafts}</strong>
+            <span className="small muted">ideas por confirmar</span>
+          </div>
+          <div className={styles.kpi}>
+            <span className="eyebrow">MIEMBROS</span>
+            <strong data-count>{members.length}</strong>
+            <span className="small muted">
+              {admins.length} {admins.length === 1 ? "admin" : "admins"}
+            </span>
+          </div>
         </div>
-        <div className={styles.kpi}>
-          <span className="eyebrow">PRÓXIMAS</span>
-          <strong>{upcoming}</strong>
-          <span className="small muted">publicadas en el calendario</span>
-        </div>
-        <div className={styles.kpi}>
-          <span className="eyebrow">BORRADORES</span>
-          <strong>{drafts}</strong>
-          <span className="small muted">ideas por confirmar</span>
-        </div>
-        <div className={styles.kpi}>
-          <span className="eyebrow">MIEMBROS</span>
-          <strong>{members.length}</strong>
-          <span className="small muted">
-            {admins.length} {admins.length === 1 ? "admin" : "admins"}
-          </span>
-        </div>
-      </div>
+      </Motion>
 
       <Link href={`/groups/${groupId}/stats`} className={styles.statsLink}>
         <TrendingUp size={16} aria-hidden="true" /> Ver historial y estadísticas
