@@ -8,6 +8,7 @@ import {
   initials,
   countdown,
   shortDate,
+  timeAgo,
 } from "./utils";
 describe("auth redirect destination", () => {
   it.each([
@@ -55,5 +56,13 @@ describe("display helpers", () => {
   });
   it("formats Panama dates", () => {
     expect(shortDate("2026-11-14T12:00:00Z")).toMatch(/sáb.*14.*nov/);
+  });
+  it("describes elapsed time", () => {
+    const now = Date.parse("2026-11-09T12:00:00Z");
+    expect(timeAgo("2026-11-09T11:59:40Z", now)).toBe("ahora");
+    expect(timeAgo("2026-11-09T11:48:00Z", now)).toBe("hace 12 min");
+    expect(timeAgo("2026-11-09T09:00:00Z", now)).toBe("hace 3 h");
+    expect(timeAgo("2026-11-08T10:00:00Z", now)).toBe("ayer");
+    expect(timeAgo("2026-11-04T10:00:00Z", now)).toBe("hace 5 d");
   });
 });

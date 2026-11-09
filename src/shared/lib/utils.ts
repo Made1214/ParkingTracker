@@ -80,3 +80,15 @@ export function countdown(ms: number) {
   if (hours) return `${hours}h ${minutes % 60}min`;
   return `${minutes}min`;
 }
+/** Tiempo transcurrido legible: "ahora", "hace 12 min", "hace 3 h", "ayer", "hace 5 d". */
+export function timeAgo(value: string | Date, now: number) {
+  const minutes = Math.floor((now - new Date(value).getTime()) / 60000);
+  if (minutes < 1) return "ahora";
+  if (minutes < 60) return `hace ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `hace ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "ayer";
+  if (days < 30) return `hace ${days} d`;
+  return shortDate(value);
+}

@@ -10,6 +10,8 @@ import {
 } from "@/features/proposals";
 import { TasksPanel, getTaskProgress } from "@/features/tasks";
 import { SchedulePanel } from "@/features/schedule";
+import { CommentsPanel } from "@/features/comments";
+import { GalleryPanel } from "@/features/gallery";
 import {
   ExpensesPanel,
   formatMoney,
@@ -28,6 +30,7 @@ const sections = [
   { value: "votaciones", label: "Votos" },
   { value: "gastos", label: "Gastos" },
   { value: "tareas", label: "Tareas" },
+  { value: "fotos", label: "Fotos" },
 ] as const;
 
 export async function EventScreen({
@@ -123,6 +126,9 @@ export async function EventScreen({
                   <p>{event.description}</p>
                 </Card>
               )}
+              <Suspense fallback={<PanelSkeleton label="comentarios" />}>
+                <CommentsPanel groupId={groupId} eventId={eventId} />
+              </Suspense>
               {canManage && (
                 <div id="gestionar" className={styles.manage}>
                   <ManageEvent event={event} />
@@ -186,6 +192,11 @@ export async function EventScreen({
       {active === "gastos" && (
         <Suspense fallback={<PanelSkeleton label="gastos" />}>
           <ExpensesPanel groupId={groupId} eventId={eventId} />
+        </Suspense>
+      )}
+      {active === "fotos" && (
+        <Suspense fallback={<PanelSkeleton label="fotos" />}>
+          <GalleryPanel groupId={groupId} eventId={eventId} />
         </Suspense>
       )}
       {active === "tareas" && (

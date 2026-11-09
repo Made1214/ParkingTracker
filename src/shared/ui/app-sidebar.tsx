@@ -8,10 +8,12 @@ import {
   CalendarDays,
   ChevronDown,
   House,
+  Images,
   ListChecks,
   LogOut,
   Plus,
   Settings2,
+  TrendingUp,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -23,7 +25,7 @@ import styles from "./app-sidebar.module.css";
 type ShellGroup = { id: string; name: string };
 
 const ROUTE =
-  /^\/groups\/([0-9a-f-]{36})(?:\/events\/([0-9a-f-]{36}))?(\/settings)?/i;
+  /^\/groups\/([0-9a-f-]{36})(?:\/events\/([0-9a-f-]{36}))?(\/settings|\/stats)?/i;
 
 /**
  * Navegación principal: barra lateral en escritorio y barra superior +
@@ -41,7 +43,9 @@ export function AppSidebar({
 }) {
   const pathname = usePathname();
   const section = useSearchParams().get("section") ?? "plan";
-  const [, groupId, eventId, settings] = pathname.match(ROUTE) ?? [];
+  const [, groupId, eventId, page] = pathname.match(ROUTE) ?? [];
+  const settings = page === "/settings";
+  const stats = page === "/stats";
   const current = groups.find((group) => group.id === groupId);
   const target = current ?? groups[0];
   const groupUrl = target ? `/groups/${target.id}` : "/groups";
@@ -119,7 +123,7 @@ export function AppSidebar({
             groupUrl,
             "Salidas",
             <CalendarDays size={19} aria-hidden="true" />,
-            Boolean(current && !settings && !eventId),
+            Boolean(current && !page && !eventId),
           )}
         {eventUrl && (
           <div className={styles.subnav} aria-label="Esta salida">
@@ -151,14 +155,28 @@ export function AppSidebar({
               section === "tareas",
               true,
             )}
+            {item(
+              `${eventUrl}?section=fotos`,
+              "Fotos",
+              <Images size={16} aria-hidden="true" />,
+              section === "fotos",
+              true,
+            )}
           </div>
         )}
+        {target &&
+          item(
+            `${groupUrl}/stats`,
+            "Estadísticas",
+            <TrendingUp size={19} aria-hidden="true" />,
+            stats,
+          )}
         {target &&
           item(
             `${groupUrl}/settings`,
             "Grupo y ajustes",
             <Settings2 size={19} aria-hidden="true" />,
-            Boolean(settings),
+            settings,
           )}
         {item(
           "/profile",
@@ -202,7 +220,7 @@ export function AppSidebar({
           target ? groupUrl : "/groups#mis-grupos",
           "Salidas",
           <CalendarDays size={20} aria-hidden="true" />,
-          Boolean(current && !settings),
+          Boolean(current && !page),
         )}
         <Link
           href={newEvent.href}
@@ -215,7 +233,7 @@ export function AppSidebar({
           target ? `${groupUrl}/settings` : "/groups#crear-grupo",
           "Grupo",
           <Settings2 size={20} aria-hidden="true" />,
-          Boolean(settings),
+          settings,
         )}
         {item(
           "/profile",

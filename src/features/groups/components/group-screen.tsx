@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Settings2 } from "lucide-react";
+import { ArrowLeft, Settings2, TrendingUp } from "lucide-react";
 import { EventList, CreateEventForm, listEvents } from "@/features/events";
 import { publicEnv } from "@/shared/lib/env";
 import { initials } from "@/shared/lib/utils";
@@ -99,6 +99,11 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
           </span>
         </div>
       </div>
+
+      <Link href={`/groups/${groupId}/stats`} className={styles.statsLink}>
+        <TrendingUp size={16} aria-hidden="true" /> Ver historial y estadísticas
+        del grupo
+      </Link>
 
       <div className={styles.columns}>
         <section className={styles.events} aria-labelledby="group-events">
