@@ -38,7 +38,7 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 ## Notas
 
 - Desde la fase 9 el trabajo nuevo se hace en la rama única `made`, con un PR por módulo hacia `main`.
-- Los commits hechos por el agente se publican mediante la API de GitHub para que GitHub los firme y aparezcan como verificados; al fusionar en `main` se usa "Squash and merge".
+- Los commits del agente se firman con una llave SSH de firma registrada en la cuenta de la dueña (GitHub los muestra como verificados); la llave vive solo en la sesión en la nube y se renueva en cada sesión. Los commits por API no quedan firmados. Al fusionar en `main` se usa "Squash and merge".
 - Staging (verificado el 8 nov 2026) tiene `000`–`026`, `20261105052540_secure_task_access_guards` y nueve migraciones de `feat/poll-alignment` (`20261105120000` a `20261105163000`), integradas en `made` el 8 nov 2026; el cron de cierre de eventos corre cada minuto. Producción no recibió estos cambios.
 - Las migraciones con prefijo de fecha no siguen la regla `NNN_` de [CLAUDE.md](CLAUDE.md). Ya están aplicadas en Staging, así que no se renombran. Como `027_` se ordenaría antes que ellas en una base nueva, las siguientes usan la versión con fecha que registra Staging al aplicarlas (p. ej. `20261109032108_schedule_management.sql`).
 - Cronograma: solo quien organiza la salida o un admin gestiona actividades, dentro del horario de la salida y mientras siga abierta; las propuestas aceptadas se agendan una sola vez (`schedule_items.proposal_id`). Verificado en Staging con una prueba transaccional (11/11) y advisors sin hallazgos nuevos.
