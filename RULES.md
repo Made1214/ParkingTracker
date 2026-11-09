@@ -45,7 +45,7 @@ Un PR que depende de otro lo indica en **Notes** y apunta a la rama del PR anter
 
 ## Trabajo por módulos
 
-- Se avanza **un módulo a la vez** (login, grupos, eventos, …) en la rama de trabajo `made`, con un PR por módulo hacia `main`.
+- Se avanza **un módulo a la vez** (login, grupos, eventos, …), cada uno en su propia rama y PR.
 - No se adelanta código de módulos futuros, aunque el esquema de base de datos ya exista.
 - Cada módulo vive en `src/features/<modulo>` y expone su API pública solo mediante `index.ts`.
 
