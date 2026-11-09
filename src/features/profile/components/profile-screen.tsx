@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/features/auth";
+import { Card } from "@/shared/ui/card";
+import { ThemeSelect } from "@/shared/ui/theme-select";
 import { ProfileForm } from "./profile-form";
 
 export async function ProfileScreen({
@@ -32,6 +34,15 @@ export async function ProfileScreen({
         </p>
       )}
       <ProfileForm key={profile.updated_at} profile={profile} />
+      <Card className="appearance-card">
+        <div>
+          <h2>Apariencia</h2>
+          <p className="small muted">
+            Claro, oscuro o el mismo tema que tu dispositivo.
+          </p>
+        </div>
+        <ThemeSelect />
+      </Card>
     </>
   );
 }

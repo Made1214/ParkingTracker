@@ -19,3 +19,18 @@ export async function getTasks(groupId: string, eventId: string) {
     throw new Error("No se pudieron cargar las tareas.");
   return { tasks: tasks.data, members: members.data, user };
 }
+
+/** Progreso de tareas de una salida para el resumen del plan. */
+export async function getTaskProgress(groupId: string, eventId: string) {
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("status")
+    .eq("group_id", groupId)
+    .eq("event_id", eventId);
+  if (error) throw new Error("No se pudieron cargar las tareas.");
+  return {
+    done: data.filter((task) => task.status === "done").length,
+    total: data.length,
+  };
+}

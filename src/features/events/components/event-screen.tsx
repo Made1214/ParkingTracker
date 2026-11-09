@@ -1,18 +1,35 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, MapPin, AlignLeft } from "lucide-react";
+import { AlignLeft, ArrowLeft, Clock3, MapPin, PencilLine } from "lucide-react";
 import { AttendancePanel } from "@/features/rsvp";
-import { ProposalsPanel, PollsPanel } from "@/features/proposals";
-import { TasksPanel } from "@/features/tasks";
+import {
+  PollComposer,
+  ProposalsPanel,
+  PollsPanel,
+  getLivePoll,
+} from "@/features/proposals";
+import { TasksPanel, getTaskProgress } from "@/features/tasks";
 import { SchedulePanel } from "@/features/schedule";
-import { ExpensesPanel } from "@/features/expenses";
+import {
+  ExpensesPanel,
+  formatMoney,
+  getExpenseSummary,
+} from "@/features/expenses";
 import { Card } from "@/shared/ui/card";
-import { dateLabel } from "@/shared/lib/utils";
+import { panamaTime, shortDate } from "@/shared/lib/utils";
 import { getEvent } from "../api/queries";
 import { statusLabels } from "./event-list";
 import { ManageEvent } from "./manage-event";
 import { EventCover } from "./event-cover";
 import styles from "./event-screen.module.css";
+
+const sections = [
+  { value: "plan", label: "Plan" },
+  { value: "votaciones", label: "Votos" },
+  { value: "gastos", label: "Gastos" },
+  { value: "tareas", label: "Tareas" },
+] as const;
+
 export async function EventScreen({
   groupId,
   eventId,
@@ -22,29 +39,19 @@ export async function EventScreen({
   eventId: string;
   section?: string | string[];
 }) {
-  const { event, user, canRespond, canManage } = await getEvent(
-    groupId,
-    eventId,
-  );
-  const activeSection =
-    section === "votaciones" || section === "tareas" || section === "gastos"
-      ? section
-      : "info";
+  const [{ event, organizer, user, canRespond, canManage }, live] =
+    await Promise.all([
+      getEvent(groupId, eventId),
+      getLivePoll(groupId, eventId),
+    ]);
+  const active =
+    sections.find((item) => item.value === section)?.value ?? "plan";
   const eventUrl = `/groups/${groupId}/events/${eventId}`;
-  const monthLabel = new Intl.DateTimeFormat("es", {
-    month: "short",
-    timeZone: "America/Panama",
-  }).format(new Date(event.starts_at));
-  const dayLabel = new Intl.DateTimeFormat("es", {
-    day: "2-digit",
-    timeZone: "America/Panama",
-  }).format(new Date(event.starts_at));
+  const open = event.status === "published";
+  const sameDay = shortDate(event.starts_at) === shortDate(event.ends_at);
 
   return (
     <>
-      <Link className="back-link" href={`/groups/${groupId}`}>
-        <ArrowLeft size={16} /> Volver al grupo
-      </Link>
       {event.cover_public_id && (
         <EventCover
           key={event.updated_at}
@@ -53,133 +60,181 @@ export async function EventScreen({
           revision={event.updated_at}
         />
       )}
-      <div className="event-hero">
-        <div className="event-hero-main">
-          <div className="event-hero-badges">
-            <span className={`badge badge-${event.status}`}>
-              {event.status === "published" && (
-                <span className="status-beacon" aria-hidden="true" />
-              )}
-              {statusLabels[event.status]}
-            </span>
-            <span className="event-tz-pill">Hora de Panamá (UTC−5)</span>
-          </div>
-          <h1>{event.title}</h1>
-          <p className="muted">La fecha está puesta. Ahora falta tu gente.</p>
+      <header className={styles.hero}>
+        <Link className={styles.back} href={`/groups/${groupId}`}>
+          <ArrowLeft size={16} aria-hidden="true" /> Volver al grupo
+        </Link>
+        <p className={styles.eyebrow}>
+          {open && <span className="status-beacon" aria-hidden="true" />}
+          {statusLabels[event.status].toUpperCase()}
+          {organizer && ` · ORGANIZA ${organizer.toUpperCase()}`}
+        </p>
+        <h1>{event.title}</h1>
+        <div className={styles.heroFoot}>
+          <ul className={styles.meta}>
+            <li>
+              <Clock3 size={18} aria-hidden="true" />
+              {shortDate(event.starts_at)} · {panamaTime(event.starts_at)} –{" "}
+              {sameDay
+                ? panamaTime(event.ends_at)
+                : `${shortDate(event.ends_at)} ${panamaTime(event.ends_at)}`}
+              <span className={styles.tz}>hora de Panamá</span>
+            </li>
+            <li>
+              <MapPin size={18} aria-hidden="true" />
+              {event.location || "Lugar por confirmar"}
+            </li>
+          </ul>
+          {canManage && (
+            <a href="#gestionar" className={styles.heroAction}>
+              <PencilLine size={16} aria-hidden="true" /> Editar o cancelar
+            </a>
+          )}
         </div>
-        <div className="date-tile date-tile-lg" aria-hidden="true">
-          <span>{monthLabel}</span>
-          <strong>{dayLabel}</strong>
-        </div>
-      </div>
-      <nav className={styles.sections} aria-label="Secciones del evento">
-        {[
-          { value: "info", label: "Información" },
-          { value: "votaciones", label: "Votaciones" },
-          { value: "tareas", label: "Tareas" },
-          { value: "gastos", label: "Gastos" },
-        ].map(({ value, label }) => (
+      </header>
+
+      <nav className={styles.tabs} aria-label="Secciones de la salida">
+        {sections.map(({ value, label }) => (
           <Link
             key={value}
-            href={value === "info" ? eventUrl : `${eventUrl}?section=${value}`}
-            aria-current={activeSection === value ? "page" : undefined}
+            href={value === "plan" ? eventUrl : `${eventUrl}?section=${value}`}
+            aria-current={active === value ? "page" : undefined}
           >
             {label}
+            {value === "votaciones" && live.openCount > 0 && (
+              <span className={styles.tabCount}>{live.openCount}</span>
+            )}
           </Link>
         ))}
       </nav>
-      {activeSection === "info" && (
+
+      {active === "plan" && (
         <>
-          <div className="content-columns event-detail-columns">
-            <Card className="event-details-card">
-              <h2>Todo lo que necesitas saber</h2>
-              <div className="detail-grid">
-                <div className="detail-line">
-                  <span className="detail-icon">
-                    <CalendarDays size={19} />
+          <div className={styles.planGrid}>
+            <div className={styles.planMain}>
+              <Suspense fallback={<PanelSkeleton label="cronograma" />}>
+                <SchedulePanel groupId={groupId} eventId={eventId} />
+              </Suspense>
+              {event.description && (
+                <Card className={styles.notes}>
+                  <h2>
+                    <AlignLeft size={16} aria-hidden="true" /> Notas del plan
+                  </h2>
+                  <p>{event.description}</p>
+                </Card>
+              )}
+            </div>
+            <aside className={styles.planSide}>
+              <AttendancePanel
+                groupId={groupId}
+                eventId={eventId}
+                userId={user.id}
+                open={canRespond}
+              />
+              {live.poll && (
+                <Link
+                  href={`${eventUrl}?section=votaciones`}
+                  className={styles.livePoll}
+                >
+                  <span className={styles.liveLabel}>
+                    <span className="status-beacon" aria-hidden="true" />
+                    VOTACIÓN EN VIVO
                   </span>
-                  <div>
-                    <span className="detail-label">Cuándo</span>
-                    <strong>{dateLabel(event.starts_at)}</strong>
-                    <p className="small muted">
-                      Hasta {dateLabel(event.ends_at)} · hora de Panamá
-                    </p>
-                  </div>
-                </div>
-                <div className="detail-line">
-                  <span className="detail-icon">
-                    <MapPin size={19} />
-                  </span>
-                  <div>
-                    <span className="detail-label">Dónde</span>
-                    <strong>
-                      {event.location || "Ubicación por confirmar"}
-                    </strong>
-                    <p className="small muted">
-                      {event.location
-                        ? "Punto de encuentro del grupo"
-                        : "Se avisará en el grupo"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="description-block">
-                <div className="description-header">
-                  <AlignLeft size={15} />
-                  <span>Notas y detalles del plan</span>
-                </div>
-                <p className="description">
-                  {event.description ||
-                    "Sin notas adicionales por ahora. ¡Solo confirma tu asistencia y nos vemos allá!"}
-                </p>
-              </div>
-            </Card>
-            <AttendancePanel
-              groupId={groupId}
-              eventId={eventId}
-              userId={user.id}
-              open={canRespond}
-            />
+                  <h2>{live.poll.question}</h2>
+                  <ul>
+                    {live.poll.options.slice(0, 3).map((option) => (
+                      <li key={option.id}>
+                        <span>
+                          {option.label}
+                          <strong>{option.percent}%</strong>
+                        </span>
+                        <span className={styles.bar} aria-hidden="true">
+                          <span style={{ width: `${option.percent}%` }} />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Link>
+              )}
+              <Suspense fallback={null}>
+                <PlanStats groupId={groupId} eventId={eventId} />
+              </Suspense>
+            </aside>
           </div>
-          <Suspense fallback={<PanelSkeleton label="cronograma" />}>
-            <SchedulePanel groupId={groupId} eventId={eventId} />
-          </Suspense>
-          {canManage && <ManageEvent event={event} />}
+          {canManage && (
+            <section id="gestionar" className={styles.manage}>
+              <h2>Gestionar la salida</h2>
+              <ManageEvent event={event} />
+            </section>
+          )}
         </>
       )}
-      {activeSection === "votaciones" && (
+      {active === "votaciones" && (
         <div className={styles.panels}>
           <Suspense fallback={<PanelSkeleton label="votaciones" />}>
-            <PollsPanel
-              groupId={groupId}
-              eventId={eventId}
-              open={event.status === "published"}
-            />
+            <PollsPanel groupId={groupId} eventId={eventId} open={open} />
           </Suspense>
-          <Suspense fallback={<PanelSkeleton label="propuestas" />}>
-            <ProposalsPanel
-              groupId={groupId}
-              eventId={eventId}
-              open={event.status === "published"}
-            />
-          </Suspense>
+          <div className={styles.side}>
+            {open && (
+              <PollComposer groupId={groupId} eventId={eventId} standalone />
+            )}
+            <Suspense fallback={<PanelSkeleton label="propuestas" />}>
+              <ProposalsPanel groupId={groupId} eventId={eventId} open={open} />
+            </Suspense>
+          </div>
         </div>
       )}
-      {activeSection === "gastos" && (
+      {active === "gastos" && (
         <Suspense fallback={<PanelSkeleton label="gastos" />}>
           <ExpensesPanel groupId={groupId} eventId={eventId} />
         </Suspense>
       )}
-      {activeSection === "tareas" && (
+      {active === "tareas" && (
         <Suspense fallback={<PanelSkeleton label="tareas" />}>
-          <TasksPanel
-            groupId={groupId}
-            eventId={eventId}
-            readOnly={event.status !== "published"}
-          />
+          <TasksPanel groupId={groupId} eventId={eventId} readOnly={!open} />
         </Suspense>
       )}
     </>
+  );
+}
+
+async function PlanStats({
+  groupId,
+  eventId,
+}: {
+  groupId: string;
+  eventId: string;
+}) {
+  const [tasks, expenses] = await Promise.all([
+    getTaskProgress(groupId, eventId),
+    getExpenseSummary(groupId, eventId),
+  ]);
+  const eventUrl = `/groups/${groupId}/events/${eventId}`;
+  return (
+    <div className={styles.stats}>
+      <Link href={`${eventUrl}?section=tareas`} className={styles.stat}>
+        <span className="eyebrow">TAREAS</span>
+        <strong>
+          {tasks.done}/{tasks.total}
+        </strong>
+        <span className={styles.bar} aria-hidden="true">
+          <span
+            style={{
+              width: `${tasks.total ? (tasks.done / tasks.total) * 100 : 0}%`,
+            }}
+          />
+        </span>
+      </Link>
+      <Link href={`${eventUrl}?section=gastos`} className={styles.stat}>
+        <span className="eyebrow">GASTOS</span>
+        <strong>{formatMoney(expenses.totalCents)}</strong>
+        <span className="small muted">
+          {expenses.count
+            ? `${formatMoney(expenses.perPersonCents)} por persona`
+            : "Sin gastos aún"}
+        </span>
+      </Link>
+    </div>
   );
 }
 

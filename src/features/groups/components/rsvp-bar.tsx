@@ -1,11 +1,9 @@
 "use client";
 
 import { useActionState, useOptimistic, useRef } from "react";
-import Link from "next/link";
 import type { ActionState } from "@/shared/lib/forms";
-import { Button } from "@/shared/ui/button";
 import { FeedbackToast } from "@/shared/ui/feedback-toast";
-import styles from "./upcoming-events.module.css";
+import styles from "./home.module.css";
 
 const responses = [
   { value: "going", label: "Voy" },
@@ -15,22 +13,17 @@ const responses = [
 type Response = (typeof responses)[number]["value"];
 type Feedback = { error?: string; success?: string; id: number };
 
-export function UpcomingEventCard({
+/** "¿Vas a ir?" con control segmentado y respuesta optimista. */
+export function RsvpBar({
   eventId,
   groupId,
   title,
-  groupName,
-  date,
-  location,
   current,
   respond,
 }: {
   eventId: string;
   groupId: string;
   title: string;
-  groupName: string;
-  date: string;
-  location: string | null;
   current?: Response;
   respond: (state: ActionState, data: FormData) => Promise<ActionState>;
 }) {
@@ -61,24 +54,10 @@ export function UpcomingEventCard({
   );
 
   return (
-    <article className={styles.event}>
-      <div>
-        <p className={styles.group}>{groupName}</p>
-        <h3>
-          <Link href={`/groups/${groupId}/events/${eventId}`}>{title}</Link>
-        </h3>
-        <p className="small muted">
-          {date}
-          {location ? ` · ${location}` : ""}
-        </p>
-        <p className="small muted" aria-live="polite">
-          {selected
-            ? `Tu respuesta: ${responses.find((response) => response.value === selected)?.label}`
-            : "Aún no has respondido"}
-        </p>
-      </div>
+    <div className={styles.rsvpBar}>
+      <strong>¿Vas a ir?</strong>
       <form
-        className={styles.responses}
+        className={styles.segmented}
         action={action}
         aria-label={`Confirmar asistencia a ${title}`}
         aria-busy={pending}
@@ -93,17 +72,17 @@ export function UpcomingEventCard({
         <input type="hidden" name="group_id" value={groupId} />
         <input type="hidden" name="event_id" value={eventId} />
         {responses.map((response) => (
-          <Button
+          <button
             key={response.value}
             type="submit"
             name="status"
             value={response.value}
+            data-status={response.value}
             aria-pressed={selected === response.value}
-            disabled={pending || selected === response.value}
-            className={styles.response}
+            disabled={pending}
           >
             {response.label}
-          </Button>
+          </button>
         ))}
       </form>
       {(feedback.success || feedback.error) && (
@@ -113,6 +92,6 @@ export function UpcomingEventCard({
           isError={Boolean(feedback.error)}
         />
       )}
-    </article>
+    </div>
   );
 }

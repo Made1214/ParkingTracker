@@ -1,5 +1,4 @@
-﻿import { Lightbulb } from "lucide-react";
-import { Card } from "@/shared/ui/card";
+﻿import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
 import { createProposal, reviewProposal } from "../api/actions";
@@ -19,15 +18,9 @@ export async function ProposalsPanel({
   return (
     <Card className={styles.panel}>
       <div className={styles.heading}>
-        <div className={styles.headingMain}>
-          <span className={styles.headingIcon}>
-            <Lightbulb size={20} aria-hidden="true" />
-          </span>
-          <div>
-            <span className={styles.eyebrow}>INSPIRACIÓN PARA EL PLAN</span>
-            <h2>Propuestas</h2>
-            <p>Comparte una idea para esta salida.</p>
-          </div>
+        <div>
+          <h2>Propuestas</h2>
+          <p>Ideas del grupo; quien organiza decide cuáles entran al plan.</p>
         </div>
         <span className={styles.count}>
           {proposals.length} {proposals.length === 1 ? "idea" : "ideas"}

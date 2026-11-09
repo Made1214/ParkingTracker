@@ -2,6 +2,7 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/features/auth";
+import { serverClient } from "@/shared/supabase/server";
 export async function listGroups() {
   const { supabase, user } = await requireUser();
   const [groups, profile] = await Promise.all([
@@ -39,4 +40,24 @@ export async function getGroup(groupId: string) {
     .eq("group_id", groupId);
   if (membersError) throw new Error("No se pudieron cargar los miembros.");
   return { group, members, user };
+}
+/** Datos de la navegación: grupos y nombre. null si no hay sesión. */
+export async function getShellData() {
+  const supabase = await serverClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const [groups, profile] = await Promise.all([
+    supabase.from("groups").select("id, name").order("name"),
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+  return {
+    groups: groups.data ?? [],
+    displayName: profile.data?.display_name ?? "",
+  };
 }

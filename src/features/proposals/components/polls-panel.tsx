@@ -1,11 +1,9 @@
-import { BarChart3, CheckCircle2, Clock3, Vote } from "lucide-react";
-import { Card } from "@/shared/ui/card";
+import { BarChart3, CheckCircle2, Clock3 } from "lucide-react";
 import { ActionForm } from "@/shared/ui/action-form";
 import { dateLabel } from "@/shared/lib/utils";
 import { vote, closePoll } from "../api/actions";
 import { getPolls } from "../api/queries";
 import { PollRealtime } from "./poll-realtime";
-import { PollComposer } from "./poll-composer";
 import styles from "./decisions.module.css";
 
 export async function PollsPanel({
@@ -19,7 +17,7 @@ export async function PollsPanel({
 }) {
   const { polls, userId, isAdmin, now } = await getPolls(groupId, eventId);
   return (
-    <Card className={styles.panel}>
+    <div className={styles.pollList}>
       <PollRealtime
         groupId={groupId}
         eventId={eventId}
@@ -37,21 +35,14 @@ export async function PollsPanel({
         }, undefined)}
       />
       <div className={styles.heading}>
-        <div className={styles.headingMain}>
-          <span className={styles.headingIcon}>
-            <Vote size={20} aria-hidden="true" />
-          </span>
-          <div>
-            <span className={styles.eyebrow}>DECIDAMOS JUNTOS</span>
-            <h2>Votaciones</h2>
-            <p>Una pregunta, varias ideas y una decisión en equipo.</p>
-          </div>
+        <div>
+          <h2>Votaciones</h2>
+          <p>Una pregunta, varias ideas y una decisión en equipo.</p>
         </div>
         <span className={styles.count}>
           {polls.length} {polls.length === 1 ? "votación" : "votaciones"}
         </span>
       </div>
-      {open && <PollComposer groupId={groupId} eventId={eventId} />}
       {polls.length === 0 && (
         <div className={styles.emptyPoll}>
           <span className={styles.emptyIcon}>
@@ -80,7 +71,7 @@ export async function PollsPanel({
           (result) => result.is_winner && Number(result.votes) > 0,
         ).length;
         return (
-          <section key={poll.id} className={styles.poll}>
+          <section key={poll.id} className={styles.poll} data-active={active}>
             <div className={styles.pollHeader}>
               <span className={styles.status} data-active={active}>
                 <span aria-hidden="true" />
@@ -129,7 +120,15 @@ export async function PollsPanel({
                     const count = Number(result?.votes ?? 0);
                     const width = total ? Math.round((count / total) * 100) : 0;
                     return (
-                      <label key={option.id} className={styles.option}>
+                      <label
+                        key={option.id}
+                        className={styles.option}
+                        data-winner={
+                          !active && result?.is_winner && count > 0
+                            ? true
+                            : undefined
+                        }
+                      >
                         <span className={styles.optionTop}>
                           <input
                             type={poll.allow_multiple ? "checkbox" : "radio"}
@@ -166,7 +165,11 @@ export async function PollsPanel({
               </fieldset>
             </ActionForm>
             {active && (isAdmin || poll.created_by === userId) && (
-              <ActionForm action={closePoll} label="Cerrar votación">
+              <ActionForm
+                action={closePoll}
+                label="Cerrar votación"
+                className={`form-stack ${styles.closePoll}`}
+              >
                 <input type="hidden" name="group_id" value={groupId} />
                 <input type="hidden" name="event_id" value={eventId} />
                 <input type="hidden" name="poll_id" value={poll.id} />
@@ -175,6 +178,6 @@ export async function PollsPanel({
           </section>
         );
       })}
-    </Card>
+    </div>
   );
 }

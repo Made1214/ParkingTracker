@@ -41,3 +41,42 @@ export function panamaTime(value: string) {
     timeZone: "America/Panama",
   }).format(new Date(value));
 }
+/** Iniciales para avatares: "Ana Torres" → "AT", "luis" → "LU". */
+export function initials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return "?";
+  const letters =
+    words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2);
+  return letters.toUpperCase();
+}
+/** Fecha corta en Panamá, p. ej. "sáb, 14 nov". */
+export function shortDate(value: string | Date) {
+  return new Intl.DateTimeFormat("es-PA", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "America/Panama",
+  })
+    .format(new Date(value))
+    .replace(/\./g, "");
+}
+/** Fecha larga en Panamá, p. ej. "lunes 9 de noviembre". */
+export function longDate(value: string | Date) {
+  return new Intl.DateTimeFormat("es-PA", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "America/Panama",
+  })
+    .format(new Date(value))
+    .replace(",", "");
+}
+/** Tiempo restante legible: "5d 14h", "3h 20min" o "20min". */
+export function countdown(ms: number) {
+  const minutes = Math.max(0, Math.floor(ms / 60000));
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  if (days) return `${days}d ${hours}h`;
+  if (hours) return `${hours}h ${minutes % 60}min`;
+  return `${minutes}min`;
+}

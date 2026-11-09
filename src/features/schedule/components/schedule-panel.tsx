@@ -1,4 +1,4 @@
-import { CalendarClock } from "lucide-react";
+import { EllipsisVertical } from "lucide-react";
 import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
@@ -98,14 +98,11 @@ export async function SchedulePanel({
   return (
     <Card className={styles.panel} aria-labelledby="schedule-title">
       <div className={styles.heading}>
-        <span className="tile-icon" aria-hidden="true">
-          <CalendarClock size={20} />
+        <h2 id="schedule-title">Cronograma</h2>
+        <span className="small muted">
+          {items.length} {items.length === 1 ? "actividad" : "actividades"} ·
+          hora de Panamá
         </span>
-        <div>
-          <span className="eyebrow">ASÍ VA EL DÍA</span>
-          <h2 id="schedule-title">Cronograma</h2>
-        </div>
-        <span className="count">{items.length}</span>
       </div>
 
       {items.length ? (
@@ -128,15 +125,15 @@ export async function SchedulePanel({
               </span>
               <div className={styles.body}>
                 <h3>{item.title}</h3>
-                {item.description && (
-                  <p className="small muted">{item.description}</p>
-                )}
+                {item.description && <p>{item.description}</p>}
                 {item.proposal_id && (
                   <span className="badge">Propuesta del grupo</span>
                 )}
                 {canEdit && (
                   <details className={styles.edit}>
-                    <summary>Editar</summary>
+                    <summary aria-label={`Editar ${item.title}`} title="Editar">
+                      <EllipsisVertical size={18} aria-hidden="true" />
+                    </summary>
                     <ActionForm
                       action={updateScheduleItem}
                       label="Guardar cambios"
