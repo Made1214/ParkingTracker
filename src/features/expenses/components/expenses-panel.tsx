@@ -1,4 +1,16 @@
-import { ArrowRight, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  BedDouble,
+  Car,
+  EllipsisVertical,
+  Receipt,
+  ShoppingBag,
+  Ticket,
+  Utensils,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import { initials } from "@/shared/lib/utils";
 import { Card } from "@/shared/ui/card";
 import { ActionForm } from "@/shared/ui/action-form";
 import { deleteExpense, settleDebt } from "../api/actions";
@@ -6,6 +18,15 @@ import { categories, formatMoney } from "../api/expense-form";
 import { getExpenses } from "../api/queries";
 import { ExpenseForm } from "./expense-form";
 import styles from "./expenses.module.css";
+
+const categoryIcons: Record<string, LucideIcon> = {
+  comida: Utensils,
+  transporte: Car,
+  alojamiento: BedDouble,
+  entradas: Ticket,
+  compras: ShoppingBag,
+  otro: Receipt,
+};
 
 export async function ExpensesPanel({
   groupId,
@@ -70,8 +91,14 @@ export async function ExpensesPanel({
                     className={debt.mine ? styles.debtMine : styles.debt}
                   >
                     <span className={styles.debtPeople}>
+                      <span className={styles.face} aria-hidden="true">
+                        {initials(debt.debtorName)}
+                      </span>
                       {debt.debtorName}
                       <ArrowRight size={16} aria-label="le debe a" />
+                      <span className={styles.face} aria-hidden="true">
+                        {initials(debt.creditorName)}
+                      </span>
                       {debt.creditorName}
                     </span>
                     <strong>{formatMoney(debt.cents)}</strong>
@@ -79,6 +106,7 @@ export async function ExpensesPanel({
                       <ActionForm
                         action={settleDebt}
                         label={debt.mine ? "Ya pagué" : "Marcar saldado"}
+                        tone={debt.mine ? undefined : "outline"}
                         className={styles.settle}
                       >
                         {hidden}
@@ -143,6 +171,65 @@ export async function ExpensesPanel({
               </ul>
             </Card>
           )}
+          <Card>
+            <div className={styles.cardTitle}>
+              <h2 id="expenses-list">Gastos registrados</h2>
+              <span className="count">{data.expenses.length}</span>
+            </div>
+            {data.expenses.length ? (
+              <ul className={styles.list}>
+                {data.expenses.map((expense) => {
+                  const Icon = categoryIcons[expense.category] ?? Receipt;
+                  return (
+                    <li key={expense.id}>
+                      <span
+                        className={styles.categoryIcon}
+                        data-category={expense.category}
+                        aria-hidden="true"
+                      >
+                        <Icon size={18} />
+                      </span>
+                      <span className={styles.listMain}>
+                        <strong>{expense.description}</strong>
+                        <span className="small muted">
+                          Pagó {expense.payer} ·{" "}
+                          {categories.find((c) => c.value === expense.category)
+                            ?.label ?? "Otro"}{" "}
+                          · entre {expense.people}
+                        </span>
+                      </span>
+                      <span className={styles.listAmount}>
+                        {formatMoney(expense.cents)}
+                      </span>
+                      {expense.canDelete && (
+                        <details className={styles.remove}>
+                          <summary
+                            aria-label={`Opciones de ${expense.description}`}
+                          >
+                            <EllipsisVertical size={18} aria-hidden="true" />
+                          </summary>
+                          <ActionForm
+                            action={deleteExpense}
+                            label="Eliminar gasto"
+                            tone="danger"
+                            className={styles.removeForm}
+                          >
+                            {hidden}
+                            <input type="hidden" name="id" value={expense.id} />
+                          </ActionForm>
+                        </details>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="small muted">
+                Todavía no hay gastos. Registra el primero y la app reparte por
+                ti.
+              </p>
+            )}
+          </Card>
         </div>
 
         <div className={styles.side}>
@@ -162,51 +249,6 @@ export async function ExpensesPanel({
               />
             </Card>
           )}
-          <section aria-labelledby="expenses-list">
-            <h2 id="expenses-list" className="eyebrow">
-              GASTOS REGISTRADOS
-            </h2>
-            {data.expenses.length ? (
-              <ul className={styles.list}>
-                {data.expenses.map((expense) => (
-                  <li key={expense.id}>
-                    <span className={styles.listMain}>
-                      <strong>{expense.description}</strong>
-                      <span className="small muted">
-                        Pagó {expense.payer} ·{" "}
-                        {categories.find((c) => c.value === expense.category)
-                          ?.label ?? "Otro"}{" "}
-                        · entre {expense.people}
-                      </span>
-                    </span>
-                    <span className={styles.listAmount}>
-                      {formatMoney(expense.cents)}
-                    </span>
-                    {expense.canDelete && (
-                      <details className={styles.remove}>
-                        <summary
-                          aria-label={`Opciones de ${expense.description}`}
-                        >
-                          ⋯
-                        </summary>
-                        <ActionForm
-                          action={deleteExpense}
-                          label="Eliminar gasto"
-                          tone="danger"
-                          className={styles.removeForm}
-                        >
-                          {hidden}
-                          <input type="hidden" name="id" value={expense.id} />
-                        </ActionForm>
-                      </details>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="small muted">Todavía no hay gastos.</p>
-            )}
-          </section>
         </div>
       </div>
     </div>

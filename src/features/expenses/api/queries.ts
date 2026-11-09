@@ -1,8 +1,6 @@
 import "server-only";
 import { requireUser } from "@/features/auth";
-import { toCents } from "./expense-form";
-
-const cents = (value: number) => toCents(Number(value).toFixed(2)) ?? 0;
+import { amountToCents as cents } from "./expense-form";
 
 export async function getExpenses(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(

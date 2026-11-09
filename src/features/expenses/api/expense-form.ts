@@ -19,6 +19,12 @@ export function toCents(value: string) {
   return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
 
+/** Monto de la base de datos (numeric, puede ser negativo) → centavos. */
+export function amountToCents(value: number | string | null | undefined) {
+  const amount = Number(value ?? 0);
+  return Number.isFinite(amount) ? Math.round(amount * 100) : 0;
+}
+
 export function formatMoney(cents: number) {
   const sign = cents < 0 ? "−" : "";
   return `${sign}$${(Math.abs(cents) / 100).toFixed(2)}`;
