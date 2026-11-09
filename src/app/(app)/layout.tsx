@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass, LogOut } from "lucide-react";
+import { Compass, LogOut, UserRound } from "lucide-react";
 import { logout } from "@/features/auth";
 import { Button } from "@/shared/ui/button";
 import { NavLink } from "@/shared/ui/nav-link";
@@ -16,6 +16,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav aria-label="Principal" className="app-nav">
           <NavLink href="/groups" label="Mis grupos">
             <Compass size={18} aria-hidden="true" />
+          </NavLink>
+          <NavLink href="/profile" label="Mi perfil">
+            <UserRound size={18} aria-hidden="true" />
           </NavLink>
         </nav>
         <div className="app-sidebar-foot">

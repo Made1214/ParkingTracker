@@ -84,7 +84,7 @@ select pass('attacker cannot move another group''s membership row into their own
 -- actually has it: an admin of B tries to walk their OWN event's
 -- group_id to A. Needs a seeded event in B first.
 insert into public.events (group_id, title, starts_at, ends_at, created_by)
-values ('10000000-0000-0000-0000-00000000000b', 'Grupo B event', now(), now() + interval '1 hour',
+values ('10000000-0000-0000-0000-00000000000b', 'Grupo B event', now() + interval '1 hour', now() + interval '2 hours',
         '99999999-0000-0000-0000-000000000098');
 
 -- The trigger's RAISE EXCEPTION message interpolates the actual row id

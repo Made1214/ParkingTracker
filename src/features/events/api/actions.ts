@@ -17,9 +17,10 @@ export async function createEvent(
       location: z.string().max(200),
       starts_at: z.iso.datetime({ offset: true }),
       ends_at: z.iso.datetime({ offset: true }),
+      status: z.enum(["draft", "published"]),
     })
-    .safeParse(
-      Object.fromEntries(
+    .safeParse({
+      ...Object.fromEntries(
         [
           "group_id",
           "title",
@@ -29,7 +30,8 @@ export async function createEvent(
           "ends_at",
         ].map((key) => [key, text(form, key)]),
       ),
-    );
+      status: text(form, "status") || "published",
+    });
   if (!parsed.success)
     return { error: "Revisa el título, el grupo y las fechas del evento." };
   if (
@@ -39,10 +41,132 @@ export async function createEvent(
     return { error: "El inicio debe ser futuro y el fin posterior al inicio." };
   const { data, error } = await supabase
     .from("events")
-    .insert({ ...parsed.data, created_by: user.id, status: "published" })
+    .insert({ ...parsed.data, created_by: user.id })
     .select("id")
     .single();
   if (error) return { error: databaseError(error.code) };
   revalidatePath(`/groups/${parsed.data.group_id}`);
   redirect(`/groups/${parsed.data.group_id}/events/${data.id}`);
+}
+
+export async function updateEvent(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const parsed = z
+    .object({
+      group_id: z.uuid(),
+      event_id: z.uuid(),
+      title: z.string().trim().min(1).max(120),
+      description: z.string().max(5000),
+      location: z.string().max(200),
+      starts_at: z.iso.datetime({ offset: true }),
+      ends_at: z.iso.datetime({ offset: true }),
+    })
+    .safeParse(
+      Object.fromEntries(
+        [
+          "group_id",
+          "event_id",
+          "title",
+          "description",
+          "location",
+          "starts_at",
+          "ends_at",
+        ].map((key) => [key, text(form, key)]),
+      ),
+    );
+  if (!parsed.success)
+    return { error: "Revisa el título, el lugar y las fechas del evento." };
+  const { group_id, event_id, ...updates } = parsed.data;
+  if (
+    Date.parse(updates.starts_at) <= Date.now() ||
+    Date.parse(updates.ends_at) <= Date.parse(updates.starts_at)
+  )
+    return { error: "El inicio debe ser futuro y el fin posterior al inicio." };
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase
+    .from("events")
+    .update(updates)
+    .eq("id", event_id)
+    .eq("group_id", group_id)
+    .in("status", ["draft", "published"])
+    .or(
+      `status.eq.draft,and(status.eq.published,starts_at.gt.${new Date().toISOString()})`,
+    )
+    .select("id")
+    .maybeSingle();
+  if (error) return { error: databaseError(error.code) };
+  if (!data)
+    return {
+      error:
+        "No tienes permiso para editar este evento o ya no se puede modificar.",
+    };
+  revalidatePath(`/groups/${group_id}/events/${event_id}`);
+  revalidatePath(`/groups/${group_id}`);
+  revalidatePath("/groups");
+  return { success: "Evento actualizado." };
+}
+
+export async function publishEvent(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ids = z.object({ group_id: z.uuid(), event_id: z.uuid() }).safeParse({
+    group_id: text(form, "group_id"),
+    event_id: text(form, "event_id"),
+  });
+  if (!ids.success) return { error: "No se pudo identificar el evento." };
+  const { group_id, event_id } = ids.data;
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase
+    .from("events")
+    .update({ status: "published" })
+    .eq("id", event_id)
+    .eq("group_id", group_id)
+    .eq("status", "draft")
+    .gt("starts_at", new Date().toISOString())
+    .select("id")
+    .maybeSingle();
+  if (error) return { error: databaseError(error.code) };
+  if (!data)
+    return {
+      error: "No tienes permiso para publicar este evento o su fecha ya pasó.",
+    };
+  revalidatePath(`/groups/${group_id}/events/${event_id}`);
+  revalidatePath(`/groups/${group_id}`);
+  revalidatePath("/groups");
+  return { success: "Evento publicado." };
+}
+
+export async function cancelEvent(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ids = z.object({ group_id: z.uuid(), event_id: z.uuid() }).safeParse({
+    group_id: text(form, "group_id"),
+    event_id: text(form, "event_id"),
+  });
+  if (!ids.success) return { error: "No se pudo identificar el evento." };
+  const { group_id, event_id } = ids.data;
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase
+    .from("events")
+    .update({ status: "cancelled" })
+    .eq("id", event_id)
+    .eq("group_id", group_id)
+    .eq("status", "published")
+    .gt("starts_at", new Date().toISOString())
+    .select("id")
+    .maybeSingle();
+  if (error) return { error: databaseError(error.code) };
+  if (!data)
+    return {
+      error:
+        "No tienes permiso para cancelar este evento o ya no se puede cancelar.",
+    };
+  revalidatePath(`/groups/${group_id}/events/${event_id}`);
+  revalidatePath(`/groups/${group_id}`);
+  revalidatePath("/groups");
+  return { success: "Evento cancelado." };
 }

@@ -16,15 +16,15 @@ async function context(form: FormData) {
   const { supabase, user } = await requireUser();
   const { data: event, error } = await supabase
     .from("events")
-    .select("status")
+    .select("status, ends_at")
     .eq("group_id", parsed.data.group_id)
     .eq("id", parsed.data.event_id)
     .maybeSingle();
   if (
     error ||
     !event ||
-    event.status === "finished" ||
-    event.status === "cancelled"
+    event.status !== "published" ||
+    Date.parse(event.ends_at) <= Date.now()
   )
     return null;
   return { ...parsed.data, supabase, user };

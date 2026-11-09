@@ -33,6 +33,7 @@ export function PollComposer({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [multiple, setMultiple] = useState(false);
+  const [scheduled, setScheduled] = useState(false);
   const [state, formAction, pending] = useActionState(
     async (previous: ActionState, data: FormData) => {
       data.set(
@@ -42,7 +43,7 @@ export function PollComposer({
           .filter(Boolean)
           .join("\n"),
       );
-      data.set("closes_at", date && time ? date + "T" + time : "");
+      data.set("closes_at", scheduled && date && time ? date + "T" + time : "");
       const result = await createPoll(previous, data);
       if (result.success) {
         setQuestion("");
@@ -54,6 +55,7 @@ export function PollComposer({
         setDate("");
         setTime("");
         setMultiple(false);
+        setScheduled(false);
         setExpanded(false);
       }
       return result;
@@ -184,15 +186,25 @@ export function PollComposer({
                 </span>
               </div>
               <p className={styles.hint}>
-                Elige cuándo dejar de recibir votos. Hora de Panamá.
+                Sin fecha, seguirá abierta hasta que se cierre manualmente o
+                termine el evento.
               </p>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={scheduled}
+                  onChange={(event) => setScheduled(event.target.checked)}
+                />{" "}
+                Programar cierre · hora de Panamá
+              </label>
               <div className={styles.dateFields}>
                 <label className={styles.field}>
                   Fecha
                   <input
                     className="input"
                     type="date"
-                    required
+                    required={scheduled}
+                    disabled={!scheduled}
                     value={date}
                     onChange={(event) => setDate(event.target.value)}
                   />
@@ -202,7 +214,8 @@ export function PollComposer({
                   <input
                     className="input"
                     type="time"
-                    required
+                    required={scheduled}
+                    disabled={!scheduled}
                     value={time}
                     onChange={(event) => setTime(event.target.value)}
                   />

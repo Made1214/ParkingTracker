@@ -1,0 +1,27 @@
+begin;
+select plan(13);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
+set local role authenticated;
+select is_empty($$update public.groups set description='unauthorized' where id='10000000-0000-0000-0000-000000000001' returning id$$, 'member cannot edit group');
+select is_empty($$update public.group_members set role='admin' where group_id='10000000-0000-0000-0000-000000000001' and user_id='00000000-0000-0000-0000-000000000002' returning user_id$$, 'member cannot promote self');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+select throws_ok($$update public.group_members set role='member' where group_id='10000000-0000-0000-0000-000000000001' and user_id=auth.uid()$$, '23514', 'group must retain an administrator', 'last admin cannot demote self');
+select throws_ok($$delete from public.group_members where group_id='10000000-0000-0000-0000-000000000001' and user_id=auth.uid()$$, '23514', 'group must retain an administrator', 'last admin cannot leave');
+select lives_ok($$update public.groups set name='Updated group', description='Details', invite_code='TSTX1234' where id='10000000-0000-0000-0000-000000000001'$$, 'admin edits details and regenerates invite');
+select throws_ok($$select public.join_group_by_invite('DEV00001')$$, 'P0002', 'invalid invite code', 'old invite no longer joins after regeneration');
+select throws_ok($$update public.groups set avatar_public_id='groups/10000000-0000-0000-0000-000000000002/11111111-1111-4111-8111-111111111111' where id='10000000-0000-0000-0000-000000000001'$$, '23514', null, 'group avatar cannot reference another tenant');
+select lives_ok($$update public.group_members set role='admin' where group_id='10000000-0000-0000-0000-000000000001' and user_id='00000000-0000-0000-0000-000000000002'$$, 'admin can appoint another admin');
+select results_eq($$delete from public.group_members where group_id='10000000-0000-0000-0000-000000000001' and user_id=auth.uid() returning user_id$$, $$values ('00000000-0000-0000-0000-000000000001'::uuid)$$, 'admin can leave and receive confirmation after appointing a successor');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
+select throws_ok($$update public.group_members set user_id='00000000-0000-0000-0000-000000000001' where group_id='10000000-0000-0000-0000-000000000001' and user_id=auth.uid()$$, '23514', 'membership identity is immutable', 'admin cannot transfer membership identity');
+insert into public.events(id,group_id,title,starts_at,ends_at,status,created_by)
+values ('90000000-0000-0000-0000-000000000018','10000000-0000-0000-0000-000000000001','Former member content',now()+interval '1 day',now()+interval '2 days','published',auth.uid());
+reset role;
+delete from public.group_members where group_id='10000000-0000-0000-0000-000000000001' and user_id='00000000-0000-0000-0000-000000000002';
+set local role authenticated;
+select is_empty($$select id from public.events where id='90000000-0000-0000-0000-000000000018'$$, 'removed member cannot read group content');
+select lives_ok($$do $body$ declare n bigint; begin delete from public.events; get diagnostics n=row_count; if n<>0 then raise exception 'removed member deleted authored content'; end if; end $body$;$$, 'removed member cannot delete previously authored content');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000003","role":"authenticated"}', true);
+select results_eq($$delete from public.group_members where group_id='10000000-0000-0000-0000-000000000001' and user_id=auth.uid() returning user_id$$, $$values ('00000000-0000-0000-0000-000000000003'::uuid)$$, 'ordinary member can leave and receive confirmation');
+select * from finish();
+rollback;
