@@ -17,8 +17,8 @@ export async function getEvent(groupId: string, eventId: string) {
     `/groups/${groupId}/events/${eventId}`,
   );
   if (
-    !z.uuid().safeParse(groupId).success ||
-    !z.uuid().safeParse(eventId).success
+    !z.guid().safeParse(groupId).success ||
+    !z.guid().safeParse(eventId).success
   )
     notFound();
   const { data, error } = await supabase

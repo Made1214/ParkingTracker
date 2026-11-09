@@ -30,15 +30,15 @@ export async function createExpense(
 }
 
 const refs = z.object({
-  group_id: z.uuid(),
-  event_id: z.uuid(),
+  group_id: z.guid(),
+  event_id: z.guid(),
 });
 
 export async function deleteExpense(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const ids = refs.extend({ id: z.uuid() }).safeParse({
+  const ids = refs.extend({ id: z.guid() }).safeParse({
     id: text(form, "id"),
     group_id: text(form, "group_id"),
     event_id: text(form, "event_id"),
@@ -63,7 +63,7 @@ export async function settleDebt(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const ids = refs.extend({ debtor: z.uuid(), creditor: z.uuid() }).safeParse({
+  const ids = refs.extend({ debtor: z.guid(), creditor: z.guid() }).safeParse({
     group_id: text(form, "group_id"),
     event_id: text(form, "event_id"),
     debtor: text(form, "debtor"),

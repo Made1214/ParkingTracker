@@ -10,8 +10,8 @@ export async function respond(
   const { supabase, user } = await requireUser();
   const parsed = z
     .object({
-      group_id: z.uuid(),
-      event_id: z.uuid(),
+      group_id: z.guid(),
+      event_id: z.guid(),
       status: z.enum(["going", "maybe", "declined"]),
     })
     .safeParse({

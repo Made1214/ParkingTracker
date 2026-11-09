@@ -16,7 +16,7 @@ export async function updateEventCover(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const ids = z.object({ group_id: z.uuid(), event_id: z.uuid() }).safeParse({
+  const ids = z.object({ group_id: z.guid(), event_id: z.guid() }).safeParse({
     group_id: text(form, "group_id"),
     event_id: text(form, "event_id"),
   });

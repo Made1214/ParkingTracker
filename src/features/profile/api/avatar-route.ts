@@ -8,7 +8,7 @@ export async function avatarResponse(userId: string) {
     "Cache-Control": "private, no-store",
     "X-Content-Type-Options": "nosniff",
   };
-  if (!z.uuid().safeParse(userId).success)
+  if (!z.guid().safeParse(userId).success)
     return new Response(null, { status: 404, headers });
   const supabase = await serverClient();
   const {

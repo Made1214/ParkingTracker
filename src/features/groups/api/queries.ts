@@ -25,7 +25,7 @@ export async function listGroups() {
 }
 export async function getGroup(groupId: string) {
   const { supabase, user } = await requireUser(`/groups/${groupId}`);
-  if (!z.uuid().safeParse(groupId).success) notFound();
+  if (!z.guid().safeParse(groupId).success) notFound();
   const { data: group, error } = await supabase
     .from("groups")
     .select("*")

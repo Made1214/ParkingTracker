@@ -11,8 +11,8 @@ export async function createProposal(
   const { supabase } = await requireUser();
   const parsed = z
     .object({
-      group_id: z.uuid(),
-      event_id: z.uuid(),
+      group_id: z.guid(),
+      event_id: z.guid(),
       title: z.string().min(1).max(120),
       description: z.string().max(2000),
     })
@@ -54,8 +54,8 @@ export async function createPoll(
   const closesAt = text(form, "closes_at");
   const date = closesAt ? new Date(`${closesAt}-05:00`) : null;
   if (
-    !z.uuid().safeParse(eventId).success ||
-    !z.uuid().safeParse(groupId).success ||
+    !z.guid().safeParse(eventId).success ||
+    !z.guid().safeParse(groupId).success ||
     !question ||
     question.length > 200 ||
     options.length < 2 ||
@@ -83,9 +83,9 @@ export async function reviewProposal(
 ): Promise<ActionState> {
   const parsed = z
     .object({
-      group_id: z.uuid(),
-      event_id: z.uuid(),
-      proposal_id: z.uuid(),
+      group_id: z.guid(),
+      event_id: z.guid(),
+      proposal_id: z.guid(),
       status: z.enum(["accepted", "rejected"]),
     })
     .safeParse(
@@ -127,7 +127,7 @@ export async function vote(
   const eventId = text(form, "event_id");
   if (
     ![pollId, groupId, eventId, ...options].every(
-      (x) => z.uuid().safeParse(x).success,
+      (x) => z.guid().safeParse(x).success,
     ) ||
     !options.length
   )
@@ -155,7 +155,7 @@ export async function closePoll(
   const pollId = text(form, "poll_id"),
     groupId = text(form, "group_id"),
     eventId = text(form, "event_id");
-  if (![pollId, groupId, eventId].every((x) => z.uuid().safeParse(x).success))
+  if (![pollId, groupId, eventId].every((x) => z.guid().safeParse(x).success))
     return { error: "Votación inválida." };
   const { error } = await supabase.rpc("close_poll", { p_poll_id: pollId });
   if (error) return { error: databaseError(error.code) };
