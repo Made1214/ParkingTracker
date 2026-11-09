@@ -294,6 +294,7 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          category: string
           created_at: string
           created_by: string | null
           currency: string
@@ -307,6 +308,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           amount: number
+          category?: string
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -319,6 +321,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          category?: string
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -938,6 +941,32 @@ export type Database = {
         }
         Returns: string
       }
+      create_expense: {
+        Args: {
+          p_amount: number
+          p_category: string
+          p_description: string
+          p_event_id: string
+          p_paid_by: string
+          p_shares: Json
+        }
+        Returns: string
+      }
+      get_event_balances: {
+        Args: { p_event_id: string }
+        Returns: {
+          net_amount: number
+          user_id: string
+        }[]
+      }
+      get_event_debts: {
+        Args: { p_event_id: string }
+        Returns: {
+          amount: number
+          creditor: string
+          debtor: string
+        }[]
+      }
       get_group_balances: {
         Args: { p_group_id: string }
         Returns: {
@@ -980,6 +1009,10 @@ export type Database = {
           p_status: Database["public"]["Enums"]["proposal_status"]
         }
         Returns: undefined
+      }
+      settle_event_debt: {
+        Args: { p_creditor: string; p_debtor: string; p_event_id: string }
+        Returns: number
       }
       suggest_settlements: {
         Args: { p_group_id: string }

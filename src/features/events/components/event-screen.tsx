@@ -5,6 +5,7 @@ import { AttendancePanel } from "@/features/rsvp";
 import { ProposalsPanel, PollsPanel } from "@/features/proposals";
 import { TasksPanel } from "@/features/tasks";
 import { SchedulePanel } from "@/features/schedule";
+import { ExpensesPanel } from "@/features/expenses";
 import { Card } from "@/shared/ui/card";
 import { dateLabel } from "@/shared/lib/utils";
 import { getEvent } from "../api/queries";
@@ -26,7 +27,9 @@ export async function EventScreen({
     eventId,
   );
   const activeSection =
-    section === "votaciones" || section === "tareas" ? section : "info";
+    section === "votaciones" || section === "tareas" || section === "gastos"
+      ? section
+      : "info";
   const eventUrl = `/groups/${groupId}/events/${eventId}`;
   const monthLabel = new Intl.DateTimeFormat("es", {
     month: "short",
@@ -74,6 +77,7 @@ export async function EventScreen({
           { value: "info", label: "Información" },
           { value: "votaciones", label: "Votaciones" },
           { value: "tareas", label: "Tareas" },
+          { value: "gastos", label: "Gastos" },
         ].map(({ value, label }) => (
           <Link
             key={value}
@@ -160,6 +164,11 @@ export async function EventScreen({
             />
           </Suspense>
         </div>
+      )}
+      {activeSection === "gastos" && (
+        <Suspense fallback={<PanelSkeleton label="gastos" />}>
+          <ExpensesPanel groupId={groupId} eventId={eventId} />
+        </Suspense>
       )}
       {activeSection === "tareas" && (
         <Suspense fallback={<PanelSkeleton label="tareas" />}>
