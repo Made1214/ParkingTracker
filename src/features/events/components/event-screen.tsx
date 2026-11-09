@@ -4,10 +4,14 @@ import { ArrowLeft, CalendarDays, MapPin, AlignLeft } from "lucide-react";
 import { AttendancePanel } from "@/features/rsvp";
 import { ProposalsPanel, PollsPanel } from "@/features/proposals";
 import { TasksPanel } from "@/features/tasks";
+import { SchedulePanel } from "@/features/schedule";
+import { ExpensesPanel } from "@/features/expenses";
 import { Card } from "@/shared/ui/card";
 import { dateLabel } from "@/shared/lib/utils";
 import { getEvent } from "../api/queries";
 import { statusLabels } from "./event-list";
+import { ManageEvent } from "./manage-event";
+import { EventCover } from "./event-cover";
 import styles from "./event-screen.module.css";
 export async function EventScreen({
   groupId,
@@ -18,9 +22,14 @@ export async function EventScreen({
   eventId: string;
   section?: string | string[];
 }) {
-  const { event, user, canRespond } = await getEvent(groupId, eventId);
+  const { event, user, canRespond, canManage } = await getEvent(
+    groupId,
+    eventId,
+  );
   const activeSection =
-    section === "votaciones" || section === "tareas" ? section : "info";
+    section === "votaciones" || section === "tareas" || section === "gastos"
+      ? section
+      : "info";
   const eventUrl = `/groups/${groupId}/events/${eventId}`;
   const monthLabel = new Intl.DateTimeFormat("es", {
     month: "short",
@@ -36,6 +45,14 @@ export async function EventScreen({
       <Link className="back-link" href={`/groups/${groupId}`}>
         <ArrowLeft size={16} /> Volver al grupo
       </Link>
+      {event.cover_public_id && (
+        <EventCover
+          key={event.updated_at}
+          groupId={groupId}
+          eventId={eventId}
+          revision={event.updated_at}
+        />
+      )}
       <div className="event-hero">
         <div className="event-hero-main">
           <div className="event-hero-badges">
@@ -60,6 +77,7 @@ export async function EventScreen({
           { value: "info", label: "Información" },
           { value: "votaciones", label: "Votaciones" },
           { value: "tareas", label: "Tareas" },
+          { value: "gastos", label: "Gastos" },
         ].map(({ value, label }) => (
           <Link
             key={value}
@@ -71,55 +89,63 @@ export async function EventScreen({
         ))}
       </nav>
       {activeSection === "info" && (
-        <div className="content-columns event-detail-columns">
-          <Card className="event-details-card">
-            <h2>Todo lo que necesitas saber</h2>
-            <div className="detail-grid">
-              <div className="detail-line">
-                <span className="detail-icon">
-                  <CalendarDays size={19} />
-                </span>
-                <div>
-                  <span className="detail-label">Cuándo</span>
-                  <strong>{dateLabel(event.starts_at)}</strong>
-                  <p className="small muted">
-                    Hasta {dateLabel(event.ends_at)} · hora de Panamá
-                  </p>
+        <>
+          <div className="content-columns event-detail-columns">
+            <Card className="event-details-card">
+              <h2>Todo lo que necesitas saber</h2>
+              <div className="detail-grid">
+                <div className="detail-line">
+                  <span className="detail-icon">
+                    <CalendarDays size={19} />
+                  </span>
+                  <div>
+                    <span className="detail-label">Cuándo</span>
+                    <strong>{dateLabel(event.starts_at)}</strong>
+                    <p className="small muted">
+                      Hasta {dateLabel(event.ends_at)} · hora de Panamá
+                    </p>
+                  </div>
+                </div>
+                <div className="detail-line">
+                  <span className="detail-icon">
+                    <MapPin size={19} />
+                  </span>
+                  <div>
+                    <span className="detail-label">Dónde</span>
+                    <strong>
+                      {event.location || "Ubicación por confirmar"}
+                    </strong>
+                    <p className="small muted">
+                      {event.location
+                        ? "Punto de encuentro del grupo"
+                        : "Se avisará en el grupo"}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="detail-line">
-                <span className="detail-icon">
-                  <MapPin size={19} />
-                </span>
-                <div>
-                  <span className="detail-label">Dónde</span>
-                  <strong>{event.location || "Ubicación por confirmar"}</strong>
-                  <p className="small muted">
-                    {event.location
-                      ? "Punto de encuentro del grupo"
-                      : "Se avisará en el grupo"}
-                  </p>
+              <div className="description-block">
+                <div className="description-header">
+                  <AlignLeft size={15} />
+                  <span>Notas y detalles del plan</span>
                 </div>
+                <p className="description">
+                  {event.description ||
+                    "Sin notas adicionales por ahora. ¡Solo confirma tu asistencia y nos vemos allá!"}
+                </p>
               </div>
-            </div>
-            <div className="description-block">
-              <div className="description-header">
-                <AlignLeft size={15} />
-                <span>Notas y detalles del plan</span>
-              </div>
-              <p className="description">
-                {event.description ||
-                  "Sin notas adicionales por ahora. ¡Solo confirma tu asistencia y nos vemos allá!"}
-              </p>
-            </div>
-          </Card>
-          <AttendancePanel
-            groupId={groupId}
-            eventId={eventId}
-            userId={user.id}
-            open={canRespond}
-          />
-        </div>
+            </Card>
+            <AttendancePanel
+              groupId={groupId}
+              eventId={eventId}
+              userId={user.id}
+              open={canRespond}
+            />
+          </div>
+          <Suspense fallback={<PanelSkeleton label="cronograma" />}>
+            <SchedulePanel groupId={groupId} eventId={eventId} />
+          </Suspense>
+          {canManage && <ManageEvent event={event} />}
+        </>
       )}
       {activeSection === "votaciones" && (
         <div className={styles.panels}>
@@ -127,26 +153,29 @@ export async function EventScreen({
             <PollsPanel
               groupId={groupId}
               eventId={eventId}
-              open={event.status !== "finished" && event.status !== "cancelled"}
+              open={event.status === "published"}
             />
           </Suspense>
           <Suspense fallback={<PanelSkeleton label="propuestas" />}>
             <ProposalsPanel
               groupId={groupId}
               eventId={eventId}
-              open={event.status !== "finished" && event.status !== "cancelled"}
+              open={event.status === "published"}
             />
           </Suspense>
         </div>
+      )}
+      {activeSection === "gastos" && (
+        <Suspense fallback={<PanelSkeleton label="gastos" />}>
+          <ExpensesPanel groupId={groupId} eventId={eventId} />
+        </Suspense>
       )}
       {activeSection === "tareas" && (
         <Suspense fallback={<PanelSkeleton label="tareas" />}>
           <TasksPanel
             groupId={groupId}
             eventId={eventId}
-            readOnly={
-              event.status === "finished" || event.status === "cancelled"
-            }
+            readOnly={event.status !== "published"}
           />
         </Suspense>
       )}

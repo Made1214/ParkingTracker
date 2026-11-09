@@ -2,7 +2,7 @@
 import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
-import { createProposal } from "../api/actions";
+import { createProposal, reviewProposal } from "../api/actions";
 import { getProposals } from "../api/queries";
 import styles from "./decisions.module.css";
 
@@ -15,7 +15,7 @@ export async function ProposalsPanel({
   eventId: string;
   open: boolean;
 }) {
-  const proposals = await getProposals(groupId, eventId);
+  const { proposals, canReview } = await getProposals(groupId, eventId);
   return (
     <Card className={styles.panel}>
       <div className={styles.heading}>
@@ -24,7 +24,7 @@ export async function ProposalsPanel({
             <Lightbulb size={20} aria-hidden="true" />
           </span>
           <div>
-            <span className={styles.eyebrow}>INSPIRACI?N PARA EL PLAN</span>
+            <span className={styles.eyebrow}>INSPIRACIÓN PARA EL PLAN</span>
             <h2>Propuestas</h2>
             <p>Comparte una idea para esta salida.</p>
           </div>
@@ -61,12 +61,50 @@ export async function ProposalsPanel({
           {proposals.map((proposal) => (
             <li key={proposal.id} className={styles.proposal}>
               <h3>{proposal.title}</h3>
+              <span className="badge">
+                {
+                  {
+                    open: "Por revisar",
+                    accepted: "Aprobada",
+                    rejected: "Rechazada",
+                  }[proposal.status]
+                }
+              </span>
               {proposal.description && (
                 <p className="description">{proposal.description}</p>
               )}
               <p className="small muted">
                 Propuesta por {proposal.profiles?.display_name ?? "Miembro"}
               </p>
+              {open && canReview && (
+                <details>
+                  <summary>Revisar propuesta</summary>
+                  <ActionForm action={reviewProposal} label="Guardar decisión">
+                    <input type="hidden" name="group_id" value={groupId} />
+                    <input type="hidden" name="event_id" value={eventId} />
+                    <input
+                      type="hidden"
+                      name="proposal_id"
+                      value={proposal.id}
+                    />
+                    <label>
+                      Decisión
+                      <select
+                        className="input"
+                        name="status"
+                        defaultValue={
+                          proposal.status === "rejected"
+                            ? "rejected"
+                            : "accepted"
+                        }
+                      >
+                        <option value="accepted">Aprobar</option>
+                        <option value="rejected">Rechazar</option>
+                      </select>
+                    </label>
+                  </ActionForm>
+                </details>
+              )}
             </li>
           ))}
         </ul>

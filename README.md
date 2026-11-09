@@ -43,8 +43,8 @@ the app.
     findings. Development, testing, and seed data happen here — `supabase/seed.sql`
     is loaded and verified against it (6 users, 1 group, 4 events across
     every status, fully populated finished event).
-  - **Local (Docker)** — `supabase start` runs the same 24 migrations +
-    seed from a clean database; used to run the pgTAP suite below with
+  - **Local (Docker)** — `supabase start` runs every migration in
+    `supabase/migrations/` + seed from a clean database; used to run the pgTAP suite below with
     correctly scoped roles (the Supabase-hosted MCP connection used for
     Prod/Staging work is a superuser and bypasses RLS, so it can't
     validate isolation honestly). `analytics` and `studio` are disabled
@@ -58,8 +58,8 @@ contracts) is documented inline in the migration files themselves.
 
 ## RLS test suite
 
-[supabase/tests/](supabase/tests/) is a pgTAP suite (7 files, 29
-assertions) proving the isolation model actually holds — not just that
+[supabase/tests/](supabase/tests/) is a pgTAP suite (22 files, also run in
+CI on every pull request) proving the isolation model actually holds — not just that
 policies exist, but that a non-member gets zero rows, that the
 composite-FK tenant-integrity mechanism rejects a cross-group write RLS
 alone can't see, that `group_members` has no INSERT policy, that every
@@ -68,7 +68,7 @@ itself would catch a dropped policy. Run it with:
 
 ```
 supabase start   # local Docker stack; applies migrations + seed fresh
-supabase test db # runs the full suite — Result: PASS (29/29) as of last run
+supabase test db # runs the full suite
 supabase stop
 ```
 

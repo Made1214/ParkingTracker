@@ -4,12 +4,24 @@ import { z } from "zod";
 import { requireUser } from "@/features/auth";
 export async function listGroups() {
   const { supabase, user } = await requireUser();
-  const { data, error } = await supabase
-    .from("groups")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) throw new Error("No se pudieron cargar tus grupos.");
-  return { groups: data, user };
+  const [groups, profile] = await Promise.all([
+    supabase
+      .from("groups")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+  if (groups.error || profile.error)
+    throw new Error("No se pudieron cargar tus grupos.");
+  return {
+    groups: groups.data,
+    user,
+    displayName: profile.data?.display_name ?? "",
+  };
 }
 export async function getGroup(groupId: string) {
   const { supabase, user } = await requireUser(`/groups/${groupId}`);

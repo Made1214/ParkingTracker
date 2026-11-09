@@ -4,6 +4,7 @@ import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 import { login, register, googleLogin } from "../api/actions";
+import { BrandMark } from "@/shared/ui/brand-mark";
 export function AuthScreen({
   mode,
   next,
@@ -18,9 +19,7 @@ export function AuthScreen({
     <main className="auth-layout">
       <section className="auth-story">
         <Link href="/" className="brand">
-          <span className="brand-icon" aria-hidden="true">
-            P
-          </span>
+          <BrandMark />
           Parking Tracker
         </Link>
         <div>
@@ -110,6 +109,11 @@ export function AuthScreen({
               />
             </label>
           </ActionForm>
+          {!signup && (
+            <p className="small">
+              <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
+            </p>
+          )}
           <div className="divider">o continúa con</div>
           <ActionForm action={googleLogin} label="Continuar con Google">
             <input type="hidden" name="next" value={next} />

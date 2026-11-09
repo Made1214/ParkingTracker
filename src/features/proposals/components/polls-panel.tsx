@@ -20,7 +20,22 @@ export async function PollsPanel({
   const { polls, userId, isAdmin, now } = await getPolls(groupId, eventId);
   return (
     <Card className={styles.panel}>
-      <PollRealtime groupId={groupId} />
+      <PollRealtime
+        groupId={groupId}
+        eventId={eventId}
+        pollIds={polls
+          .map((poll) => poll.id)
+          .sort()
+          .join(",")}
+        refreshAt={polls.reduce<number | undefined>((next, poll) => {
+          const deadline = poll.closes_at ? Date.parse(poll.closes_at) : 0;
+          return poll.status === "open" &&
+            deadline > now &&
+            (!next || deadline < next)
+            ? deadline
+            : next;
+        }, undefined)}
+      />
       <div className={styles.heading}>
         <div className={styles.headingMain}>
           <span className={styles.headingIcon}>
@@ -61,6 +76,9 @@ export async function PollsPanel({
           (sum, result) => sum + Number(result.votes),
           0,
         );
+        const winners = poll.results.filter(
+          (result) => result.is_winner && Number(result.votes) > 0,
+        ).length;
         return (
           <section key={poll.id} className={styles.poll}>
             <div className={styles.pollHeader}>
@@ -73,6 +91,10 @@ export async function PollsPanel({
               </span>
             </div>
             <h3>{poll.question}</h3>
+            <p className={styles.meta}>
+              {total} {total === 1 ? "voto emitido" : "votos emitidos"}.
+              Porcentajes sobre el total de opciones votadas.
+            </p>
             {poll.closes_at && (
               <p className={styles.meta}>
                 <Clock3 size={14} aria-hidden="true" />{" "}
@@ -125,6 +147,8 @@ export async function PollsPanel({
                           </span>
                           <span className={styles.votes}>
                             {count} {count === 1 ? "voto" : "votos"}
+                            {" · "}
+                            {width}%
                           </span>
                         </span>
                         <span className={styles.progress} aria-hidden="true">
@@ -133,7 +157,7 @@ export async function PollsPanel({
                         {!active && result?.is_winner && count > 0 && (
                           <span className={styles.winner}>
                             <CheckCircle2 size={14} aria-hidden="true" />{" "}
-                            Ganadora
+                            {winners > 1 ? "Empate" : "Ganadora"}
                           </span>
                         )}
                       </label>

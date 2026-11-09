@@ -7,8 +7,8 @@ import { listGroups } from "../api/queries";
 import { createGroup, joinGroup } from "../api/actions";
 import { UpcomingEvents } from "./upcoming-events";
 export async function GroupsScreen() {
-  const { groups, user } = await listGroups();
-  const name = String(user.user_metadata.full_name ?? "").split(" ")[0];
+  const { groups, displayName } = await listGroups();
+  const name = displayName.split(" ")[0];
   return (
     <>
       <div className="page-heading">
@@ -84,6 +84,10 @@ export async function GroupsScreen() {
               />
             </label>
           </ActionForm>
+          <p className="small muted">
+            Después puedes añadir una descripción e imagen en los ajustes del
+            grupo.
+          </p>
         </Card>
         <Card>
           <span className="tile-icon peach">

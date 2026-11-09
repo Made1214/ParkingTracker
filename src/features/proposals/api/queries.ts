@@ -2,17 +2,39 @@
 import { requireUser } from "@/features/auth";
 
 export async function getProposals(groupId: string, eventId: string) {
-  const { supabase } = await requireUser(
+  const { supabase, user } = await requireUser(
     `/groups/${groupId}/events/${eventId}`,
   );
   const { data, error } = await supabase
     .from("activity_proposals")
-    .select("id, title, description, created_at, profiles(display_name)")
+    .select(
+      "id, title, description, status, created_at, profiles(display_name)",
+    )
     .eq("group_id", groupId)
     .eq("event_id", eventId)
     .order("created_at", { ascending: false });
   if (error) throw new Error("No se pudieron cargar las propuestas.");
-  return data;
+  const [event, member] = await Promise.all([
+    supabase
+      .from("events")
+      .select("created_by")
+      .eq("id", eventId)
+      .eq("group_id", groupId)
+      .maybeSingle(),
+    supabase
+      .from("group_members")
+      .select("role")
+      .eq("group_id", groupId)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+  if (event.error || member.error)
+    throw new Error("No se pudieron comprobar los permisos de propuestas.");
+  return {
+    proposals: data,
+    canReview:
+      event.data?.created_by === user.id || member.data?.role === "admin",
+  };
 }
 
 export async function getPolls(groupId: string, eventId: string) {
