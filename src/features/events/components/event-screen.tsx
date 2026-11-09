@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarDays, MapPin, AlignLeft } from "lucide-react";
 import { AttendancePanel } from "@/features/rsvp";
 import { ProposalsPanel, PollsPanel } from "@/features/proposals";
 import { TasksPanel } from "@/features/tasks";
+import { SchedulePanel } from "@/features/schedule";
 import { Card } from "@/shared/ui/card";
 import { dateLabel } from "@/shared/lib/utils";
 import { getEvent } from "../api/queries";
@@ -136,6 +137,9 @@ export async function EventScreen({
               open={canRespond}
             />
           </div>
+          <Suspense fallback={<PanelSkeleton label="cronograma" />}>
+            <SchedulePanel groupId={groupId} eventId={eventId} />
+          </Suspense>
           {canManage && <ManageEvent event={event} />}
         </>
       )}

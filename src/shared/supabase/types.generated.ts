@@ -717,6 +717,7 @@ export type Database = {
           group_id: string
           id: string
           position: number
+          proposal_id: string | null
           starts_at: string
           title: string
           updated_at: string
@@ -731,6 +732,7 @@ export type Database = {
           group_id: string
           id?: string
           position?: number
+          proposal_id?: string | null
           starts_at: string
           title: string
           updated_at?: string
@@ -744,6 +746,7 @@ export type Database = {
           group_id?: string
           id?: string
           position?: number
+          proposal_id?: string | null
           starts_at?: string
           title?: string
           updated_at?: string
