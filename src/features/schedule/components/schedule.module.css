@@ -101,9 +101,7 @@
 .body :global(.badge) {
   justify-self: start;
 }
-.edit summary,
-.composer summary,
-.proposals summary {
+.edit summary {
   cursor: pointer;
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -115,36 +113,14 @@
 .edit :global(.form-stack) {
   margin-top: var(--space-2);
 }
-.delete {
-  margin-top: var(--space-2);
-}
-.delete :global(.button) {
-  background: transparent;
-  color: var(--danger-text);
-  border-color: var(--danger-border);
-}
+
 .times {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: var(--space-3);
 }
 .composer {
-  border-top: 1px dashed var(--line);
-  padding-top: var(--space-4);
-}
-.composer > summary {
-  padding: 0 var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--ink) !important;
-  list-style: none;
-}
-.composer > summary::-webkit-details-marker {
-  display: none;
-}
-.composer > summary:hover {
-  border-color: var(--color-warning);
+  border-style: dashed;
 }
 .proposals {
   border-top: 1px dashed var(--line);

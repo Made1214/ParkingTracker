@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { respond } from "@/features/rsvp";
 import { Card } from "@/shared/ui/card";
+import { Disclosure } from "@/shared/ui/disclosure";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
 import {
@@ -179,6 +180,38 @@ export async function GroupsScreen() {
               </div>
             </section>
           )}
+          <section id="mis-grupos" aria-labelledby="groups-title">
+            <div className={styles.sectionHead}>
+              <h2 id="groups-title">
+                Tus grupos <span className="count">{data.groups.length}</span>
+              </h2>
+            </div>
+            {data.groups.length ? (
+              <div className={styles.groupGrid}>
+                {data.groups.map((group, index) => (
+                  <Link
+                    key={group.id}
+                    href={`/groups/${group.id}`}
+                    className={styles.groupCard}
+                    data-tone={index % 3}
+                  >
+                    <span className={styles.groupBadge} aria-hidden="true">
+                      {group.name.slice(0, 1).toUpperCase()}
+                    </span>
+                    <span className={styles.groupName}>{group.name}</span>
+                    <span className={styles.groupGo}>
+                      Ver salidas <ArrowUpRight size={16} aria-hidden="true" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="small muted">
+                Aquí irá tu próxima gran historia: crea un grupo o únete con un
+                código.
+              </p>
+            )}
+          </section>
         </div>
 
         <aside className={styles.side}>
@@ -235,82 +268,50 @@ export async function GroupsScreen() {
             )}
           </div>
 
-          <Card className={styles.groups} id="mis-grupos">
-            <span className="eyebrow">
-              MIS GRUPOS
-              <span className="count">{data.groups.length}</span>
-            </span>
-            {data.groups.length ? (
-              <ul>
-                {data.groups.map((group) => (
-                  <li key={group.id}>
-                    <Link href={`/groups/${group.id}`}>
-                      <span className={styles.groupBadge} aria-hidden="true">
-                        {group.name.slice(0, 1).toUpperCase()}
-                      </span>
-                      <span>{group.name}</span>
-                      <ArrowUpRight size={16} aria-hidden="true" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="small muted">Aquí irá tu próxima gran historia.</p>
-            )}
+          <Card className={styles.setupCard} id="crear-grupo">
+            <span className="eyebrow">¿OTRO GRUPO?</span>
+            <Disclosure
+              compact
+              icon={<Plus size={17} />}
+              title="Crear un grupo"
+              hint="Un espacio privado para tu gente"
+              defaultOpen={data.groups.length === 0}
+            >
+              <ActionForm action={createGroup} label="Crear grupo">
+                <label>
+                  Nombre del grupo
+                  <Input
+                    name="name"
+                    required
+                    maxLength={80}
+                    placeholder="Los de siempre"
+                  />
+                </label>
+              </ActionForm>
+            </Disclosure>
+            <Disclosure
+              compact
+              icon={<Ticket size={17} />}
+              title="Unirme con un código"
+              hint="Si alguien te compartió una invitación"
+            >
+              <ActionForm action={joinGroup} label="Unirme al grupo">
+                <label>
+                  Código de invitación
+                  <Input
+                    name="code"
+                    required
+                    minLength={8}
+                    maxLength={8}
+                    pattern="[A-Za-z0-9]{8}"
+                    placeholder="ABCD1234"
+                    autoCapitalize="characters"
+                  />
+                </label>
+              </ActionForm>
+            </Disclosure>
           </Card>
         </aside>
-      </div>
-
-      <div className={`two-column ${styles.setup}`} id="crear-grupo">
-        <Card>
-          <span className="tile-icon">
-            <Plus size={20} />
-          </span>
-          <h2>Reúne a tu gente</h2>
-          <p className="muted">
-            Crea un espacio privado para los planes de siempre y los que aún no
-            imaginan.
-          </p>
-          <ActionForm action={createGroup} label="Crear grupo">
-            <label>
-              Nombre del grupo
-              <Input
-                name="name"
-                required
-                maxLength={80}
-                placeholder="Los de siempre"
-              />
-            </label>
-          </ActionForm>
-          <p className="small muted">
-            Después puedes añadir una descripción e imagen en los ajustes del
-            grupo.
-          </p>
-        </Card>
-        <Card>
-          <span className="tile-icon peach">
-            <Ticket size={20} />
-          </span>
-          <h2>¿Ya tienes invitación?</h2>
-          <p className="muted">
-            Tu grupo te está esperando. Introduce el código y súmate al próximo
-            plan.
-          </p>
-          <ActionForm action={joinGroup} label="Unirme al grupo">
-            <label>
-              Código de invitación
-              <Input
-                name="code"
-                required
-                minLength={8}
-                maxLength={8}
-                pattern="[A-Za-z0-9]{8}"
-                placeholder="ABCD1234"
-                autoCapitalize="characters"
-              />
-            </label>
-          </ActionForm>
-        </Card>
       </div>
     </>
   );

@@ -1,4 +1,5 @@
-import { EllipsisVertical } from "lucide-react";
+import { CalendarPlus, EllipsisVertical, Plus } from "lucide-react";
+import { Disclosure } from "@/shared/ui/disclosure";
 import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
@@ -153,7 +154,7 @@ export async function SchedulePanel({
                     <ActionForm
                       action={deleteScheduleItem}
                       label="Eliminar actividad"
-                      className={styles.delete}
+                      tone="danger"
                     >
                       {hidden}
                       <input type="hidden" name="id" value={item.id} />
@@ -173,13 +174,17 @@ export async function SchedulePanel({
       )}
 
       {canEdit && (
-        <details className={styles.composer}>
-          <summary>+ Añadir actividad</summary>
+        <Disclosure
+          className={styles.composer}
+          icon={<Plus size={18} />}
+          title="Añadir actividad"
+          hint="Dentro del horario de la salida"
+        >
           <ActionForm action={createScheduleItem} label="Añadir al cronograma">
             {hidden}
             <ItemFields idPrefix="new-item" min={min} max={max} />
           </ActionForm>
-        </details>
+        </Disclosure>
       )}
 
       {canEdit && pendingProposals.length > 0 && (
@@ -188,8 +193,12 @@ export async function SchedulePanel({
           <ul>
             {pendingProposals.map((proposal) => (
               <li key={proposal.id}>
-                <details>
-                  <summary>{proposal.title}</summary>
+                <Disclosure
+                  compact
+                  icon={<CalendarPlus size={16} />}
+                  title={proposal.title}
+                  hint="Elige hora para agendarla"
+                >
                   <ActionForm
                     action={createScheduleItem}
                     label="Agendar propuesta"
@@ -208,7 +217,7 @@ export async function SchedulePanel({
                       description={proposal.description ?? ""}
                     />
                   </ActionForm>
-                </details>
+                </Disclosure>
               </li>
             ))}
           </ul>

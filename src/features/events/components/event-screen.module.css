@@ -292,11 +292,7 @@
   background: var(--color-primary);
 }
 .manage {
-  margin-top: var(--space-10);
   scroll-margin-top: var(--space-6);
-}
-.manage h2 {
-  font-size: var(--text-3xl);
 }
 
 .side {

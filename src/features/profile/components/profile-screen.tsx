@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { requireUser } from "@/features/auth";
 import { Card } from "@/shared/ui/card";
 import { ThemeSelect } from "@/shared/ui/theme-select";
@@ -20,7 +21,7 @@ export async function ProfileScreen({
   return (
     <>
       <Link href="/groups" className="back-link">
-        Volver a mis grupos
+        <ArrowLeft size={16} aria-hidden="true" /> Volver al inicio
       </Link>
       <div className="page-heading">
         <div>
@@ -33,16 +34,17 @@ export async function ProfileScreen({
           Tu contraseña se actualizó.
         </p>
       )}
-      <ProfileForm key={profile.updated_at} profile={profile} />
-      <Card className="appearance-card">
-        <div>
-          <h2>Apariencia</h2>
-          <p className="small muted">
-            Claro, oscuro o el mismo tema que tu dispositivo.
-          </p>
-        </div>
-        <ThemeSelect />
-      </Card>
+      <ProfileForm key={profile.updated_at} profile={profile}>
+        <Card className="appearance-card">
+          <div>
+            <h2>Apariencia</h2>
+            <p className="small muted">
+              Claro, oscuro o el mismo tema que tu dispositivo.
+            </p>
+          </div>
+          <ThemeSelect />
+        </Card>
+      </ProfileForm>
     </>
   );
 }

@@ -256,16 +256,14 @@
 }
 
 /* Columna lateral */
-.todo ul,
-.groups ul {
+.todo ul {
   display: grid;
   gap: var(--space-1);
   margin: var(--space-3) 0 0;
   padding: 0;
   list-style: none;
 }
-.todo a,
-.groups a {
+.todo a {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -273,8 +271,7 @@
   margin: 0 calc(var(--space-2) * -1);
   border-radius: var(--radius-md);
 }
-.todo a:hover,
-.groups a:hover {
+.todo a:hover {
   background: var(--surface-tint);
 }
 .todo a > span:last-child {
@@ -339,28 +336,98 @@
   margin-top: var(--space-2);
 }
 
+/* Tus grupos */
+.sectionHead h2 :global(.count) {
+  vertical-align: middle;
+}
+.groupGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+.groupCard {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  transition:
+    transform 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+}
+.groupCard::before {
+  content: "";
+  position: absolute;
+  inset: auto -30px -40px auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--surface-tint);
+  transition: transform 300ms var(--ease-out);
+}
+.groupCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-warning);
+  box-shadow: 0 18px 30px -24px var(--color-warning);
+}
+.groupCard:hover::before {
+  transform: scale(1.3);
+}
+.groupCard > * {
+  position: relative;
+}
 .groupBadge {
-  flex: none;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
-  color: var(--accent-text);
-  font-weight: var(--weight-bold);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--color-warning);
+  color: #fff;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--text-2xl);
 }
-.groups a > span:nth-child(2) {
-  flex: 1;
+.groupCard[data-tone="1"] .groupBadge {
+  background: var(--color-primary-deep);
+}
+.groupCard[data-tone="2"] .groupBadge {
+  background: var(--spark);
+  color: var(--on-spark);
+}
+.groupName {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+}
+.groupGo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent-text);
+  font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
 }
-.groups a svg {
-  color: var(--muted);
+.groupCard:hover .groupGo svg {
+  transform: translate(2px, -2px);
+}
+.groupGo svg {
+  transition: transform 200ms var(--ease-out);
 }
 
-.setup {
-  margin-top: var(--space-12);
+.setupCard {
+  display: grid;
+  gap: var(--space-3);
   scroll-margin-top: var(--space-6);
+}
+.setupCard :global(.eyebrow) {
+  color: var(--muted);
+}
+.setupCard :global(.disclosure + .disclosure) {
+  margin-top: 0;
 }
 
 @media (min-width: 720px) {

@@ -214,44 +214,115 @@ label {
   flex: none;
 }
 .button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: var(--control-height);
+  min-height: 48px;
   padding: var(--space-3) var(--space-5);
+  overflow: hidden;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-primary) 88%, white) 0%,
+    var(--color-primary) 100%
+  );
   color: var(--on-primary);
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   line-height: var(--leading-normal);
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 14%),
+    0 6px 16px -10px color-mix(in srgb, var(--color-primary) 80%, transparent);
   transition:
-    background-color 160ms var(--ease-out),
-    border-color 160ms var(--ease-out),
-    color 160ms var(--ease-out),
-    transform 160ms var(--ease-out);
+    background-color 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    color 180ms var(--ease-out),
+    box-shadow 220ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+/* Brillo que cruza el botón al pasar el cursor. */
+.button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgb(255 255 255 / 18%) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 600ms var(--ease-out);
+  pointer-events: none;
+}
+.button:hover:not(:disabled)::after {
+  transform: translateX(120%);
 }
 .button:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 14%),
+    0 14px 26px -14px color-mix(in srgb, var(--color-primary) 90%, transparent);
 }
 .button:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
 }
-.button-outline {
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.button[aria-busy="true"] {
+  cursor: progress;
+}
+.button-outline,
+.button-ghost,
+.button-danger {
   background: var(--surface);
   border-color: var(--line);
   color: var(--ink);
+  box-shadow: none;
+}
+.button-outline::after,
+.button-ghost::after,
+.button-danger::after {
+  display: none;
 }
 .button-outline:hover:not(:disabled),
 .button-ghost:hover:not(:disabled) {
   background: var(--surface-tint);
+  border-color: var(--color-warning);
+  box-shadow: 0 10px 20px -16px var(--color-warning);
 }
 .button-ghost {
-  color: var(--ink);
   background: transparent;
+  border-color: transparent;
+}
+.button-danger {
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+}
+.button-danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  border-color: var(--color-danger);
+  box-shadow: 0 10px 20px -16px var(--color-danger);
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .input {
   width: 100%;
@@ -266,6 +337,136 @@ label {
 }
 .input::placeholder {
   color: var(--muted);
+}
+.input {
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
+}
+.input:hover {
+  border-color: color-mix(in srgb, var(--color-warning) 45%, var(--line));
+}
+.input:focus {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--color-warning) 18%, transparent);
+  outline: none;
+}
+/* Selector de archivo con botón propio */
+input[type="file"].input {
+  padding: var(--space-2);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+input[type="file"].input::file-selector-button {
+  margin-right: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out);
+}
+input[type="file"].input:hover::file-selector-button {
+  background: var(--surface-tint);
+}
+
+/* Desplegable con icono, texto y flecha (src/shared/ui/disclosure.tsx) */
+.disclosure {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition:
+    border-color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
+}
+.disclosure + .disclosure {
+  margin-top: var(--space-3);
+}
+.disclosure:hover {
+  border-color: color-mix(in srgb, var(--color-warning) 55%, var(--line));
+}
+.disclosure[open] {
+  border-color: var(--color-warning);
+  box-shadow: 0 16px 30px -24px var(--color-warning);
+}
+.disclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  cursor: pointer;
+  list-style: none;
+  border-radius: inherit;
+}
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.disclosure > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.disclosure-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--accent-text);
+  transition: transform 220ms var(--ease-out);
+}
+.disclosure:hover .disclosure-icon {
+  transform: rotate(-6deg) scale(1.06);
+}
+.disclosure-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  line-height: 1.35;
+}
+.disclosure-text strong {
+  font-size: var(--text-base);
+}
+.disclosure-text small {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.disclosure-chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 220ms var(--ease-out);
+}
+.disclosure[open] .disclosure-chevron {
+  transform: rotate(180deg);
+}
+.disclosure-body {
+  padding: 0 var(--space-4) var(--space-4);
+  animation: riseIn 260ms var(--ease-out) both;
+}
+.disclosure-body > .form-stack:first-child,
+.disclosure-body > p:first-child + .form-stack {
+  margin-top: var(--space-2);
+}
+.disclosure-danger .disclosure-icon {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+.disclosure-danger[open] {
+  border-color: var(--color-danger);
+  box-shadow: 0 16px 30px -24px var(--color-danger);
+}
+.disclosure-compact > summary {
+  padding: var(--space-2) var(--space-3);
+}
+.disclosure-compact .disclosure-icon {
+  width: 32px;
+  height: 32px;
 }
 textarea {
   resize: vertical;
@@ -875,9 +1076,25 @@ hr {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-top: var(--space-6);
 }
 .appearance-card h2 {
   margin: 0;
   font-size: var(--text-2xl);
+}
+.manage-card {
+  display: grid;
+  gap: var(--space-3);
+}
+.manage-card > .form-stack {
+  margin-top: 0;
+}
+.manage-heading {
+  margin-bottom: var(--space-2);
+}
+.manage-heading h2 {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+.manage-heading p {
+  margin: var(--space-1) 0 0;
 }

@@ -149,6 +149,16 @@
 .anchor {
   scroll-margin-top: var(--space-6);
 }
+@media (min-width: 1000px) {
+  .side {
+    position: sticky;
+    top: var(--space-6);
+  }
+}
+.members ul {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  column-gap: var(--space-6);
+}
 .members {
   display: grid;
   gap: var(--space-4);
@@ -227,4 +237,15 @@
   .invite code {
     font-size: var(--text-3xl);
   }
+}
+.inviteLight {
+  composes: invite;
+  --hero-line: var(--line);
+  --hero-accent: var(--accent-text);
+  --hero-ink: var(--color-primary);
+  --hero-bg: var(--on-primary);
+  justify-content: space-between;
+  background: var(--surface-tint);
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-warning) 50%, var(--line));
 }

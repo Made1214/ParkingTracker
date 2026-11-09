@@ -192,6 +192,7 @@ export async function ExpensesPanel({
                         <ActionForm
                           action={deleteExpense}
                           label="Eliminar gasto"
+                          tone="danger"
                           className={styles.removeForm}
                         >
                           {hidden}

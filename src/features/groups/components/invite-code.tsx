@@ -4,7 +4,16 @@ import { Copy, Check } from "lucide-react";
 import styles from "./group.module.css";
 
 /** Código de invitación compacto para el encabezado del grupo. */
-export function InviteCode({ code, appUrl }: { code: string; appUrl: string }) {
+export function InviteCode({
+  code,
+  appUrl,
+  light = false,
+}: {
+  code: string;
+  appUrl: string;
+  /** Versión para fondo claro (ajustes). */
+  light?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const url = `${appUrl}/join/${code}`;
@@ -24,7 +33,7 @@ export function InviteCode({ code, appUrl }: { code: string; appUrl: string }) {
     }
   }
   return (
-    <div className={styles.invite}>
+    <div className={light ? styles.inviteLight : styles.invite}>
       <div>
         <span>CÓDIGO DE INVITACIÓN</span>
         <code>{code}</code>

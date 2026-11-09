@@ -10,6 +10,7 @@ export function ActionForm({
   disabled,
   hideSubmit,
   secondary,
+  tone,
 }: {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
   children?: ReactNode;
@@ -18,6 +19,8 @@ export function ActionForm({
   disabled?: boolean;
   hideSubmit?: boolean;
   secondary?: ReactNode;
+  /** Estilo del botón: "danger" para acciones destructivas. */
+  tone?: "outline" | "danger";
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   return (
@@ -38,8 +41,19 @@ export function ActionForm({
         </p>
       )}
       {!hideSubmit && (
-        <Button disabled={pending || disabled} type="submit">
-          {pending ? "Guardando…" : label}
+        <Button
+          disabled={pending || disabled}
+          type="submit"
+          variant={tone}
+          aria-busy={pending || undefined}
+        >
+          {pending ? (
+            <>
+              <span className="spinner" aria-hidden="true" /> Guardando…
+            </>
+          ) : (
+            label
+          )}
         </Button>
       )}
       {secondary}

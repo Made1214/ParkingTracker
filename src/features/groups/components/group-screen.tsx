@@ -107,11 +107,6 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
             <span className="small muted">Próximas primero</span>
           </div>
           <EventList groupId={groupId} events={events} />
-        </section>
-        <aside className={styles.side}>
-          <div id="nueva-salida" className={styles.anchor}>
-            <CreateEventForm groupId={groupId} />
-          </div>
           <Card className={styles.members}>
             <div className={styles.sectionHead}>
               <h2>Miembros</h2>
@@ -149,6 +144,11 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
               grupo
             </Link>
           </Card>
+        </section>
+        <aside className={styles.side}>
+          <div id="nueva-salida" className={styles.anchor}>
+            <CreateEventForm groupId={groupId} />
+          </div>
         </aside>
       </div>
     </>

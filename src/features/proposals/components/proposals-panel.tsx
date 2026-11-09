@@ -1,4 +1,6 @@
-﻿import { Card } from "@/shared/ui/card";
+﻿import { Gavel, Lightbulb } from "lucide-react";
+import { Card } from "@/shared/ui/card";
+import { Disclosure } from "@/shared/ui/disclosure";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
 import { createProposal, reviewProposal } from "../api/actions";
@@ -27,8 +29,11 @@ export async function ProposalsPanel({
         </span>
       </div>
       {open && (
-        <details className={styles.composer}>
-          <summary>Compartir una idea</summary>
+        <Disclosure
+          icon={<Lightbulb size={18} />}
+          title="Compartir una idea"
+          hint="Una actividad, un lugar o algo que llevar"
+        >
           <ActionForm
             action={createProposal}
             label="Publicar propuesta"
@@ -47,7 +52,7 @@ export async function ProposalsPanel({
               rows={3}
             />
           </ActionForm>
-        </details>
+        </Disclosure>
       )}
       {proposals.length ? (
         <ul className={styles.proposals}>
@@ -70,8 +75,11 @@ export async function ProposalsPanel({
                 Propuesta por {proposal.profiles?.display_name ?? "Miembro"}
               </p>
               {open && canReview && (
-                <details>
-                  <summary>Revisar propuesta</summary>
+                <Disclosure
+                  compact
+                  icon={<Gavel size={16} />}
+                  title="Revisar propuesta"
+                >
                   <ActionForm action={reviewProposal} label="Guardar decisión">
                     <input type="hidden" name="group_id" value={groupId} />
                     <input type="hidden" name="event_id" value={eventId} />
@@ -96,7 +104,7 @@ export async function ProposalsPanel({
                       </select>
                     </label>
                   </ActionForm>
-                </details>
+                </Disclosure>
               )}
             </li>
           ))}

@@ -123,6 +123,11 @@ export async function EventScreen({
                   <p>{event.description}</p>
                 </Card>
               )}
+              {canManage && (
+                <div id="gestionar" className={styles.manage}>
+                  <ManageEvent event={event} />
+                </div>
+              )}
             </div>
             <aside className={styles.planSide}>
               <AttendancePanel
@@ -161,12 +166,6 @@ export async function EventScreen({
               </Suspense>
             </aside>
           </div>
-          {canManage && (
-            <section id="gestionar" className={styles.manage}>
-              <h2>Gestionar la salida</h2>
-              <ManageEvent event={event} />
-            </section>
-          )}
         </>
       )}
       {active === "votaciones" && (
