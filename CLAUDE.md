@@ -2,6 +2,25 @@
 
 Guidance for Claude Code (and any contributor) working in this repository.
 
+## Commit authorship
+
+**Every commit is authored and committed as the repository owner, never as
+`Claude` or any other agent identity.** Before the first commit of a
+session, set the identity for this repository:
+
+```bash
+git config user.name "Madelaine Arosemena"
+git config user.email "116743110+Made1214@users.noreply.github.com"
+```
+
+Commit messages carry **no agent attribution trailers**: no
+`Co-Authored-By:` line and no `Claude-Session:` line, even if the tooling
+suggests adding them.
+
+Check `git log -1 --format='%an <%ae> | %cn <%ce>'` before pushing. If a
+commit went out under another identity, rewrite it
+(`git commit --amend --reset-author`) and update the branch.
+
 ## Database migrations
 
 **Every schema change is a new numbered file under `supabase/migrations/`.
