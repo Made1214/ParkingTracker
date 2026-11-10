@@ -24,6 +24,7 @@ import { getEvent } from "../api/queries";
 import { statusLabels } from "./event-list";
 import { ManageEvent } from "./manage-event";
 import { EventCover } from "./event-cover";
+import { EventTabs } from "./event-tabs";
 import styles from "./event-screen.module.css";
 
 const sections = [
@@ -97,20 +98,12 @@ export async function EventScreen({
         </div>
       </header>
 
-      <nav className={styles.tabs} aria-label="Secciones de la salida">
-        {sections.map(({ value, label }) => (
-          <Link
-            key={value}
-            href={value === "plan" ? eventUrl : `${eventUrl}?section=${value}`}
-            aria-current={active === value ? "page" : undefined}
-          >
-            {label}
-            {value === "votaciones" && live.openCount > 0 && (
-              <span className={styles.tabCount}>{live.openCount}</span>
-            )}
-          </Link>
-        ))}
-      </nav>
+      <EventTabs
+        sections={sections}
+        active={active}
+        eventUrl={eventUrl}
+        pollCount={live.openCount}
+      />
 
       {active === "plan" && (
         <>

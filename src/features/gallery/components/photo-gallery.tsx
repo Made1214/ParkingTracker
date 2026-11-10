@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useLayoutEffect, useRef, useState, useTransition } from "react";
+import gsap from "gsap";
 import { ChevronLeft, ChevronRight, ImagePlus, Images, X } from "lucide-react";
 import type { ActionState } from "@/shared/lib/forms";
 import { ActionForm } from "@/shared/ui/action-form";
@@ -62,6 +63,8 @@ export function PhotoGallery({
 }) {
   const input = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const grid = useRef<HTMLUListElement>(null);
+  const direction = useRef(0);
   const [openId, setOpenId] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number }>();
   const [errors, setErrors] = useState<string[]>([]);
@@ -71,12 +74,99 @@ export function PhotoGallery({
   const src = (id: string) =>
     `/api/groups/${groupId}/events/${eventId}/photos/${id}`;
 
-  useEffect(() => {
+  const reducedMotion = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /** Desplazamiento y escala que dejan el visor encima de la miniatura. */
+  function overThumbnail(id: string) {
+    const element = dialog.current;
+    const thumbnail = grid.current?.querySelector(`[data-photo="${id}"]`);
+    if (!element || !thumbnail) return { scale: 0.94 };
+    const from = thumbnail.getBoundingClientRect();
+    const to = element.getBoundingClientRect();
+    return {
+      x: from.left + from.width / 2 - (to.left + to.width / 2),
+      y: from.top + from.height / 2 - (to.top + to.height / 2),
+      scale: Math.max(0.1, from.width / Math.max(1, to.width)),
+    };
+  }
+
+  // Al abrir, la foto crece desde su miniatura; al cerrar, vuelve a ella.
+  useLayoutEffect(() => {
     const element = dialog.current;
     if (!element) return;
-    if (current && !element.open) element.showModal();
-    if (!current && element.open) element.close();
+    if (current && !element.open) {
+      element.showModal();
+      if (reducedMotion()) return;
+      const image = element.querySelector("img");
+      const grow = () =>
+        gsap.fromTo(
+          element,
+          { ...overThumbnail(current.id), opacity: 0 },
+          {
+            x: 0,
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: "power3.out",
+            clearProps: "transform,opacity",
+          },
+        );
+      if (!image || image.complete) grow();
+      else {
+        // Sin la foto cargada no se conoce el tamaño final del visor.
+        gsap.set(element, { opacity: 0 });
+        image.addEventListener("load", grow, { once: true });
+        image.addEventListener(
+          "error",
+          () => gsap.set(element, { clearProps: "opacity" }),
+          { once: true },
+        );
+      }
+    }
+    if (!current && element.open) {
+      element.close();
+      gsap.killTweensOf(element);
+      gsap.set(element, { clearProps: "transform,opacity" });
+      element.removeAttribute("data-closing");
+    }
   }, [current]);
+
+  // Al pasar de foto, la nueva entra desde el lado hacia el que se avanza.
+  useLayoutEffect(() => {
+    const image = dialog.current?.querySelector("img");
+    const delta = direction.current;
+    direction.current = 0;
+    if (!image || !delta || reducedMotion()) return;
+    gsap.fromTo(
+      image,
+      { x: 36 * delta, opacity: 0 },
+      {
+        x: 0,
+        opacity: 1,
+        duration: 0.32,
+        ease: "power3.out",
+        clearProps: "transform,opacity",
+      },
+    );
+  }, [openId]);
+
+  function close() {
+    const element = dialog.current;
+    if (!element || !current || reducedMotion()) return setOpenId(null);
+    if (element.hasAttribute("data-closing")) return;
+    gsap.killTweensOf(element);
+    gsap.set(element, { clearProps: "transform,opacity" });
+    element.setAttribute("data-closing", "");
+    gsap.to(element, {
+      ...overThumbnail(current.id),
+      opacity: 0,
+      duration: 0.28,
+      ease: "power2.in",
+      onComplete: () => setOpenId(null),
+    });
+  }
 
   function upload(files: File[]) {
     if (!files.length) return;
@@ -109,8 +199,10 @@ export function PhotoGallery({
     });
   }
 
-  const step = (delta: number) =>
+  const step = (delta: number) => {
+    direction.current = delta;
     setOpenId(photos[(index + delta + photos.length) % photos.length].id);
+  };
 
   return (
     <>
@@ -178,11 +270,12 @@ export function PhotoGallery({
       </div>
 
       {photos.length ? (
-        <ul className={styles.grid}>
+        <ul ref={grid} className={`${styles.grid} stagger`}>
           {photos.map((photo) => (
             <li key={photo.id}>
               <button
                 type="button"
+                data-photo={photo.id}
                 onClick={() => setOpenId(photo.id)}
                 aria-label={`Ver foto de ${photo.author}`}
               >
@@ -219,8 +312,12 @@ export function PhotoGallery({
         className={styles.lightbox}
         aria-label="Foto ampliada"
         onClose={() => setOpenId(null)}
+        onCancel={(event) => {
+          event.preventDefault();
+          close();
+        }}
         onClick={(event) => {
-          if (event.target === dialog.current) setOpenId(null);
+          if (event.target === dialog.current) close();
         }}
         onKeyDown={(event) => {
           if (photos.length < 2) return;
@@ -231,7 +328,11 @@ export function PhotoGallery({
         {current && (
           <figure>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src(current.id)} alt={`Foto de ${current.author}`} />
+            <img
+              key={current.id}
+              src={src(current.id)}
+              alt={`Foto de ${current.author}`}
+            />
             <figcaption>
               <span>
                 <strong>{current.author}</strong>
@@ -274,7 +375,7 @@ export function PhotoGallery({
             <button
               type="button"
               className={styles.close}
-              onClick={() => setOpenId(null)}
+              onClick={close}
               aria-label="Cerrar"
             >
               <X size={20} />

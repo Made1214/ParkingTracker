@@ -24,7 +24,7 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
         <h1>{data.groupName}</h1>
       </header>
 
-      <div className={styles.kpis}>
+      <div className={`${styles.kpis} stagger`}>
         <div className={styles.kpi}>
           <span className="eyebrow">SALIDAS</span>
           <strong data-count>{data.history.length}</strong>
@@ -102,7 +102,7 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
             <span className={styles.range}>CONFIRMADAS</span>
           </div>
           {data.ranking.some((row) => row.invited > 0) ? (
-            <ol className={styles.ranking}>
+            <ol className={`${styles.ranking} stagger`}>
               {data.ranking.map((row, index) => (
                 <li key={row.id}>
                   <span className={styles.position}>{index + 1}</span>

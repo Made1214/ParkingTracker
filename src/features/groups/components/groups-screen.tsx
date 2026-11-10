@@ -155,7 +155,7 @@ export async function GroupsScreen() {
               <div className={styles.sectionHead}>
                 <h2 id="calendar-title">En el calendario</h2>
               </div>
-              <div className={styles.calendar}>
+              <div className={`${styles.calendar} stagger`}>
                 {rest.map((event) => (
                   <Link
                     key={event.id}
@@ -188,7 +188,7 @@ export async function GroupsScreen() {
               </h2>
             </div>
             {data.groups.length ? (
-              <div className={styles.groupGrid}>
+              <div className={`${styles.groupGrid} stagger`}>
                 {data.groups.map((group, index) => (
                   <Link
                     key={group.id}
@@ -222,7 +222,7 @@ export async function GroupsScreen() {
               <span className={styles.todoCount}>{data.todo.length}</span>
             </span>
             {data.todo.length ? (
-              <ul>
+              <ul className="stagger">
                 {data.todo.slice(0, 5).map((item) => {
                   const Icon = todoIcons[item.kind];
                   return (

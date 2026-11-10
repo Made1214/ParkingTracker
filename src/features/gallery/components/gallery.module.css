@@ -152,6 +152,22 @@
 .lightbox::backdrop {
   background: rgb(18 17 32 / 82%);
   backdrop-filter: blur(4px);
+  animation: backdropIn 260ms var(--ease-out);
+  transition: opacity 260ms var(--ease-out);
+}
+.lightbox[data-closing]::backdrop {
+  opacity: 0;
+}
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lightbox::backdrop {
+    animation: none;
+    transition: none;
+  }
 }
 .lightbox figure {
   position: relative;

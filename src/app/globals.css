@@ -445,9 +445,15 @@ input[type="file"].input:hover::file-selector-button {
 .disclosure[open] .disclosure-chevron {
   transform: rotate(180deg);
 }
+.disclosure[data-closing] .disclosure-chevron {
+  transform: none;
+}
+/* La altura la anima disclosure.tsx; el recorte evita que el contenido asome. */
+.disclosure-clip {
+  overflow: hidden;
+}
 .disclosure-body {
   padding: 0 var(--space-4) var(--space-4);
-  animation: riseIn 260ms var(--ease-out) both;
 }
 .disclosure-body > .form-stack:first-child,
 .disclosure-body > p:first-child + .form-stack {
@@ -687,6 +693,32 @@ textarea {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+/* Entrada escalonada: los hijos directos aparecen uno tras otro. */
+.stagger > * {
+  animation: riseIn 380ms var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger-index, 0) * 55ms);
+}
+.stagger > :nth-child(2) {
+  --stagger-index: 1;
+}
+.stagger > :nth-child(3) {
+  --stagger-index: 2;
+}
+.stagger > :nth-child(4) {
+  --stagger-index: 3;
+}
+.stagger > :nth-child(5) {
+  --stagger-index: 4;
+}
+.stagger > :nth-child(6) {
+  --stagger-index: 5;
+}
+.stagger > :nth-child(7) {
+  --stagger-index: 6;
+}
+.stagger > :nth-child(n + 8) {
+  --stagger-index: 7;
 }
 @keyframes morphIn {
   from {

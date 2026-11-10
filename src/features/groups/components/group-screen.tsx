@@ -77,7 +77,7 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
       </header>
 
       <Motion>
-        <div className={styles.kpis}>
+        <div className={`${styles.kpis} stagger`}>
           <div className={styles.kpi}>
             <span className="eyebrow">SALIDAS</span>
             <strong data-count>{finished}</strong>
@@ -120,7 +120,7 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
               <h2>Miembros</h2>
               <span className="count">{members.length}</span>
             </div>
-            <ul>
+            <ul className="stagger">
               {sortedMembers.slice(0, 8).map((member) => (
                 <li key={member.user_id}>
                   <span
