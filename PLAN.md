@@ -21,23 +21,23 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 
 ## Fases
 
-| #   | Fase                                                                       | Rama                           | Estado                                   |
-| --- | -------------------------------------------------------------------------- | ------------------------------ | ---------------------------------------- |
-| 0   | Base de datos (migraciones 000–023, RLS, pgTAP)                            | — (en `main`)                  | Hecho                                    |
-| 1   | Scaffold de la app (tooling, shell)                                        | `chore/scaffold-base`          | Hecho                                    |
-| 2   | Módulo login (registro, sesión, Google)                                    | `feat/auth-login`              | Hecho                                    |
-| 3   | Módulo grupos (crear, invitar, unirse)                                     | `feat/groups`                  | Hecho                                    |
-| 4   | Módulo eventos + RSVP                                                      | `feat/events-rsvp`             | Hecho                                    |
-| 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)               | `feat/db-024-025`              | En `main`; aplicadas en Staging          |
-| 6   | CI (checks + pgTAP) y pruebas E2E (Playwright)                             | `made`                         | CI listo; E2E pendiente                  |
-| 7   | Propuestas y votaciones (US-06, migración 026)                             | `feat/proposals`               | Hecho; 026 aplicada en Staging           |
-| 8   | Tareas (RF-800)                                                            | `feat/tasks`                   | Hecho                                    |
-| 9   | Diseño Noche serena y marca                                                | `made`                         | Hecho / en revisión                      |
-| 10  | Gestión de salidas, perfil, recuperación de contraseña y gestión del grupo | `made`                         | Integrado en `made`; aplicado en Staging |
-| 11  | Cronograma (US-05)                                                         | `made`                         | Hecho; migración aplicada en Staging     |
-| 12  | Gastos (US-07)                                                             | `made`                         | Hecho; migración aplicada en Staging     |
-| 13  | Comentarios, galería (Cloudinary), historial y estadísticas                | `made`                         | Hecho; sin migraciones nuevas            |
-| 14  | Realtime en comentarios y PWA                                              | `claude/pensive-newton-myytqp` | Hecho; migración aplicada en Staging     |
+| #   | Fase                                                                       | Rama                  | Estado                                   |
+| --- | -------------------------------------------------------------------------- | --------------------- | ---------------------------------------- |
+| 0   | Base de datos (migraciones 000–023, RLS, pgTAP)                            | — (en `main`)         | Hecho                                    |
+| 1   | Scaffold de la app (tooling, shell)                                        | `chore/scaffold-base` | Hecho                                    |
+| 2   | Módulo login (registro, sesión, Google)                                    | `feat/auth-login`     | Hecho                                    |
+| 3   | Módulo grupos (crear, invitar, unirse)                                     | `feat/groups`         | Hecho                                    |
+| 4   | Módulo eventos + RSVP                                                      | `feat/events-rsvp`    | Hecho                                    |
+| 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)               | `feat/db-024-025`     | En `main`; aplicadas en Staging          |
+| 6   | CI (checks + pgTAP) y pruebas E2E (Playwright)                             | `made`                | Hecho; E2E como job propio en CI         |
+| 7   | Propuestas y votaciones (US-06, migración 026)                             | `feat/proposals`      | Hecho; 026 aplicada en Staging           |
+| 8   | Tareas (RF-800)                                                            | `feat/tasks`          | Hecho                                    |
+| 9   | Diseño Noche serena y marca                                                | `made`                | Hecho / en revisión                      |
+| 10  | Gestión de salidas, perfil, recuperación de contraseña y gestión del grupo | `made`                | Integrado en `made`; aplicado en Staging |
+| 11  | Cronograma (US-05)                                                         | `made`                | Hecho; migración aplicada en Staging     |
+| 12  | Gastos (US-07)                                                             | `made`                | Hecho; migración aplicada en Staging     |
+| 13  | Comentarios, galería (Cloudinary), historial y estadísticas                | `made`                | Hecho; sin migraciones nuevas            |
+| 14  | Realtime en comentarios y PWA                                              | `made`                | Hecho; migración aplicada en Staging     |
 
 ## Notas
 
@@ -49,5 +49,6 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 - Realtime y PWA: `20261110220341_comments_realtime` añade `comments` a la publicación `supabase_realtime` (aplicada en Staging el 10 nov 2026, advisors sin hallazgos nuevos). Probado en navegador con dos sesiones contra Staging: un comentario nuevo aparece en ~2 s y un borrado en menos de 1 s, sin recargar. Las votaciones tenían el mismo fallo de unión anónima al canal y quedaron corregidas.
 - Producción estaba pausada en la última revisión; su historial no se pudo verificar. Confirmarlo antes de promover migraciones.
 - Advisors de Staging: la política `activity_proposals_insert` reevalúa `auth.uid()` por fila (usar `(select auth.uid())`), la protección de contraseñas filtradas de Auth está desactivada y hay claves foráneas compuestas sin índice (informativo). Las funciones `SECURITY DEFINER` señaladas son las RPC previstas del diseño.
-- El CI (`.github/workflows/ci.yml`) ejecuta typecheck, lint, test, format y build, y aplica todas las migraciones con el seed para correr la suite pgTAP en cada PR.
+- El CI (`.github/workflows/ci.yml`) ejecuta typecheck, lint, test, format y build, aplica todas las migraciones con el seed para correr la suite pgTAP, y corre las pruebas E2E (`e2e/`, Playwright) contra la app compilada y un Supabase local, en cada PR.
+- Pruebas E2E: aislamiento entre grupos por URL directa, invitación → unirse → asistencia, comentarios en vivo entre dos sesiones, y manifest y modo sin conexión de la PWA. Verificadas contra Staging el 10 nov 2026 (5/5); el job de CI con Supabase local se comprueba en el primer PR que lo ejecute.
 - Las pruebas de medios con Cloudinary real requieren configurar las tres variables de `.env.example`; no hay credenciales de medios en el entorno local. Las pruebas automatizadas cubren autorización, aislamiento de referencias y entrega mediante un proveedor simulado.
