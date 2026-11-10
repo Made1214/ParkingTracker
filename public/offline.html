@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Sin conexión · Parking Tracker</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --paper: #f7f6f3;
+        --ink: #1e1a3d;
+        --muted: #6b6590;
+        --primary: #2e2a6b;
+        --on-primary: #ffffff;
+        --focus: #6b5ed6;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --paper: #121120;
+          --ink: #f8f7ff;
+          --muted: #a8a3cc;
+          --primary: #b8b8ff;
+          --on-primary: #12111f;
+          --focus: #9381ff;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        display: grid;
+        min-height: 100svh;
+        margin: 0;
+        padding: 1.5rem;
+        place-items: center;
+        background: var(--paper);
+        color: var(--ink);
+        font-family:
+          Manrope,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.5;
+        text-align: center;
+      }
+      main {
+        max-width: 24rem;
+      }
+      img {
+        width: 4.5rem;
+        height: 4.5rem;
+        border-radius: 1rem;
+      }
+      h1 {
+        margin: 1.5rem 0 0.5rem;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+        text-wrap: pretty;
+      }
+      button {
+        min-height: 2.75rem;
+        padding: 0 1.5rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--primary);
+        color: var(--on-primary);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/icons/icon-192.png" alt="" />
+      <h1>Estás sin conexión</h1>
+      <p>
+        Tus planes siguen a salvo. En cuanto vuelva internet, esta pantalla se
+        recarga sola.
+      </p>
+      <button type="button" id="retry">Reintentar</button>
+    </main>
+    <script>
+      const reload = () => window.location.reload();
+      document.getElementById("retry").addEventListener("click", reload);
+      window.addEventListener("online", reload);
+    </script>
+  </body>
+</html>

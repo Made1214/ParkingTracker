@@ -16,25 +16,28 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 - Gestión de eventos: edición/cancelación antes del inicio, borradores visibles al grupo, portada privada de hasta 5 MB (JPG/PNG/WebP, normalizada por Cloudinary) y cierre automático al terminar. Las mutaciones de tareas, propuestas y votaciones verifican también la hora de fin, sin depender del siguiente ciclo del cron.
 - Las portadas se solicitan a una ruta que revalida membresía mediante RLS y transmite la imagen sin caché compartida. El servidor firma una URL de Cloudinary válida por 60 segundos; no entrega esa URL al cliente. Añadir portada es un paso posterior a guardar el evento.
 
+- PWA sin dependencias: manifest, service worker propio e invitación a instalar; ver [pwa.md](docs/pwa.md). El service worker nunca guarda respuestas autorizadas (páginas, `/api`, Supabase, imágenes firmadas): sin conexión se muestra una pantalla propia en lugar de datos guardados.
+- Realtime solo avisa y la pantalla se vuelve a pedir al servidor. Todo canal se abre después de `client.realtime.setAuth()`; si no, entra como anónimo y RLS descarta los avisos en silencio.
+
 ## Fases
 
-| #   | Fase                                                                       | Rama                  | Estado                                   |
-| --- | -------------------------------------------------------------------------- | --------------------- | ---------------------------------------- |
-| 0   | Base de datos (migraciones 000–023, RLS, pgTAP)                            | — (en `main`)         | Hecho                                    |
-| 1   | Scaffold de la app (tooling, shell)                                        | `chore/scaffold-base` | Hecho                                    |
-| 2   | Módulo login (registro, sesión, Google)                                    | `feat/auth-login`     | Hecho                                    |
-| 3   | Módulo grupos (crear, invitar, unirse)                                     | `feat/groups`         | Hecho                                    |
-| 4   | Módulo eventos + RSVP                                                      | `feat/events-rsvp`    | Hecho                                    |
-| 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)               | `feat/db-024-025`     | En `main`; aplicadas en Staging          |
-| 6   | CI (checks + pgTAP) y pruebas E2E (Playwright)                             | `made`                | CI listo; E2E pendiente                  |
-| 7   | Propuestas y votaciones (US-06, migración 026)                             | `feat/proposals`      | Hecho; 026 aplicada en Staging           |
-| 8   | Tareas (RF-800)                                                            | `feat/tasks`          | Hecho                                    |
-| 9   | Diseño Noche serena y marca                                                | `made`                | Hecho / en revisión                      |
-| 10  | Gestión de salidas, perfil, recuperación de contraseña y gestión del grupo | `made`                | Integrado en `made`; aplicado en Staging |
-| 11  | Cronograma (US-05)                                                         | `made`                | Hecho; migración aplicada en Staging     |
-| 12  | Gastos (US-07)                                                             | `made`                | Hecho; migración aplicada en Staging     |
-| 13  | Comentarios, galería (Cloudinary), historial y estadísticas                | `made`                | Hecho; sin migraciones nuevas            |
-| 14  | Realtime en comentarios y PWA                                              | —                     | Pendiente                                |
+| #   | Fase                                                                       | Rama                           | Estado                                   |
+| --- | -------------------------------------------------------------------------- | ------------------------------ | ---------------------------------------- |
+| 0   | Base de datos (migraciones 000–023, RLS, pgTAP)                            | — (en `main`)                  | Hecho                                    |
+| 1   | Scaffold de la app (tooling, shell)                                        | `chore/scaffold-base`          | Hecho                                    |
+| 2   | Módulo login (registro, sesión, Google)                                    | `feat/auth-login`              | Hecho                                    |
+| 3   | Módulo grupos (crear, invitar, unirse)                                     | `feat/groups`                  | Hecho                                    |
+| 4   | Módulo eventos + RSVP                                                      | `feat/events-rsvp`             | Hecho                                    |
+| 5   | Migraciones 024 (agregados de gastos) y 025 (cierre de RSVP)               | `feat/db-024-025`              | En `main`; aplicadas en Staging          |
+| 6   | CI (checks + pgTAP) y pruebas E2E (Playwright)                             | `made`                         | CI listo; E2E pendiente                  |
+| 7   | Propuestas y votaciones (US-06, migración 026)                             | `feat/proposals`               | Hecho; 026 aplicada en Staging           |
+| 8   | Tareas (RF-800)                                                            | `feat/tasks`                   | Hecho                                    |
+| 9   | Diseño Noche serena y marca                                                | `made`                         | Hecho / en revisión                      |
+| 10  | Gestión de salidas, perfil, recuperación de contraseña y gestión del grupo | `made`                         | Integrado en `made`; aplicado en Staging |
+| 11  | Cronograma (US-05)                                                         | `made`                         | Hecho; migración aplicada en Staging     |
+| 12  | Gastos (US-07)                                                             | `made`                         | Hecho; migración aplicada en Staging     |
+| 13  | Comentarios, galería (Cloudinary), historial y estadísticas                | `made`                         | Hecho; sin migraciones nuevas            |
+| 14  | Realtime en comentarios y PWA                                              | `claude/pensive-newton-myytqp` | Hecho; migración aplicada en Staging     |
 
 ## Notas
 
@@ -43,6 +46,7 @@ Fuente de verdad del proyecto. Producto: [PRD](docs/01-PRD-Parking-Tracker.md). 
 - Cronograma: solo quien organiza la salida o un admin gestiona actividades, dentro del horario de la salida y mientras siga abierta; las propuestas aceptadas se agendan una sola vez (`schedule_items.proposal_id`). Verificado en Staging con una prueba transaccional (11/11) y advisors sin hallazgos nuevos.
 - Gastos: `create_expense` registra gasto y partes juntos; un trigger diferido exige que las partes sumen el total, y pagador y participantes deben ser del grupo. Saldos y deudas se calculan por salida (`get_event_balances`, `get_event_debts`, compensando deudas mutuas) y `settle_event_debt` salda una pareja (deudor, acreedor o admin). Verificado en Staging (12/12). El advisor marca `settle_event_debt` como `SECURITY DEFINER` ejecutable: es intencional y valida la autorización dentro de la función.
 - Comentarios, galería y estadísticas usan el esquema existente (`comments`, `photos`, `group_storage_usage`, vistas `member_participation` y `event_expense_summary`). Los comentarios viven en la pestaña Plan de cada salida; las fotos, en la pestaña Fotos (salidas publicadas o finalizadas), se reducen en el navegador a 1600 px antes de subir y se entregan por `/api/groups/:g/events/:e/photos/:id`, que revalida membresía con RLS. Historial y estadísticas están en `/groups/:id/stats`.
+- Realtime y PWA: `20261110220341_comments_realtime` añade `comments` a la publicación `supabase_realtime` (aplicada en Staging el 10 nov 2026, advisors sin hallazgos nuevos). Probado en navegador con dos sesiones contra Staging: un comentario nuevo aparece en ~2 s y un borrado en menos de 1 s, sin recargar. Las votaciones tenían el mismo fallo de unión anónima al canal y quedaron corregidas.
 - Producción estaba pausada en la última revisión; su historial no se pudo verificar. Confirmarlo antes de promover migraciones.
 - Advisors de Staging: la política `activity_proposals_insert` reevalúa `auth.uid()` por fila (usar `(select auth.uid())`), la protección de contraseñas filtradas de Auth está desactivada y hay claves foráneas compuestas sin índice (informativo). Las funciones `SECURITY DEFINER` señaladas son las RPC previstas del diseño.
 - El CI (`.github/workflows/ci.yml`) ejecuta typecheck, lint, test, format y build, y aplica todas las migraciones con el seed para correr la suite pgTAP en cada PR.
