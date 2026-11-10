@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git config --local commit.gpgsign false && git config --local tag.gpgsign false"
+          }
+        ]
+      }
+    ]
+  }
+}
