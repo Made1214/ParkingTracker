@@ -7,7 +7,7 @@ export async function groupAvatarResponse(groupId: string) {
     "Cache-Control": "private, no-store",
     "X-Content-Type-Options": "nosniff",
   };
-  if (!z.uuid().safeParse(groupId).success)
+  if (!z.guid().safeParse(groupId).success)
     return new Response(null, { status: 404, headers });
   const supabase = await serverClient();
   const {

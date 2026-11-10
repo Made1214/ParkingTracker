@@ -105,7 +105,7 @@
 .legend {
   display: flex;
   justify-content: space-between;
-  margin: var(--space-4) 6.5rem var(--space-2) 6rem;
+  margin: var(--space-4) 6.75rem var(--space-2) 8.75rem;
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
   letter-spacing: 0.1em;
@@ -121,7 +121,7 @@
 }
 .bars li {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr) 6rem;
+  grid-template-columns: 8rem minmax(0, 1fr) 6rem;
   align-items: center;
   gap: var(--space-3);
 }
@@ -164,17 +164,74 @@
 .amountNeg {
   color: var(--warning-text);
 }
+.cardTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.cardTitle h2 {
+  margin: 0;
+}
 .list {
   list-style: none;
-  margin: var(--space-3) 0 0;
+  margin: var(--space-4) 0 0;
   padding: 0;
+  display: grid;
+  gap: var(--space-2);
 }
 .list li {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) 0;
-  border-bottom: 1px dashed var(--line);
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  transition:
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
+}
+.list li:hover {
+  background: var(--surface-subtle);
+  border-color: var(--line);
+}
+.categoryIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--accent-text);
+}
+.categoryIcon[data-category="comida"] {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+.categoryIcon[data-category="transporte"] {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+.categoryIcon[data-category="entradas"] {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+.face {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: var(--weight-bold);
+}
+.debtMine .face {
+  border-color: var(--color-primary);
 }
 .listMain {
   flex: 1;
@@ -187,6 +244,7 @@
 }
 .remove summary {
   list-style: none;
+  border: 1px solid transparent;
   cursor: pointer;
   min-width: var(--control-height);
   min-height: var(--control-height);
@@ -198,13 +256,22 @@
 .remove summary::-webkit-details-marker {
   display: none;
 }
-.removeForm {
-  margin-top: var(--space-2);
+.remove summary:hover,
+.remove[open] summary {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
 }
-.removeForm :global(.button) {
-  background: transparent;
-  color: var(--danger-text);
-  border-color: var(--danger-border);
+.removeForm {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% - var(--space-2));
+  right: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
 }
 .row {
   display: flex;
@@ -245,6 +312,13 @@
   background: transparent;
   color: var(--muted);
   font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+.segmented button:hover {
+  color: var(--ink);
 }
 .segmented button[aria-checked="true"] {
   background: var(--color-primary);
@@ -262,17 +336,57 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: var(--control-height);
+  min-height: 52px;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition:
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
+}
+.people li:has(input:checked) {
+  border-color: color-mix(in srgb, var(--color-warning) 60%, var(--line));
+  background: var(--surface-tint);
+}
+.people li:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 .person {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  min-height: 44px;
+  padding-left: var(--space-2);
   font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+.person input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+.personFace {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: var(--weight-bold);
+}
+.people li:not(:has(input:checked)) .personFace {
+  opacity: 0.55;
 }
 .share {
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: var(--accent-text);
+  font-weight: var(--weight-bold);
 }
 .shareInput {
   max-width: 7rem;

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requireUser } from "@/features/auth";
 import { databaseError, text, type ActionState } from "@/shared/lib/forms";
 
-const ids = z.object({ group_id: z.uuid(), event_id: z.uuid() });
+const ids = z.object({ group_id: z.guid(), event_id: z.guid() });
 const status = z.enum(["pending", "in_progress", "done"]);
 
 async function context(form: FormData) {
@@ -35,7 +35,7 @@ async function validAssignee(
   assignee: string,
 ) {
   if (!assignee) return true;
-  if (!z.uuid().safeParse(assignee).success) return false;
+  if (!z.guid().safeParse(assignee).success) return false;
   const { data, error } = await ctx.supabase
     .from("group_members")
     .select("user_id")
@@ -76,7 +76,7 @@ export async function updateTask(
   form: FormData,
 ): Promise<ActionState> {
   const ctx = await context(form);
-  const taskId = z.uuid().safeParse(text(form, "task_id"));
+  const taskId = z.guid().safeParse(text(form, "task_id"));
   const nextStatus = status.safeParse(text(form, "status"));
   const assignee = text(form, "assignee_id");
   if (

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarX2, ImagePlus, PencilLine } from "lucide-react";
 import { ActionForm } from "@/shared/ui/action-form";
+import { Disclosure } from "@/shared/ui/disclosure";
 import { Input } from "@/shared/ui/input";
 import { updateEvent, cancelEvent, publishEvent } from "../api/actions";
 import { updateEventCover } from "../api/cover-actions";
@@ -32,9 +34,28 @@ export function ManageEvent({
   const [start, setStart] = useState(() => panamaDate(event.starts_at));
   const [end, setEnd] = useState(() => panamaDate(event.ends_at));
   return (
-    <div className="card form-stack">
-      <details>
-        <summary>Portada del evento</summary>
+    <section className="card manage-card" aria-labelledby="manage-title">
+      <div className="manage-heading">
+        <h2 id="manage-title">Gestionar la salida</h2>
+        <p className="small muted">
+          Solo quien organiza o un admin, antes de que empiece.
+        </p>
+      </div>
+      {event.status === "draft" && (
+        <ActionForm action={publishEvent} label="Publicar evento">
+          <input type="hidden" name="event_id" value={event.id} />
+          <input type="hidden" name="group_id" value={event.group_id} />
+        </ActionForm>
+      )}
+      <Disclosure
+        icon={<ImagePlus size={19} />}
+        title="Portada"
+        hint={
+          event.cover_public_id
+            ? "Cambia o quita la imagen"
+            : "Añade una imagen que identifique el plan"
+        }
+      >
         <p className="small muted">
           Solo los miembros del grupo pueden ver la imagen.
         </p>
@@ -53,21 +74,22 @@ export function ManageEvent({
           <p className="small muted">JPG, PNG o WebP. Máximo 5 MB.</p>
         </ActionForm>
         {event.cover_public_id && (
-          <ActionForm action={updateEventCover} label="Eliminar portada">
+          <ActionForm
+            action={updateEventCover}
+            label="Eliminar portada"
+            tone="danger"
+          >
             <input type="hidden" name="event_id" value={event.id} />
             <input type="hidden" name="group_id" value={event.group_id} />
             <input type="hidden" name="remove" value="true" />
           </ActionForm>
         )}
-      </details>
-      {event.status === "draft" && (
-        <ActionForm action={publishEvent} label="Publicar evento">
-          <input type="hidden" name="event_id" value={event.id} />
-          <input type="hidden" name="group_id" value={event.group_id} />
-        </ActionForm>
-      )}
-      <details>
-        <summary>Editar evento</summary>
+      </Disclosure>
+      <Disclosure
+        icon={<PencilLine size={19} />}
+        title="Editar detalles"
+        hint="Título, lugar, horario y notas"
+      >
         <ActionForm action={updateEvent} label="Guardar cambios">
           <input type="hidden" name="event_id" value={event.id} />
           <input type="hidden" name="group_id" value={event.group_id} />
@@ -131,19 +153,25 @@ export function ManageEvent({
             />
           </label>
         </ActionForm>
-      </details>
+      </Disclosure>
       {event.status === "published" && (
-        <details>
-          <summary>Cancelar evento</summary>
-          <p className="small muted">
-            El evento dejará de aceptar respuestas y aparecerá como cancelado.
-          </p>
-          <ActionForm action={cancelEvent} label="Confirmar cancelación">
+        <Disclosure
+          icon={<CalendarX2 size={19} />}
+          title="Cancelar salida"
+          hint="Deja de aceptar respuestas y avisa como cancelada"
+          tone="danger"
+        >
+          <p className="small muted">Esta acción no se puede deshacer.</p>
+          <ActionForm
+            action={cancelEvent}
+            label="Confirmar cancelación"
+            tone="danger"
+          >
             <input type="hidden" name="event_id" value={event.id} />
             <input type="hidden" name="group_id" value={event.group_id} />
           </ActionForm>
-        </details>
+        </Disclosure>
       )}
-    </div>
+    </section>
   );
 }

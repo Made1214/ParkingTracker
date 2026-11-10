@@ -19,6 +19,12 @@ export function toCents(value: string) {
   return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
 
+/** Monto de la base de datos (numeric, puede ser negativo) → centavos. */
+export function amountToCents(value: number | string | null | undefined) {
+  const amount = Number(value ?? 0);
+  return Number.isFinite(amount) ? Math.round(amount * 100) : 0;
+}
+
 export function formatMoney(cents: number) {
   const sign = cents < 0 ? "−" : "";
   return `${sign}$${(Math.abs(cents) / 100).toFixed(2)}`;
@@ -35,9 +41,9 @@ export function equalShares(totalCents: number, people: string[]) {
 }
 
 const ids = z.object({
-  group_id: z.uuid(),
-  event_id: z.uuid(),
-  paid_by: z.uuid(),
+  group_id: z.guid(),
+  event_id: z.guid(),
+  paid_by: z.guid(),
 });
 
 export type ExpenseInput = {
@@ -73,7 +79,7 @@ export function parseExpenseForm(
   const category = categories.find((c) => c.value === text(form, "category"));
   const participants = [
     ...new Set(form.getAll("participants").map(String)),
-  ].filter((id) => z.uuid().safeParse(id).success);
+  ].filter((id) => z.guid().safeParse(id).success);
   if (!participants.length)
     return { error: "Elige al menos una persona para repartir." };
 

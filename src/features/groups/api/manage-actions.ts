@@ -19,7 +19,7 @@ function refresh(groupId: string) {
 }
 async function adminContext(form: FormData) {
   const groupId = text(form, "group_id");
-  if (!z.uuid().safeParse(groupId).success) return null;
+  if (!z.guid().safeParse(groupId).success) return null;
   const { supabase, user } = await requireUser();
   const { data, error } = await supabase
     .from("group_members")
@@ -91,7 +91,7 @@ export async function manageMember(
   const operation = text(form, "operation");
   if (
     !ctx ||
-    !z.uuid().safeParse(userId).success ||
+    !z.guid().safeParse(userId).success ||
     !["remove", "admin", "member"].includes(operation)
   )
     return { error: "No tienes permiso para cambiar esta membresía." };
@@ -125,7 +125,7 @@ export async function leaveGroup(
   form: FormData,
 ): Promise<ActionState> {
   const groupId = text(form, "group_id");
-  if (!z.uuid().safeParse(groupId).success)
+  if (!z.guid().safeParse(groupId).success)
     return { error: "No se pudo identificar el grupo." };
   const { supabase, user } = await requireUser();
   const { data, error } = await supabase

@@ -1,8 +1,6 @@
 import "server-only";
 import { requireUser } from "@/features/auth";
-import { toCents } from "./expense-form";
-
-const cents = (value: number) => toCents(Number(value).toFixed(2)) ?? 0;
+import { amountToCents as cents } from "./expense-form";
 
 export async function getExpenses(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(
@@ -99,5 +97,27 @@ export async function getExpenses(groupId: string, eventId: string) {
       people: e.expense_splits.length,
       canDelete: isAdmin || e.created_by === user.id,
     })),
+  };
+}
+
+/** Total y promedio por participante para el resumen del plan. */
+export async function getExpenseSummary(groupId: string, eventId: string) {
+  const { supabase } = await requireUser(
+    `/groups/${groupId}/events/${eventId}`,
+  );
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("amount, expense_splits(user_id)")
+    .eq("group_id", groupId)
+    .eq("event_id", eventId);
+  if (error) throw new Error("No se pudieron cargar los gastos.");
+  const totalCents = data.reduce((sum, e) => sum + cents(e.amount), 0);
+  const people = new Set(
+    data.flatMap((e) => e.expense_splits.map((s) => s.user_id)),
+  ).size;
+  return {
+    totalCents,
+    perPersonCents: people ? Math.round(totalCents / people) : 0,
+    count: data.length,
   };
 }

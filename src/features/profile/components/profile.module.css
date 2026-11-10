@@ -24,3 +24,26 @@
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   }
 }
+.stack {
+  display: grid;
+  gap: var(--space-6);
+  min-width: 0;
+}
+.avatarCard {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+}
+.avatarCard > :global(.form-stack) {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+.avatar,
+.initials {
+  box-shadow: 0 0 0 6px var(--surface-tint);
+  transition: transform 220ms var(--ease-out);
+}
+.avatarCard:hover .avatar,
+.avatarCard:hover .initials {
+  transform: scale(1.04) rotate(-2deg);
+}

@@ -1,4 +1,5 @@
-import { CalendarClock } from "lucide-react";
+import { CalendarPlus, EllipsisVertical, Plus } from "lucide-react";
+import { Disclosure } from "@/shared/ui/disclosure";
 import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
@@ -98,14 +99,11 @@ export async function SchedulePanel({
   return (
     <Card className={styles.panel} aria-labelledby="schedule-title">
       <div className={styles.heading}>
-        <span className="tile-icon" aria-hidden="true">
-          <CalendarClock size={20} />
+        <h2 id="schedule-title">Cronograma</h2>
+        <span className="small muted">
+          {items.length} {items.length === 1 ? "actividad" : "actividades"} ·
+          hora de Panamá
         </span>
-        <div>
-          <span className="eyebrow">ASÍ VA EL DÍA</span>
-          <h2 id="schedule-title">Cronograma</h2>
-        </div>
-        <span className="count">{items.length}</span>
       </div>
 
       {items.length ? (
@@ -128,15 +126,15 @@ export async function SchedulePanel({
               </span>
               <div className={styles.body}>
                 <h3>{item.title}</h3>
-                {item.description && (
-                  <p className="small muted">{item.description}</p>
-                )}
+                {item.description && <p>{item.description}</p>}
                 {item.proposal_id && (
                   <span className="badge">Propuesta del grupo</span>
                 )}
                 {canEdit && (
                   <details className={styles.edit}>
-                    <summary>Editar</summary>
+                    <summary aria-label={`Editar ${item.title}`} title="Editar">
+                      <EllipsisVertical size={18} aria-hidden="true" />
+                    </summary>
                     <ActionForm
                       action={updateScheduleItem}
                       label="Guardar cambios"
@@ -156,7 +154,7 @@ export async function SchedulePanel({
                     <ActionForm
                       action={deleteScheduleItem}
                       label="Eliminar actividad"
-                      className={styles.delete}
+                      tone="danger"
                     >
                       {hidden}
                       <input type="hidden" name="id" value={item.id} />
@@ -176,13 +174,17 @@ export async function SchedulePanel({
       )}
 
       {canEdit && (
-        <details className={styles.composer}>
-          <summary>+ Añadir actividad</summary>
+        <Disclosure
+          className={styles.composer}
+          icon={<Plus size={18} />}
+          title="Añadir actividad"
+          hint="Dentro del horario de la salida"
+        >
           <ActionForm action={createScheduleItem} label="Añadir al cronograma">
             {hidden}
             <ItemFields idPrefix="new-item" min={min} max={max} />
           </ActionForm>
-        </details>
+        </Disclosure>
       )}
 
       {canEdit && pendingProposals.length > 0 && (
@@ -191,8 +193,12 @@ export async function SchedulePanel({
           <ul>
             {pendingProposals.map((proposal) => (
               <li key={proposal.id}>
-                <details>
-                  <summary>{proposal.title}</summary>
+                <Disclosure
+                  compact
+                  icon={<CalendarPlus size={16} />}
+                  title={proposal.title}
+                  hint="Elige hora para agendarla"
+                >
                   <ActionForm
                     action={createScheduleItem}
                     label="Agendar propuesta"
@@ -211,7 +217,7 @@ export async function SchedulePanel({
                       description={proposal.description ?? ""}
                     />
                   </ActionForm>
-                </details>
+                </Disclosure>
               </li>
             ))}
           </ul>

@@ -474,7 +474,7 @@
   min-width: 0;
 }
 .progress {
-  height: 4px;
+  height: 6px;
   overflow: hidden;
   border-radius: var(--radius-full);
   background: var(--surface-subtle);
@@ -483,7 +483,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--color-primary);
+  background: var(--color-warning);
 }
 .winner {
   display: inline-flex;
@@ -513,4 +513,85 @@
   .switch::after {
     transition: none;
   }
+}
+
+/* Lista de votaciones: cada una en su tarjeta */
+.pollList {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.pollList > .heading h2 {
+  font-size: var(--text-3xl);
+}
+.pollList > .poll {
+  padding: var(--space-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface-subtle);
+}
+.pollList > .poll[data-active="true"] {
+  border: 2px solid var(--color-warning);
+  background: var(--surface);
+}
+.poll h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-regular);
+  line-height: 1.05;
+  margin-top: var(--space-3);
+}
+.pollList .emptyPoll {
+  padding: var(--space-6);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+.option[data-winner] {
+  border-color: var(--color-primary-deep);
+  background: var(--color-primary-deep);
+  color: #fff;
+}
+.option[data-winner] .votes,
+.option[data-winner] .winner {
+  color: var(--hero-accent);
+}
+:global(.dark) .option[data-winner] {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+.composerCard {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+.composerCard > h2 {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+.composerCard .pollComposer {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+.decisionsSide {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.closePoll {
+  margin-top: var(--space-3);
+}
+.closePoll :global(.button) {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+}
+.closePoll :global(.button):hover {
+  border-color: var(--color-warning);
 }

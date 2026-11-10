@@ -20,7 +20,11 @@ function client() {
   return cloudinary;
 }
 
-export async function uploadPrivateImage(file: File, publicId: string) {
+export async function uploadPrivateImage(
+  file: File,
+  publicId: string,
+  box: { width: number; height: number } = { width: 1600, height: 900 },
+) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const api = client();
   return new Promise<UploadApiResponse>((resolve, reject) => {
@@ -33,9 +37,7 @@ export async function uploadPrivateImage(file: File, publicId: string) {
           overwrite: false,
           format: "webp",
           allowed_formats: ["jpg", "jpeg", "png", "webp"],
-          transformation: [
-            { width: 1600, height: 900, crop: "limit", quality: "auto" },
-          ],
+          transformation: [{ ...box, crop: "limit", quality: "auto" }],
           timeout: 30000,
         },
         (error, result) => {

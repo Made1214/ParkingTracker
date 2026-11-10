@@ -4,14 +4,14 @@
 }
 .heading {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
 }
-.heading :global(.tile-icon) {
-  margin-bottom: 0;
-}
-.heading > div {
-  flex: 1;
+.heading h2 {
+  margin: 0;
+  font-size: var(--text-3xl);
 }
 .timeline {
   list-style: none;
@@ -61,20 +61,47 @@
   border-left: 1px solid var(--line);
 }
 .body {
+  position: relative;
   display: grid;
   gap: var(--space-1);
   padding-bottom: var(--space-6);
   min-width: 0;
 }
 .body h3 {
-  font-size: var(--text-base);
+  margin: 0;
+  padding-right: var(--space-10);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: 1.35;
+}
+.body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.edit > summary {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  justify-content: center;
+  width: 36px;
+  min-height: 36px !important;
+  border-radius: var(--radius-sm);
+  color: var(--muted) !important;
+  list-style: none;
+}
+.edit > summary::-webkit-details-marker {
+  display: none;
+}
+.edit > summary:hover,
+.edit[open] > summary {
+  background: var(--surface-tint);
+  color: var(--ink) !important;
 }
 .body :global(.badge) {
   justify-self: start;
 }
-.edit summary,
-.composer summary,
-.proposals summary {
+.edit summary {
   cursor: pointer;
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -86,22 +113,14 @@
 .edit :global(.form-stack) {
   margin-top: var(--space-2);
 }
-.delete {
-  margin-top: var(--space-2);
-}
-.delete :global(.button) {
-  background: transparent;
-  color: var(--danger-text);
-  border-color: var(--danger-border);
-}
+
 .times {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: var(--space-3);
 }
 .composer {
-  border-top: 1px dashed var(--line);
-  padding-top: var(--space-3);
+  border-style: dashed;
 }
 .proposals {
   border-top: 1px dashed var(--line);

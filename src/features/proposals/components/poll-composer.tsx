@@ -18,12 +18,15 @@ import styles from "./decisions.module.css";
 export function PollComposer({
   groupId,
   eventId,
+  standalone = false,
 }: {
   groupId: string;
   eventId: string;
+  /** Tarjeta propia, siempre abierta (columna lateral de Votos). */
+  standalone?: boolean;
 }) {
   const id = useId();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(standalone);
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState([
     { id: 0, value: "" },
@@ -56,37 +59,40 @@ export function PollComposer({
         setTime("");
         setMultiple(false);
         setScheduled(false);
-        setExpanded(false);
+        setExpanded(standalone);
       }
       return result;
     },
     {},
   );
   return (
-    <div className={styles.createArea}>
-      <button
-        type="button"
-        className={styles.createTrigger}
-        aria-expanded={expanded}
-        aria-controls={id}
-        onClick={() => setExpanded(!expanded)}
-        disabled={pending}
-      >
-        <span className={styles.triggerIcon}>
-          <Plus size={19} aria-hidden="true" />
-        </span>
-        <span>
-          <strong>Crear una votación</strong>
-          <small>Haz una pregunta y deja que el grupo decida</small>
-        </span>
-        {expanded ? (
-          <X size={18} aria-hidden="true" />
-        ) : (
-          <span className={styles.triggerAction}>
-            Crear <span aria-hidden="true">→</span>
+    <div className={standalone ? styles.composerCard : styles.createArea}>
+      {standalone && <h2 id={id + "-title"}>Nueva votación</h2>}
+      {!standalone && (
+        <button
+          type="button"
+          className={styles.createTrigger}
+          aria-expanded={expanded}
+          aria-controls={id}
+          onClick={() => setExpanded(!expanded)}
+          disabled={pending}
+        >
+          <span className={styles.triggerIcon}>
+            <Plus size={19} aria-hidden="true" />
           </span>
-        )}
-      </button>
+          <span>
+            <strong>Crear una votación</strong>
+            <small>Haz una pregunta y deja que el grupo decida</small>
+          </span>
+          {expanded ? (
+            <X size={18} aria-hidden="true" />
+          ) : (
+            <span className={styles.triggerAction}>
+              Crear <span aria-hidden="true">→</span>
+            </span>
+          )}
+        </button>
+      )}
       {expanded && (
         <form
           id={id}
@@ -241,13 +247,15 @@ export function PollComposer({
               </p>
             )}
             <div className={styles.composerActions}>
-              <button
-                className={styles.cancel}
-                type="button"
-                onClick={() => setExpanded(false)}
-              >
-                Cancelar
-              </button>
+              {!standalone && (
+                <button
+                  className={styles.cancel}
+                  type="button"
+                  onClick={() => setExpanded(false)}
+                >
+                  Cancelar
+                </button>
+              )}
               <Button type="submit" disabled={pending}>
                 {pending ? (
                   "Creando…"
@@ -261,7 +269,7 @@ export function PollComposer({
           </fieldset>
         </form>
       )}
-      {!expanded && state.success && (
+      {(standalone || !expanded) && state.success && (
         <p className="message success" role="status">
           {state.success}
         </p>

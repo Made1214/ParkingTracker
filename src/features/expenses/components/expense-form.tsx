@@ -10,6 +10,7 @@ import {
   formatMoney,
   toCents,
 } from "../api/expense-form";
+import { initials } from "@/shared/lib/utils";
 import styles from "./expenses.module.css";
 
 export function ExpenseForm({
@@ -128,6 +129,9 @@ export function ExpenseForm({
                       )
                     }
                   />
+                  <span className={styles.personFace} aria-hidden="true">
+                    {initials(member.name)}
+                  </span>
                   <span>{member.name}</span>
                 </label>
                 {checked && mode === "equal" && (

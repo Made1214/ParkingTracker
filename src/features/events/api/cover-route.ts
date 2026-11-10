@@ -10,8 +10,8 @@ const headers = {
 
 export async function eventCoverResponse(groupId: string, eventId: string) {
   if (
-    !z.uuid().safeParse(groupId).success ||
-    !z.uuid().safeParse(eventId).success
+    !z.guid().safeParse(groupId).success ||
+    !z.guid().safeParse(eventId).success
   )
     return new Response(null, { status: 404, headers });
   const supabase = await serverClient();

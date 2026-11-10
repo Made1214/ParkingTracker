@@ -1,15 +1,28 @@
 import Link from "next/link";
 import { ArrowUpRight, MapPin, CalendarDays, Clock } from "lucide-react";
 import { dateLabel } from "@/shared/lib/utils";
-import { listEvents } from "../api/queries";
+import type { listEvents } from "../api/queries";
 export const statusLabels = {
   draft: "Borrador",
   published: "Se viene",
   cancelled: "Cancelado",
   finished: "Finalizado",
 };
-export async function EventList({ groupId }: { groupId: string }) {
-  const events = await listEvents(groupId);
+type EventSummary = Awaited<ReturnType<typeof listEvents>>[number];
+
+/** Próximas primero (por fecha) y después el historial, del más reciente. */
+export function EventList({
+  groupId,
+  events: all,
+}: {
+  groupId: string;
+  events: EventSummary[];
+}) {
+  const upcoming = all.filter(
+    (event) => event.status === "published" || event.status === "draft",
+  );
+  const past = all.filter((event) => !upcoming.includes(event)).reverse();
+  const events = [...upcoming, ...past];
   if (!events.length)
     return (
       <div className="card empty-state">

@@ -17,8 +17,8 @@ export async function getEvent(groupId: string, eventId: string) {
     `/groups/${groupId}/events/${eventId}`,
   );
   if (
-    !z.uuid().safeParse(groupId).success ||
-    !z.uuid().safeParse(eventId).success
+    !z.guid().safeParse(groupId).success ||
+    !z.guid().safeParse(eventId).success
   )
     notFound();
   const { data, error } = await supabase
@@ -37,8 +37,21 @@ export async function getEvent(groupId: string, eventId: string) {
     .maybeSingle();
   if (membershipError)
     throw new Error("No se pudieron comprobar los permisos del evento.");
+  const organizer =
+    data.created_by && data.created_by !== user.id
+      ? ((
+          await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("id", data.created_by)
+            .maybeSingle()
+        ).data?.display_name ?? null)
+      : data.created_by
+        ? "Tú"
+        : null;
   return {
     event: withEffectiveStatus(data),
+    organizer,
     user,
     canManage:
       (data.created_by === user.id || membership?.role === "admin") &&

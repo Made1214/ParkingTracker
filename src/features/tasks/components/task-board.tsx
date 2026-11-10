@@ -133,26 +133,6 @@ export function TaskBoard({
         )}
       </header>
 
-      {tasks.length > 0 && (
-        <div className={styles.progressBlock}>
-          <div className={styles.progressCaption}>
-            <span>
-              <strong>
-                {completed} de {tasks.length}
-              </strong>{" "}
-              completadas
-            </span>
-            <span>{open === 0 ? "¡Todo listo!" : `${open} por resolver`}</span>
-          </div>
-          <progress
-            className={styles.progress}
-            value={completed}
-            max={tasks.length}
-            aria-label="Tareas completadas"
-          />
-        </div>
-      )}
-
       {adding && !readOnly && (
         <TaskComposer
           id={`${id}-composer`}

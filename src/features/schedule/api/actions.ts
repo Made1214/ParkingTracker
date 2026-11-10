@@ -31,7 +31,7 @@ export async function updateScheduleItem(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const id = z.uuid().safeParse(text(form, "id"));
+  const id = z.guid().safeParse(text(form, "id"));
   const parsed = parseScheduleForm(form);
   if (!id.success) return { error: "La actividad no es válida." };
   if ("error" in parsed) return parsed;
@@ -56,7 +56,7 @@ export async function deleteScheduleItem(
   form: FormData,
 ): Promise<ActionState> {
   const ids = z
-    .object({ id: z.uuid(), group_id: z.uuid(), event_id: z.uuid() })
+    .object({ id: z.guid(), group_id: z.guid(), event_id: z.guid() })
     .safeParse({
       id: text(form, "id"),
       group_id: text(form, "group_id"),

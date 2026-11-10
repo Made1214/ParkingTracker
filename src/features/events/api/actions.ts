@@ -11,7 +11,7 @@ export async function createEvent(
   const { supabase, user } = await requireUser();
   const parsed = z
     .object({
-      group_id: z.uuid(),
+      group_id: z.guid(),
       title: z.string().min(1).max(120),
       description: z.string().max(5000),
       location: z.string().max(200),
@@ -55,8 +55,8 @@ export async function updateEvent(
 ): Promise<ActionState> {
   const parsed = z
     .object({
-      group_id: z.uuid(),
-      event_id: z.uuid(),
+      group_id: z.guid(),
+      event_id: z.guid(),
       title: z.string().trim().min(1).max(120),
       description: z.string().max(5000),
       location: z.string().max(200),
@@ -112,7 +112,7 @@ export async function publishEvent(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const ids = z.object({ group_id: z.uuid(), event_id: z.uuid() }).safeParse({
+  const ids = z.object({ group_id: z.guid(), event_id: z.guid() }).safeParse({
     group_id: text(form, "group_id"),
     event_id: text(form, "event_id"),
   });
@@ -143,7 +143,7 @@ export async function cancelEvent(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const ids = z.object({ group_id: z.uuid(), event_id: z.uuid() }).safeParse({
+  const ids = z.object({ group_id: z.guid(), event_id: z.guid() }).safeParse({
     group_id: text(form, "group_id"),
     event_id: text(form, "event_id"),
   });

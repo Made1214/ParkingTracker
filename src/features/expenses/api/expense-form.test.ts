@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  amountToCents,
   equalShares,
   expenseError,
   formatMoney,
@@ -41,6 +42,11 @@ describe("money helpers", () => {
   });
   it.each(["", "abc", "-5", "1.234", "1e3"])("rejects %s", (value) => {
     expect(toCents(value)).toBeNull();
+  });
+  it("keeps the sign of database amounts", () => {
+    expect(amountToCents(-30)).toBe(-3000);
+    expect(amountToCents("12.345")).toBe(1235);
+    expect(amountToCents(null)).toBe(0);
   });
   it("formats signed amounts", () => {
     expect(formatMoney(5200)).toBe("$52.00");

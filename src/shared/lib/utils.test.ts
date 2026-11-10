@@ -5,6 +5,10 @@ import {
   panamaInput,
   fromPanamaInput,
   panamaTime,
+  initials,
+  countdown,
+  shortDate,
+  timeAgo,
 } from "./utils";
 describe("auth redirect destination", () => {
   it.each([
@@ -36,5 +40,29 @@ describe("Panama date-time inputs", () => {
   });
   it("formats a short Panama time", () => {
     expect(panamaTime("2026-11-14T13:30:00Z")).toBe("08:30");
+  });
+});
+
+describe("display helpers", () => {
+  it("builds initials", () => {
+    expect(initials("Ana Torres")).toBe("AT");
+    expect(initials("luis")).toBe("LU");
+    expect(initials("  ")).toBe("?");
+  });
+  it("formats countdowns", () => {
+    expect(countdown((5 * 24 + 14) * 3600000 + 59000)).toBe("5d 14h");
+    expect(countdown(3 * 3600000 + 20 * 60000)).toBe("3h 20min");
+    expect(countdown(-1)).toBe("0min");
+  });
+  it("formats Panama dates", () => {
+    expect(shortDate("2026-11-14T12:00:00Z")).toMatch(/sáb.*14.*nov/);
+  });
+  it("describes elapsed time", () => {
+    const now = Date.parse("2026-11-09T12:00:00Z");
+    expect(timeAgo("2026-11-09T11:59:40Z", now)).toBe("ahora");
+    expect(timeAgo("2026-11-09T11:48:00Z", now)).toBe("hace 12 min");
+    expect(timeAgo("2026-11-09T09:00:00Z", now)).toBe("hace 3 h");
+    expect(timeAgo("2026-11-08T10:00:00Z", now)).toBe("ayer");
+    expect(timeAgo("2026-11-04T10:00:00Z", now)).toBe("hace 5 d");
   });
 });

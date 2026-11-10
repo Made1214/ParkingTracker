@@ -2,7 +2,7 @@ import { z } from "zod";
 import { text } from "@/shared/lib/forms";
 import { fromPanamaInput } from "@/shared/lib/utils";
 
-const ids = z.object({ group_id: z.uuid(), event_id: z.uuid() });
+const ids = z.object({ group_id: z.guid(), event_id: z.guid() });
 const item = z.object({
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(500),
@@ -40,7 +40,7 @@ export function parseScheduleForm(
   if (endsAt && Date.parse(endsAt) <= Date.parse(startsAt))
     return { error: "La actividad debe terminar después de empezar." };
   const proposal = text(form, "proposal_id");
-  if (proposal && !z.uuid().safeParse(proposal).success)
+  if (proposal && !z.guid().safeParse(proposal).success)
     return { error: "La propuesta no es válida." };
   return {
     data: {

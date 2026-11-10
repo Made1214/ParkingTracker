@@ -76,3 +76,49 @@ export async function getPolls(groupId: string, eventId: string) {
     now: Date.now(),
   };
 }
+
+/** La votación abierta más reciente con sus porcentajes, para el plan. */
+export async function getLivePoll(groupId: string, eventId: string) {
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase
+    .from("polls")
+    .select("id, question, closes_at, poll_options(id, label, position)")
+    .eq("group_id", groupId)
+    .eq("event_id", eventId)
+    .eq("status", "open")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error("No se pudieron cargar las votaciones.");
+  const now = Date.now();
+  const poll = data.find(
+    (item) => !item.closes_at || Date.parse(item.closes_at) > now,
+  );
+  if (!poll) return { poll: null, openCount: 0 };
+  const { data: results, error: resultsError } = await supabase.rpc(
+    "get_poll_results",
+    { p_poll_id: poll.id },
+  );
+  if (resultsError) throw new Error("No se pudieron cargar los resultados.");
+  const total = results.reduce((sum, row) => sum + Number(row.votes), 0);
+  return {
+    openCount: data.filter(
+      (item) => !item.closes_at || Date.parse(item.closes_at) > now,
+    ).length,
+    poll: {
+      id: poll.id,
+      question: poll.question,
+      options: [...poll.poll_options]
+        .sort((a, b) => a.position - b.position)
+        .map((option) => {
+          const votes = Number(
+            results.find((row) => row.option_id === option.id)?.votes ?? 0,
+          );
+          return {
+            id: option.id,
+            label: option.label,
+            percent: total ? Math.round((votes / total) * 100) : 0,
+          };
+        })
+        .sort((a, b) => b.percent - a.percent),
+    },
+  };
+}
