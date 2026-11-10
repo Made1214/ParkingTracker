@@ -8,9 +8,9 @@
 }
 .stage,
 .blob {
-  --size: min(60cqw, 84svh);
+  --size: min(54cqw, 78svh);
   position: absolute;
-  left: 71%;
+  left: 67%;
   top: 50%;
   width: var(--size);
   aspect-ratio: 1;
@@ -23,135 +23,61 @@
   mask-image: linear-gradient(90deg, transparent 28%, #000 50%);
 }
 .blob {
-  width: calc(var(--size) * 1.44);
+  width: calc(var(--size) * 1.4);
   border-radius: 46% 54% 51% 49% / 52% 46% 54% 48%;
-  background: rgb(184 184 255 / 9%);
-  box-shadow: 0 0 0 9cqw rgb(184 184 255 / 4%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(147 129 255 / 14%),
+    rgb(184 184 255 / 6%) 60%,
+    transparent 72%
+  );
 }
-/* GSAP escribe transform en lo que gira, así que el centrado va por
-   márgenes y no por translate. */
-.ring {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  border-radius: 50%;
-}
-.far {
-  inset: -9%;
-  width: 118%;
-  height: 118%;
-}
-.outer {
-  width: 100%;
-  height: 100%;
-}
-.middle {
-  width: 62%;
-  height: 62%;
-}
-.core {
-  width: 44%;
-  height: 44%;
-}
-.track {
+.rings {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
-  fill: none;
 }
-.dashed {
-  stroke: var(--hero-muted);
-  stroke-width: 1.4;
-  stroke-dasharray: 7 6;
-  stroke-linecap: round;
-  opacity: 0.8;
-  vector-effect: non-scaling-stroke;
+.jade {
+  fill: #2fcb9f;
 }
-.streak,
-.streakSoft {
-  stroke: var(--hero-accent);
-  stroke-width: 3;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-.streakSoft {
-  stroke: var(--hero-muted);
-}
-.solid {
-  stroke: #b3a4ff;
-  stroke-width: 4;
-  vector-effect: non-scaling-stroke;
-}
-.solidThin {
-  stroke: #6f78e8;
-  stroke-width: 2.5;
-  vector-effect: non-scaling-stroke;
-}
-.dot {
-  fill: var(--hero-accent);
-}
-.dotSoft {
-  fill: #6f78e8;
+.lavender {
+  fill: #eeecf7;
 }
 
-/* Cada hueco gira hasta su ángulo; lo que lleva dentro se endereza. */
+/* Amigos e iconos: cada hueco gira hasta su ángulo y coloca su ilustración
+   a su radio; dentro se contrarrota para que quede derecha. */
+.rotor {
+  position: absolute;
+  inset: 0;
+}
 .slot {
   position: absolute;
   inset: 0;
   rotate: var(--angle);
 }
-.slot > * {
+.rider {
   position: absolute;
-  left: 100%;
+  left: calc(50% + var(--radius));
   top: 50%;
+  width: var(--size);
+  aspect-ratio: 1;
   translate: -50% -50%;
   rotate: calc(-1 * var(--angle));
 }
-.slot > * > *,
-.slot svg {
-  display: block;
+.rider > span {
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
 }
-.avatar {
-  width: 16%;
-  aspect-ratio: 1;
-}
-.middle .avatar {
-  width: 26%;
-}
-.face {
-  border-radius: 50%;
-  box-shadow: 0 10px 24px -12px rgb(0 0 0 / 60%);
-}
-.icon {
-  width: 9%;
-  aspect-ratio: 1;
-  color: var(--hero-muted);
-}
-.middle .icon {
-  width: 14%;
-}
-.icon svg {
-  stroke-width: 1.6;
-}
-.sparkle {
-  position: absolute;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-}
-.sparkle svg {
+.rider img {
   display: block;
-  width: 100%;
-  height: 100%;
-}
-.sparkle[data-tone="jade"] {
-  fill: var(--hero-accent);
-}
-.sparkle[data-tone="lavender"] {
-  fill: var(--hero-muted);
+  max-width: 100%;
+  max-height: 100%;
+  filter: drop-shadow(0 10px 18px rgb(8 6 24 / 55%));
+  user-select: none;
 }
 
 /* Con el panel estrecho la ilustración taparía el titular. */
