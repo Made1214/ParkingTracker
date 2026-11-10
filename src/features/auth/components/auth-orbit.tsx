@@ -26,8 +26,10 @@ const riders = [
     size: 92,
   },
   { src: "/illustrations/friend-cap.webp", angle: -134, radius: 212, size: 92 },
+  { src: "/illustrations/icon-pizza.webp", angle: -98, radius: 148, size: 64 },
+  { src: "/illustrations/icon-camera.webp", angle: -26, radius: 150, size: 56 },
+  { src: "/illustrations/icon-drink.webp", angle: 46, radius: 150, size: 46 },
   { src: "/illustrations/icon-cheers.webp", angle: 118, radius: 146, size: 62 },
-  { src: "/illustrations/icon-camera.webp", angle: -26, radius: 150, size: 54 },
 ];
 
 /** Destellos de cuatro puntas y partículas, en unidades de 500. */
