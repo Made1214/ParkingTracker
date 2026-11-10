@@ -516,6 +516,17 @@ textarea {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
 }
+@media (min-width: 1000px) {
+  .auth-layout:has(.auth-story-orbit) {
+    grid-template-columns: minmax(0, 1.6fr) minmax(420px, 1fr);
+  }
+  .auth-layout:has(.auth-story-orbit) .auth-box {
+    max-width: 420px;
+  }
+  .auth-layout:has(.auth-story-orbit) .auth-box > .eyebrow {
+    margin-left: var(--space-3);
+  }
+}
 .auth-story {
   background: var(--hero-bg);
   color: var(--hero-ink);
@@ -563,6 +574,40 @@ textarea {
 }
 .auth-story .eyebrow {
   color: var(--hero-muted);
+}
+/* Acceso y registro: la ilustración orbital ocupa el lado derecho del
+   panel (auth-orbit.tsx) y el texto queda por encima. */
+.auth-story-orbit::after {
+  display: none;
+}
+.auth-story-orbit > :not([aria-hidden]) {
+  position: relative;
+  z-index: 1;
+}
+.auth-story-orbit > p {
+  margin: 0;
+  font-size: var(--text-base);
+}
+/* El titular sube línea por línea al cargar. */
+.auth-headline > span {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+.auth-headline > span > span {
+  display: block;
+  animation: lineUp 760ms var(--ease-out) backwards;
+}
+.auth-headline > span:nth-child(2) > span {
+  animation-delay: 110ms;
+}
+.auth-headline > span:nth-child(3) > span {
+  animation-delay: 220ms;
+}
+@keyframes lineUp {
+  from {
+    transform: translateY(105%);
+  }
 }
 .story-notes {
   display: flex;
@@ -1041,6 +1086,10 @@ hr {
   }
   .auth-story h1 br {
     display: none;
+  }
+  .auth-headline > span,
+  .auth-headline > span > span {
+    display: inline;
   }
   .auth-story p,
   .story-notes {

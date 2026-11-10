@@ -1,0 +1,162 @@
+/* Ilustración orbital del acceso (auth-orbit.tsx). Las medidas van en
+   porcentajes del escenario para que todo escale junto. */
+.orbit {
+  position: absolute;
+  inset: 0;
+  container-type: inline-size;
+  pointer-events: none;
+}
+.stage,
+.blob {
+  --size: min(60cqw, 84svh);
+  position: absolute;
+  left: 71%;
+  top: 50%;
+  width: var(--size);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+}
+/* Lo que pasa por detrás del titular se desvanece para no estorbar. */
+.veil {
+  position: absolute;
+  inset: 0;
+  mask-image: linear-gradient(90deg, transparent 28%, #000 50%);
+}
+.blob {
+  width: calc(var(--size) * 1.44);
+  border-radius: 46% 54% 51% 49% / 52% 46% 54% 48%;
+  background: rgb(184 184 255 / 9%);
+  box-shadow: 0 0 0 9cqw rgb(184 184 255 / 4%);
+}
+/* GSAP escribe transform en lo que gira, así que el centrado va por
+   márgenes y no por translate. */
+.ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border-radius: 50%;
+}
+.far {
+  inset: -9%;
+  width: 118%;
+  height: 118%;
+}
+.outer {
+  width: 100%;
+  height: 100%;
+}
+.middle {
+  width: 62%;
+  height: 62%;
+}
+.core {
+  width: 44%;
+  height: 44%;
+}
+.track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+}
+.dashed {
+  stroke: var(--hero-muted);
+  stroke-width: 1.4;
+  stroke-dasharray: 7 6;
+  stroke-linecap: round;
+  opacity: 0.8;
+  vector-effect: non-scaling-stroke;
+}
+.streak,
+.streakSoft {
+  stroke: var(--hero-accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.streakSoft {
+  stroke: var(--hero-muted);
+}
+.solid {
+  stroke: #b3a4ff;
+  stroke-width: 4;
+  vector-effect: non-scaling-stroke;
+}
+.solidThin {
+  stroke: #6f78e8;
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+}
+.dot {
+  fill: var(--hero-accent);
+}
+.dotSoft {
+  fill: #6f78e8;
+}
+
+/* Cada hueco gira hasta su ángulo; lo que lleva dentro se endereza. */
+.slot {
+  position: absolute;
+  inset: 0;
+  rotate: var(--angle);
+}
+.slot > * {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  translate: -50% -50%;
+  rotate: calc(-1 * var(--angle));
+}
+.slot > * > *,
+.slot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.avatar {
+  width: 16%;
+  aspect-ratio: 1;
+}
+.middle .avatar {
+  width: 26%;
+}
+.face {
+  border-radius: 50%;
+  box-shadow: 0 10px 24px -12px rgb(0 0 0 / 60%);
+}
+.icon {
+  width: 9%;
+  aspect-ratio: 1;
+  color: var(--hero-muted);
+}
+.middle .icon {
+  width: 14%;
+}
+.icon svg {
+  stroke-width: 1.6;
+}
+.sparkle {
+  position: absolute;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+}
+.sparkle svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.sparkle[data-tone="jade"] {
+  fill: var(--hero-accent);
+}
+.sparkle[data-tone="lavender"] {
+  fill: var(--hero-muted);
+}
+
+/* Con el panel estrecho la ilustración taparía el titular. */
+@media (max-width: 999px) {
+  .orbit {
+    display: none;
+  }
+}
