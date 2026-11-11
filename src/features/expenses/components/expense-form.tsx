@@ -28,6 +28,9 @@ export function ExpenseForm({
   const [mode, setMode] = useState<"equal" | "custom">("equal");
   const [selected, setSelected] = useState(() => members.map((m) => m.id));
   const [custom, setCustom] = useState<Record<string, string>>({});
+  const [idempotencyKey, setIdempotencyKey] = useState(() =>
+    crypto.randomUUID(),
+  );
 
   const total = toCents(amount) ?? 0;
   const preview = new Map(
@@ -44,6 +47,7 @@ export function ExpenseForm({
     <ActionForm action={createExpense} label="Guardar gasto">
       <input type="hidden" name="group_id" value={groupId} />
       <input type="hidden" name="event_id" value={eventId} />
+      <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <input type="hidden" name="split" value={mode} />
       <div className={styles.row}>
         <label className={styles.grow}>
@@ -53,6 +57,7 @@ export function ExpenseForm({
             required
             maxLength={200}
             placeholder="Ej. Hielo y carbón"
+            onChange={() => setIdempotencyKey(crypto.randomUUID())}
           />
         </label>
         <label className={styles.amount}>
@@ -63,7 +68,10 @@ export function ExpenseForm({
             inputMode="decimal"
             placeholder="0.00"
             value={amount}
-            onChange={(event) => setAmount(event.target.value)}
+            onChange={(event) => {
+              setAmount(event.target.value);
+              setIdempotencyKey(crypto.randomUUID());
+            }}
           />
         </label>
       </div>

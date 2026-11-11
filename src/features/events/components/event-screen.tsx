@@ -1,6 +1,13 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { AlignLeft, ArrowLeft, Clock3, MapPin, PencilLine } from "lucide-react";
+import {
+  AlignLeft,
+  ArrowLeft,
+  Camera,
+  Clock3,
+  MapPin,
+  PencilLine,
+} from "lucide-react";
 import { AttendancePanel } from "@/features/rsvp";
 import {
   PollComposer,
@@ -104,6 +111,29 @@ export async function EventScreen({
         eventUrl={eventUrl}
         pollCount={live.openCount}
       />
+
+      {event.status === "finished" && active !== "fotos" && (
+        <aside
+          className={styles.photoBanner}
+          aria-label="Recuerdo de la salida"
+        >
+          <div className={styles.photoBannerContent}>
+            <span className={styles.photoBannerIcon} aria-hidden="true">
+              <Camera size={24} />
+            </span>
+            <p className={styles.photoBannerText}>
+              ¡La salida terminó! Sube tus fotos para guardar el recuerdo del
+              grupo.
+            </p>
+          </div>
+          <Link
+            href={`${eventUrl}?section=fotos`}
+            className={styles.photoBannerAction}
+          >
+            ¡Sube tus fotos!
+          </Link>
+        </aside>
+      )}
 
       {active === "plan" && (
         <>

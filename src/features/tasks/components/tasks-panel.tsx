@@ -2,7 +2,7 @@ import { createTask, updateTask } from "../api/actions";
 import { getTasks } from "../api/queries";
 import type React from "react";
 import { Card } from "@/shared/ui/card";
-import { initials } from "@/shared/lib/utils";
+import { initials, panamaInput } from "@/shared/lib/utils";
 import { TaskBoard } from "./task-board";
 import styles from "./tasks.module.css";
 import { Motion } from "@/shared/ui/motion";
@@ -16,7 +16,7 @@ export async function TasksPanel({
   eventId: string;
   readOnly: boolean;
 }) {
-  const { tasks, members, user } = await getTasks(groupId, eventId);
+  const { tasks, members, event, user } = await getTasks(groupId, eventId);
   const isAdmin = members.some(
     (member) => member.user_id === user.id && member.role === "admin",
   );
@@ -49,17 +49,20 @@ export async function TasksPanel({
       <TaskBoard
         groupId={groupId}
         eventId={eventId}
+        eventEndsAt={panamaInput(event.ends_at)}
         readOnly={readOnly}
         tasks={tasks.map((task) => ({
           id: task.id,
           title: task.title,
           status: task.status,
           assigneeId: task.assignee_id,
+          dueAt: task.due_at,
           canEdit:
             !readOnly &&
             (isAdmin ||
               task.created_by === user.id ||
               task.assignee_id === user.id),
+          canEditDueAt: !readOnly && (isAdmin || task.created_by === user.id),
         }))}
         members={members.map((member) => ({
           id: member.user_id,

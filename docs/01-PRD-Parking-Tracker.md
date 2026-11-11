@@ -8,6 +8,7 @@ PRD — Plataforma de organización de salidas entre amigos
 **Estado:** Aprobado para desarrollo
 **Autor:** Equipo Parking Tracker
 **Contenido**
+> **Nota de actualización (16 sep 2026):** el módulo de galería de fotos (US-08, tabla de la sección 7.1) usa **Cloudinary**, no Supabase Storage — cambio post-aprobación registrado en `openspec/changes/define-stack/design.md` §7 y en `CLAUDE.md` del repositorio. Cloudinary no tiene RLS propio, así que el servidor firma cada subida y cada URL de entrega tras revalidar que el usuario es miembro del grupo (`is_group_member`), preservando la misma garantía de privacidad. Se corrigió la fila correspondiente de la sección 7.1; el resto del documento no se ve afectado por este cambio.
 # 1\. Visión del Producto
 Parking Tracker es una plataforma web colaborativa que centraliza toda la organización de salidas, eventos y actividades de un grupo de amigos en un solo lugar: planificación, confirmación de asistencia, cronogramas, votaciones, gastos compartidos, fotos y estadísticas.
 **Declaración de visión:** "Ser el punto de encuentro digital donde los grupos de amigos planifican, viven y recuerdan sus salidas, eliminando el caos de los chats grupales."
@@ -122,7 +123,7 @@ Hoy la organización de salidas grupales ocurre dispersa en chats de WhatsApp, h
 | Comentarios | Hilo de comentarios por evento (1 nivel de respuesta) |
 | Gastos | Registro, división igual/personalizada, balances y liquidación manual |
 | Tareas | Lista de tareas por evento con asignación y estado |
-| Galería | Subida de fotos por evento con Supabase Storage |
+| Galería | Subida de fotos por evento con Cloudinary (subida y entrega firmadas por el servidor, tras verificar membresía del grupo) |
 | Historial | Vista de eventos finalizados |
 | Estadísticas | Asistencia por miembro, eventos por mes, gastos por evento |
 

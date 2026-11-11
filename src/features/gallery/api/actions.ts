@@ -51,14 +51,31 @@ export async function uploadPhoto(
       width: 1600,
       height: 1600,
     });
+    const bytes = Number(uploaded.bytes);
+    const width = Number(uploaded.width);
+    const height = Number(uploaded.height);
+    if (
+      !Number.isInteger(bytes) ||
+      bytes <= 0 ||
+      bytes > 10 * 1024 * 1024 ||
+      !Number.isInteger(width) ||
+      width <= 0 ||
+      !Number.isInteger(height) ||
+      height <= 0
+    ) {
+      await deletePrivateImage(publicId).catch(() =>
+        console.error("Failed to clean up an invalid uploaded photo"),
+      );
+      return { error: "No se pudo verificar la imagen subida." };
+    }
     const { error: insertError } = await supabase.from("photos").insert({
       group_id,
       event_id,
       cloudinary_public_id: publicId,
       cloudinary_version: String(uploaded.version),
-      bytes: uploaded.bytes,
-      width: uploaded.width,
-      height: uploaded.height,
+      bytes,
+      width,
+      height,
       uploaded_by: user.id,
     });
     if (insertError) {

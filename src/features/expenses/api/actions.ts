@@ -23,6 +23,7 @@ export async function createExpense(
     p_paid_by: expense.paid_by,
     p_category: expense.category,
     p_shares: expense.shares,
+    p_idempotency_key: expense.idempotency_key ?? null,
   });
   if (error) return { error: expenseError(error.code, error.message) };
   revalidatePath(eventPath(group_id, event_id));

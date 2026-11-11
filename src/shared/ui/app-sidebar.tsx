@@ -75,7 +75,11 @@ export function AppSidebar({
   return (
     <aside className={styles.sidebar}>
       <div className={styles.top}>
-        <Link href="/groups" className={styles.brand}>
+        <Link
+          href="/groups"
+          className={styles.brand}
+          aria-label="Parking Tracker"
+        >
           <BrandMark />
           <span>Parking Tracker</span>
         </Link>

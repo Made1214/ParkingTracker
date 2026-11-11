@@ -1,6 +1,9 @@
-import { BarChart3, CheckCircle2, Clock3 } from "lucide-react";
+import { BarChart3, CalendarPlus, CheckCircle2, Clock3 } from "lucide-react";
 import { ActionForm } from "@/shared/ui/action-form";
+import { Disclosure } from "@/shared/ui/disclosure";
+import { Input } from "@/shared/ui/input";
 import { dateLabel } from "@/shared/lib/utils";
+import { createScheduleItem } from "@/features/schedule";
 import { vote, closePoll } from "../api/actions";
 import { getPolls } from "../api/queries";
 import { PollRealtime } from "./poll-realtime";
@@ -15,7 +18,15 @@ export async function PollsPanel({
   eventId: string;
   open: boolean;
 }) {
-  const { polls, userId, isAdmin, now } = await getPolls(groupId, eventId);
+  const {
+    polls,
+    userId,
+    isAdmin,
+    canSchedule,
+    eventStartsAt,
+    eventEndsAt,
+    now,
+  } = await getPolls(groupId, eventId);
   return (
     <div className={styles.pollList}>
       <PollRealtime
@@ -164,6 +175,70 @@ export async function PollsPanel({
                   })}
               </fieldset>
             </ActionForm>
+            {(() => {
+              if (active || !canSchedule) return null;
+              const winningOptions = [...poll.poll_options]
+                .filter((option) => {
+                  const result = poll.results.find(
+                    (v) => v.option_id === option.id,
+                  );
+                  return result?.is_winner && Number(result.votes) > 0;
+                })
+                .sort((a, b) => a.position - b.position);
+              if (winningOptions.length === 0) return null;
+              return (
+                <div className={styles.scheduleWinners}>
+                  {winningOptions.map((option) => (
+                    <Disclosure
+                      key={option.id}
+                      compact
+                      icon={<CalendarPlus size={16} />}
+                      title="Añadir al cronograma"
+                      hint={winners > 1 ? option.label : undefined}
+                    >
+                      <ActionForm
+                        action={createScheduleItem}
+                        label="Añadir al cronograma"
+                        className="form-stack"
+                      >
+                        <input type="hidden" name="group_id" value={groupId} />
+                        <input type="hidden" name="event_id" value={eventId} />
+                        <label>
+                          Actividad
+                          <Input
+                            name="title"
+                            defaultValue={option.label}
+                            required
+                            maxLength={120}
+                          />
+                        </label>
+                        <div className={styles.scheduleTimes}>
+                          <label>
+                            Empieza
+                            <Input
+                              type="datetime-local"
+                              name="starts_at"
+                              required
+                              min={eventStartsAt}
+                              max={eventEndsAt}
+                            />
+                          </label>
+                          <label>
+                            Termina (opcional)
+                            <Input
+                              type="datetime-local"
+                              name="ends_at"
+                              min={eventStartsAt}
+                              max={eventEndsAt}
+                            />
+                          </label>
+                        </div>
+                      </ActionForm>
+                    </Disclosure>
+                  ))}
+                </div>
+              );
+            })()}
             {active && (isAdmin || poll.created_by === userId) && (
               <ActionForm
                 action={closePoll}

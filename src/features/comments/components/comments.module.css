@@ -31,12 +31,13 @@
   height: 40px;
   border-radius: var(--radius-full);
   background: var(--color-warning);
-  color: #fff;
+  color: var(--on-primary-deep);
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
 }
 .avatar[data-mine] {
   background: var(--color-primary-deep);
+  color: var(--on-primary-deep);
 }
 .reply .avatar {
   width: 30px;
@@ -47,7 +48,7 @@
 }
 .reply .avatar[data-mine] {
   background: var(--color-primary-deep);
-  color: #fff;
+  color: var(--on-primary-deep);
 }
 .content {
   flex: 1;

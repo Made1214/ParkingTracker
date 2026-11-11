@@ -4,6 +4,7 @@ import { ActionForm } from "@/shared/ui/action-form";
 import { initials, timeAgo } from "@/shared/lib/utils";
 import { createComment, deleteComment, updateComment } from "../api/actions";
 import { getComments } from "../api/queries";
+import { CommentsRealtime } from "./comments-realtime";
 import styles from "./comments.module.css";
 
 type Thread = Awaited<ReturnType<typeof getComments>>["threads"][number];
@@ -16,7 +17,10 @@ export async function CommentsPanel({
   groupId: string;
   eventId: string;
 }) {
-  const { threads, total, now } = await getComments(groupId, eventId);
+  const { threads, total, now, canComment } = await getComments(
+    groupId,
+    eventId,
+  );
   const hidden = (
     <>
       <input type="hidden" name="group_id" value={groupId} />
@@ -46,7 +50,7 @@ export async function CommentsPanel({
         </p>
         <p className={styles.body}>{item.body}</p>
         <div className={styles.actions}>
-          {!isReply && (
+          {canComment && !isReply && (
             <details key={`reply-${item.replies?.length ?? 0}`}>
               <summary>Responder</summary>
               <ActionForm
@@ -120,6 +124,13 @@ export async function CommentsPanel({
 
   return (
     <Card className={styles.panel} aria-labelledby="comments-title">
+      <CommentsRealtime
+        eventId={eventId}
+        commentIds={threads
+          .flatMap((thread) => [thread, ...thread.replies])
+          .map((item) => item.id)
+          .join(",")}
+      />
       <div className={styles.heading}>
         <h2 id="comments-title">Comentarios</h2>
         <span className="count">{total}</span>
@@ -136,27 +147,31 @@ export async function CommentsPanel({
           <p>
             <strong>Aún nadie ha escrito.</strong>
             <span className="small muted">
-              Coordina aquí los detalles: quién lleva qué, a qué hora salen…
+              {canComment
+                ? "Coordina aquí los detalles: quién lleva qué, a qué hora salen…"
+                : "Los comentarios se habilitan cuando la salida está publicada."}
             </span>
           </p>
         </div>
       )}
-      <ActionForm
-        action={createComment}
-        label="Enviar"
-        className={styles.composer}
-      >
-        {hidden}
-        <textarea
-          className="input"
-          name="body"
-          required
-          maxLength={2000}
-          rows={2}
-          aria-label="Escribe un comentario"
-          placeholder="Escribe al grupo…"
-        />
-      </ActionForm>
+      {canComment && (
+        <ActionForm
+          action={createComment}
+          label="Enviar"
+          className={styles.composer}
+        >
+          {hidden}
+          <textarea
+            className="input"
+            name="body"
+            required
+            maxLength={2000}
+            rows={2}
+            aria-label="Escribe un comentario"
+            placeholder="Escribe al grupo…"
+          />
+        </ActionForm>
+      )}
     </Card>
   );
 }

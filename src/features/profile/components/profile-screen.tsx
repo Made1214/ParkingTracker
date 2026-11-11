@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { requireUser } from "@/features/auth";
+import { InstallCard } from "@/shared/pwa";
 import { Card } from "@/shared/ui/card";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 import { ProfileForm } from "./profile-form";
@@ -44,6 +45,7 @@ export async function ProfileScreen({
           </div>
           <ThemeSelect />
         </Card>
+        <InstallCard />
       </ProfileForm>
     </>
   );

@@ -595,3 +595,13 @@
 .closePoll :global(.button):hover {
   border-color: var(--color-warning);
 }
+.scheduleWinners {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.scheduleTimes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
