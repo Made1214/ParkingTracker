@@ -63,8 +63,8 @@ select is(
 select is(
   (select array_agg(value order by value)
    from jsonb_array_elements_text(current_setting('test.group_assets')::jsonb)),
-  array['parking-tracker/dev/seed-photo-1','parking-tracker/dev/seed-photo-2',
-        'parking-tracker/dev/seed-photo-3','parking-tracker/dev/seed-photo-4']::text[],
+  array['photos/10000000-0000-0000-0000-000000000001/20000000-0000-0000-0000-000000000004/00000000-0000-4000-8000-000000000001','photos/10000000-0000-0000-0000-000000000001/20000000-0000-0000-0000-000000000004/00000000-0000-4000-8000-000000000002',
+        'photos/10000000-0000-0000-0000-000000000001/20000000-0000-0000-0000-000000000004/00000000-0000-4000-8000-000000000003','photos/10000000-0000-0000-0000-000000000001/20000000-0000-0000-0000-000000000004/00000000-0000-4000-8000-000000000004']::text[],
   'the returned assets are the seeded photos');
 
 -- ── delete_my_account: successor, solo group, hard delete ───────────
@@ -105,7 +105,7 @@ insert into public.photos (
   id, group_id, event_id, cloudinary_public_id, bytes, uploaded_by
 ) values (
   '30000000-0000-0000-0000-0000000000a2', '10000000-0000-0000-0000-0000000000a2',
-  '20000000-0000-0000-0000-0000000000a2', 'parking-tracker/dev/fixture-photo', 1024,
+  '20000000-0000-0000-0000-0000000000a2', 'photos/10000000-0000-0000-0000-0000000000a2/20000000-0000-0000-0000-0000000000a2/30000000-0000-4000-8000-0000000000a2', 1024,
   '00000000-0000-0000-0000-0000000000a1');
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
@@ -157,7 +157,7 @@ select is(
   (select array_agg(value order by value)
    from jsonb_array_elements_text(
      current_setting('test.account_deletion')::jsonb -> 'deleted_photos')),
-  array['parking-tracker/dev/fixture-photo']::text[],
+  array['photos/10000000-0000-0000-0000-0000000000a2/20000000-0000-0000-0000-0000000000a2/30000000-0000-4000-8000-0000000000a2']::text[],
   'the deleted group photos are returned for cleanup');
 
 select * from finish();
