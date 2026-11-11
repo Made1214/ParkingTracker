@@ -1,10 +1,11 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/features/auth";
-import { text, type ActionState } from "@/shared/lib/forms";
+import { text, databaseError, type ActionState } from "@/shared/lib/forms";
 import { imageValidationError } from "@/shared/lib/images";
 import {
   deletePrivateImage,
@@ -104,4 +105,26 @@ export async function updateAvatar(
   }
   revalidatePath("/profile");
   return { success: remove ? "Imagen eliminada." : "Imagen actualizada." };
+}
+
+export async function deleteAccount(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  if (text(form, "confirmation") !== "ELIMINAR")
+    return { error: "Escribe ELIMINAR para confirmar la eliminación." };
+  const { supabase } = await requireUser("/profile");
+  const { data, error } = await supabase.rpc("delete_my_account");
+  if (error) return { error: databaseError(error.code) };
+  const row = data?.[0];
+  const publicIds = [
+    row?.deleted_avatar_public_id,
+    ...(row?.deleted_group_avatars ?? []),
+    ...(row?.deleted_event_covers ?? []),
+    ...(row?.deleted_photos ?? []),
+  ].filter((publicId): publicId is string => Boolean(publicId));
+  // The rows are already gone; a failed CDN cleanup must not undo that.
+  await Promise.allSettled(publicIds.map((id) => deletePrivateImage(id)));
+  await supabase.auth.signOut();
+  redirect("/login");
 }

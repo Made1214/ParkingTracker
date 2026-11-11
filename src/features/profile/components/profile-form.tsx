@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
 import type React from "react";
+import { Trash2 } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
-import { updateProfile, updateAvatar } from "../api/actions";
+import { Disclosure } from "@/shared/ui/disclosure";
+import { deleteAccount, updateProfile, updateAvatar } from "../api/actions";
 import styles from "./profile.module.css";
 
 export function ProfileForm({
@@ -63,6 +65,34 @@ export function ProfileForm({
           </ActionForm>
         </section>
         {children}
+        <Disclosure
+          tone="danger"
+          icon={<Trash2 size={18} />}
+          title="Eliminar cuenta"
+          hint="Borra tu perfil y tus imágenes para siempre"
+        >
+          <p className="small muted">
+            Si administras un grupo, otra persona pasará a ser admin; si eras su
+            única persona, el grupo se eliminará. Esta acción no se puede
+            deshacer. Escribe ELIMINAR para confirmar.
+          </p>
+          <ActionForm
+            action={deleteAccount}
+            label="Eliminar mi cuenta"
+            tone="danger"
+          >
+            <label>
+              Confirmación
+              <Input
+                name="confirmation"
+                required
+                pattern="ELIMINAR"
+                placeholder="Escribe ELIMINAR"
+                autoComplete="off"
+              />
+            </label>
+          </ActionForm>
+        </Disclosure>
       </div>
       <section
         className={`card ${styles.avatarCard}`}

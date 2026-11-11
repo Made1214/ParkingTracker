@@ -141,6 +141,25 @@ export async function leaveGroup(
   revalidatePath("/groups");
   redirect("/groups");
 }
+export async function deleteGroup(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await adminContext(form);
+  if (!ctx) return { error: "Solo un administrador puede eliminar el grupo." };
+  if (text(form, "confirmation") !== "ELIMINAR")
+    return { error: "Escribe ELIMINAR para confirmar la eliminación." };
+  const { data, error } = await ctx.supabase.rpc("delete_group", {
+    p_group_id: ctx.groupId,
+  });
+  if (error) return { error: databaseError(error.code) };
+  // The rows are already gone; a failed CDN cleanup must not undo that.
+  await Promise.allSettled(
+    (data ?? []).map((publicId) => deletePrivateImage(publicId)),
+  );
+  revalidatePath("/groups");
+  redirect("/groups");
+}
 export async function updateGroupAvatar(
   _: ActionState,
   form: FormData,

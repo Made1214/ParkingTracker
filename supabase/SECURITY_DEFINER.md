@@ -16,6 +16,8 @@ Application code uses only the public key plus the user's JWT. Elevated operatio
 | `public.close_poll(uuid)`                                  | Serialize closure after checking creator or group admin                  | authenticated RPC               |
 | `private.enforce_photo_quota()`                            | Lock/increment a group's storage counter, reject over quota              | trigger only                    |
 | `private.release_photo_quota()`                            | Decrement storage usage after photo deletion                             | trigger only                    |
+| `public.delete_group(uuid)`                                | Delete a group and return its Cloudinary assets; verifies admin identity | authenticated RPC               |
+| `public.delete_my_account()`                               | Delete/anonymize the caller, resolve sole admins, return orphaned assets | authenticated RPC               |
 
 Results, balances and settlement suggestions use `SECURITY INVOKER`; they inherit the caller's RLS. Pure timestamp, immutable-field and domain-validation trigger functions also use invoker rights. The private schema is not exposed through PostgREST.
 
