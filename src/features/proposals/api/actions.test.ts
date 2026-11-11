@@ -6,7 +6,13 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/features/auth", () => ({ requireUser: mocks.session }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
-import { closePoll, createPoll, createProposal, reviewProposal, vote } from "./actions";
+import {
+  closePoll,
+  createPoll,
+  createProposal,
+  reviewProposal,
+  vote,
+} from "./actions";
 
 const group = "10000000-0000-4000-8000-000000000001";
 const event = "20000000-0000-4000-8000-000000000002";
@@ -161,20 +167,23 @@ describe("proposal and poll mutations", () => {
         "a malformed deadline",
         { options: "Playa\nMontaña", closes_at: "nunca" },
       ],
-    ])("rejects %s before calling the database", async (_name, values) => {
-      const result = await createPoll(
-        {},
-        form({
-          group_id: group,
-          event_id: event,
-          question: "¿A dónde vamos?",
-          options: "Playa\nMontaña",
-          ...values,
-        }),
-      );
-      expect(result.error).toContain("Revisa la pregunta");
-      expect(mocks.rpc).not.toHaveBeenCalled();
-    });
+    ])(
+      "rejects %s before calling the database",
+      async (_name, values: Record<string, string>) => {
+        const result = await createPoll(
+          {},
+          form({
+            group_id: group,
+            event_id: event,
+            question: "¿A dónde vamos?",
+            options: "Playa\nMontaña",
+            ...values,
+          }),
+        );
+        expect(result.error).toContain("Revisa la pregunta");
+        expect(mocks.rpc).not.toHaveBeenCalled();
+      },
+    );
     it("maps an RPC rejection to a friendly message", async () => {
       mocks.rpc.mockResolvedValue({ error: { code: "23514" } });
       const result = await createPoll(
