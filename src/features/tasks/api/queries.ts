@@ -3,7 +3,7 @@ import { requireUser } from "@/features/auth";
 
 export async function getTasks(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser();
-  const [tasks, members] = await Promise.all([
+  const [tasks, members, event] = await Promise.all([
     supabase
       .from("tasks")
       .select("*")
@@ -14,10 +14,16 @@ export async function getTasks(groupId: string, eventId: string) {
       .from("group_members")
       .select("user_id, role, profiles(display_name)")
       .eq("group_id", groupId),
+    supabase
+      .from("events")
+      .select("starts_at, ends_at")
+      .eq("id", eventId)
+      .eq("group_id", groupId)
+      .maybeSingle(),
   ]);
-  if (tasks.error || members.error)
+  if (tasks.error || members.error || event.error || !event.data)
     throw new Error("No se pudieron cargar las tareas.");
-  return { tasks: tasks.data, members: members.data, user };
+  return { tasks: tasks.data, members: members.data, event: event.data, user };
 }
 
 /** Progreso de tareas de una salida para el resumen del plan. */

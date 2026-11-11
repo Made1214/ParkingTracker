@@ -399,3 +399,69 @@
     font-size: var(--text-xs);
   }
 }
+
+/* Post-event photo banner */
+.photoBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-6);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--spark);
+  border-radius: var(--radius-xl);
+  background: var(--color-primary-soft);
+}
+.photoBannerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.photoBannerIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-sm);
+}
+.photoBannerText {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+.photoBannerAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--on-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: opacity 140ms ease;
+}
+.photoBannerAction:hover {
+  opacity: 0.9;
+}
+@media (max-width: 650px) {
+  .photoBanner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-4);
+  }
+  .photoBannerAction {
+    width: 100%;
+  }
+}
