@@ -19,7 +19,7 @@ export async function getComments(groupId: string, eventId: string) {
       .eq("group_id", groupId),
     supabase
       .from("events")
-      .select("created_by")
+      .select("created_by, status")
       .eq("group_id", groupId)
       .eq("id", eventId)
       .maybeSingle(),
@@ -27,6 +27,8 @@ export async function getComments(groupId: string, eventId: string) {
   if (comments.error || members.error || event.error)
     throw new Error("No se pudieron cargar los comentarios.");
 
+  const canComment =
+    event.data?.status === "published" || event.data?.status === "finished";
   const names = new Map(
     members.data.map((m) => [m.user_id, m.profiles?.display_name ?? "Miembro"]),
   );
@@ -45,11 +47,12 @@ export async function getComments(groupId: string, eventId: string) {
     createdAt: comment.created_at,
     edited:
       Date.parse(comment.updated_at) - Date.parse(comment.created_at) > 1000,
-    canEdit: comment.author_id === user.id,
-    canDelete: comment.author_id === user.id || isAdmin,
+    canEdit: canComment && comment.author_id === user.id,
+    canDelete: canComment && (comment.author_id === user.id || isAdmin),
   });
   return {
     now: Date.now(),
+    canComment,
     total: comments.data.length,
     threads: comments.data
       .filter((comment) => !comment.parent_id)
