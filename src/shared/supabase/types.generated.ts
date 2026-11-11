@@ -956,6 +956,19 @@ export type Database = {
         }
         Returns: string
       }
+      delete_group: {
+        Args: { p_group_id: string }
+        Returns: string[]
+      }
+      delete_my_account: {
+        Args: never
+        Returns: {
+          deleted_avatar_public_id: string | null
+          deleted_event_covers: string[]
+          deleted_group_avatars: string[]
+          deleted_photos: string[]
+        }[]
+      }
       get_event_balances: {
         Args: { p_event_id: string }
         Returns: {

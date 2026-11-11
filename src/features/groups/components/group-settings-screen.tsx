@@ -1,7 +1,15 @@
 import Link from "next/link";
-import { ArrowLeft, ImagePlus, LogOut, RefreshCw, UserCog } from "lucide-react";
+import {
+  ArrowLeft,
+  ImagePlus,
+  LogOut,
+  RefreshCw,
+  Trash2,
+  UserCog,
+} from "lucide-react";
 import { getGroup } from "../api/queries";
 import {
+  deleteGroup,
   leaveGroup,
   manageMember,
   regenerateInvite,
@@ -219,6 +227,37 @@ export async function GroupSettingsScreen({ groupId }: { groupId: string }) {
               {ids}
             </ActionForm>
           </Disclosure>
+
+          {isAdmin && (
+            <Disclosure
+              tone="danger"
+              icon={<Trash2 size={18} />}
+              title="Eliminar grupo"
+              hint="Se borrarán todas las salidas, gastos, tareas y fotos"
+            >
+              <p className="small muted">
+                Esta acción no se puede deshacer. Escribe ELIMINAR para
+                confirmar.
+              </p>
+              <ActionForm
+                action={deleteGroup}
+                label="Eliminar grupo para siempre"
+                tone="danger"
+              >
+                {ids}
+                <label>
+                  Confirmación
+                  <Input
+                    name="confirmation"
+                    required
+                    pattern="ELIMINAR"
+                    placeholder="Escribe ELIMINAR"
+                    autoComplete="off"
+                  />
+                </label>
+              </ActionForm>
+            </Disclosure>
+          )}
         </div>
       </div>
     </>
