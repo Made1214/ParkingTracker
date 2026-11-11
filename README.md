@@ -72,6 +72,25 @@ supabase test db # runs the full suite
 supabase stop
 ```
 
+## End-to-end tests
+
+Playwright specs live in `e2e/` and run against the **built** app and a
+database loaded with `supabase/seed.sql` (they sign in as the seed users and
+register throwaway `e2e-…@example.com` accounts).
+
+```bash
+pnpm db:start                 # local Supabase with migrations + seed (Docker)
+pnpm exec supabase status     # copy API URL and anon key into .env.local
+pnpm exec playwright install chromium
+pnpm build && pnpm test:e2e
+```
+
+They cover group isolation by direct URL, invite link → join → RSVP, live
+comments between two sessions, and the PWA manifest and offline behavior. CI
+runs them as their own job on every pull request. Set `E2E_BASE_URL` to target
+a server that is already running, and `E2E_CHROMIUM_PATH` to reuse an
+installed Chromium.
+
 ## Media (gallery photos)
 
 Event gallery photos (PRD US-08) are hosted on **Cloudinary**, not

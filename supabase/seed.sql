@@ -10,8 +10,8 @@
 --
 -- Auth.users rows are inserted directly (this file runs with elevated
 -- privileges via `db reset`/`db push --include-seed`, not through the
--- app). Passwords are irrelevant for seed data; a fixed dummy hash is
--- used so these accounts are never mistaken for real, usable logins.
+-- app). Every seed user signs in with the password `devpassword`; these
+-- accounts exist only in local and Staging databases.
 
 begin;
 
@@ -37,6 +37,20 @@ insert into auth.users (
   ('00000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'nico@example.com',   crypt('devpassword', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Nicolás Paz"}',    now(), now())
 on conflict (id) do nothing;
+
+-- Auth lee estas columnas como texto y falla al iniciar sesión si están en
+-- NULL (no tienen valor por defecto). Sin esto los usuarios del seed existen
+-- pero no pueden entrar, y las pruebas E2E dependen de que entren.
+update auth.users
+set confirmation_token = coalesce(confirmation_token, ''),
+    recovery_token = coalesce(recovery_token, ''),
+    email_change_token_new = coalesce(email_change_token_new, ''),
+    email_change = coalesce(email_change, '')
+where id in (
+  '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000004',
+  '00000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000006'
+);
 
 -- ---------------------------------------------------------------------
 -- 2. Group ("Los de siempre") — Ana is admin, the other 5 are members
