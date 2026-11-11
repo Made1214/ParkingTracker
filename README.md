@@ -72,6 +72,25 @@ supabase test db # runs the full suite
 supabase stop
 ```
 
+## End-to-end tests
+
+Playwright specs live in `e2e/` and run against the **built** app and a
+database loaded with `supabase/seed.sql` (they sign in as the seed users and
+register throwaway `e2e-…@example.com` accounts).
+
+```bash
+pnpm db:start                 # local Supabase with migrations + seed (Docker)
+pnpm exec supabase status     # copy API URL and anon key into .env.local
+pnpm exec playwright install chromium
+pnpm build && pnpm test:e2e
+```
+
+They cover group isolation by direct URL, invite link → join → RSVP, live
+comments between two sessions, and the PWA manifest and offline behavior. CI
+runs them as their own job on every pull request. Set `E2E_BASE_URL` to target
+a server that is already running, and `E2E_CHROMIUM_PATH` to reuse an
+installed Chromium.
+
 ## Media (gallery photos)
 
 Event gallery photos (PRD US-08) are hosted on **Cloudinary**, not
@@ -85,3 +104,11 @@ so it can never be served regardless of whether the Cloudinary upload
 itself succeeded. See `supabase/migrations/022_photos_cloudinary.sql`
 and [openspec/changes/define-stack/design.md](openspec/changes/define-stack/design.md)
 §7 for the full flow.
+
+## Health check & keep-alive (`GET /api/health`)
+
+Supabase's free tier pauses projects after 7 days of inactivity ([design.md §9](openspec/changes/define-stack/design.md)). To prevent idle auto-pause:
+
+- [`src/app/api/health/route.ts`](src/app/api/health/route.ts) performs a lightweight, data-free round-trip to Supabase using the standard anon client (`Cache-Control: no-store`, `dynamic = "force-dynamic"`) and returns `{ status: "ok", db: "ok", time }` (`200`) or `{ status: "error", db: "error", time }` (`503`).
+- [`vercel.json`](vercel.json) schedules a daily Vercel Cron (`0 8 * * *`) against `/api/health`.
+- **Optional auth**: if `HEALTH_CHECK_SECRET` or `CRON_SECRET` is set in the environment, `GET /api/health` requires `Authorization: Bearer <secret>` (Vercel Cron automatically sends `CRON_SECRET` as a Bearer token when configured in Vercel). Leave both unset to keep the endpoint publicly reachable.

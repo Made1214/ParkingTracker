@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { logout } from "@/features/auth";
 import { getShellData } from "@/features/groups";
+import { InstallPrompt } from "@/shared/pwa";
 import { AppSidebar } from "@/shared/ui/app-sidebar";
 
 export default async function AppLayout({
@@ -28,6 +29,7 @@ export default async function AppLayout({
           Buenos planes. Mejor compañía.<span>Parking Tracker</span>
         </footer>
       </div>
+      {shell && <InstallPrompt />}
     </div>
   );
 }

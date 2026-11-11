@@ -94,14 +94,22 @@ export async function ExpensesPanel({
                       <span className={styles.face} aria-hidden="true">
                         {initials(debt.debtorName)}
                       </span>
-                      {debt.debtorName}
-                      <ArrowRight size={16} aria-label="le debe a" />
+                      <span className={styles.debtName}>{debt.debtorName}</span>
+                      <ArrowRight
+                        size={16}
+                        className={styles.debtArrow}
+                        aria-label="le debe a"
+                      />
                       <span className={styles.face} aria-hidden="true">
                         {initials(debt.creditorName)}
                       </span>
-                      {debt.creditorName}
+                      <span className={styles.debtName}>
+                        {debt.creditorName}
+                      </span>
                     </span>
-                    <strong>{formatMoney(debt.cents)}</strong>
+                    <strong className={styles.debtAmount}>
+                      {formatMoney(debt.cents)}
+                    </strong>
                     {debt.canSettle && (
                       <ActionForm
                         action={settleDebt}

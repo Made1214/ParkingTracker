@@ -209,7 +209,7 @@
 }
 .memberAvatar[data-me] {
   background: var(--color-primary-deep);
-  color: #fff;
+  color: var(--on-primary-deep);
 }
 .admin {
   padding: 2px var(--space-2);

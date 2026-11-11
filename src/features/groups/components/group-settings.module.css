@@ -90,7 +90,7 @@
 }
 .avatar[data-me] {
   background: var(--color-primary-deep);
-  color: #fff;
+  color: var(--on-primary-deep);
 }
 .role {
   padding: 2px var(--space-3);

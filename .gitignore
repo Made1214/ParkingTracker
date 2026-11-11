@@ -16,4 +16,5 @@ build/
 Thumbs.db
 .atl/
 .mcp.*
-.claude
+.claude/*
+!.claude/settings.json
