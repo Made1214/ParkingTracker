@@ -22,7 +22,9 @@ function setup() {
   const updateQuery = {
     eq: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: { id: taskId }, error: null }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: { id: taskId }, error: null }),
   };
   const updateMock = vi.fn().mockReturnValue(updateQuery);
 
@@ -94,7 +96,9 @@ describe("createTask", () => {
       due_at: "2026-11-20T17:00:00.000Z",
       created_by: userId,
     });
-    expect(mocks.revalidate).toHaveBeenCalledWith(`/groups/${groupId}/events/${eventId}`);
+    expect(mocks.revalidate).toHaveBeenCalledWith(
+      `/groups/${groupId}/events/${eventId}`,
+    );
   });
 
   it("rejects createTask when due_at is after event.ends_at", async () => {
@@ -106,7 +110,9 @@ describe("createTask", () => {
     form.set("due_at", "2026-11-20T19:00"); // 19:00 is after 18:00 Panama
 
     const result = await createTask({}, form);
-    expect(result.error).toBe("La fecha límite no puede ser posterior al final de la salida.");
+    expect(result.error).toBe(
+      "La fecha límite no puede ser posterior al final de la salida.",
+    );
     expect(insertMock).not.toHaveBeenCalled();
   });
 
@@ -160,7 +166,9 @@ describe("updateTask", () => {
     form.set("due_at", "2026-11-20T21:00");
 
     const result = await updateTask({}, form);
-    expect(result.error).toBe("La fecha límite no puede ser posterior al final de la salida.");
+    expect(result.error).toBe(
+      "La fecha límite no puede ser posterior al final de la salida.",
+    );
     expect(updateMock).not.toHaveBeenCalled();
   });
 

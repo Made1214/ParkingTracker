@@ -125,7 +125,8 @@ export async function updateTask(
         Date.parse(parsed) > Date.parse(ctx.ends_at)
       ) {
         return {
-          error: "La fecha límite no puede ser posterior al final de la salida.",
+          error:
+            "La fecha límite no puede ser posterior al final de la salida.",
         };
       }
       payload.due_at = parsed;
