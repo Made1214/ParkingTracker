@@ -28,6 +28,7 @@ type Filter = "all" | "open" | "done";
 export function TaskBoard({
   groupId,
   eventId,
+  eventEndsAt,
   tasks,
   members,
   readOnly,
@@ -36,6 +37,7 @@ export function TaskBoard({
 }: {
   groupId: string;
   eventId: string;
+  eventEndsAt: string;
   tasks: TaskItem[];
   members: TaskMember[];
   readOnly: boolean;
@@ -138,6 +140,7 @@ export function TaskBoard({
           id={`${id}-composer`}
           groupId={groupId}
           eventId={eventId}
+          eventEndsAt={eventEndsAt}
           members={members}
           action={(state, data) => runAction(createAction, state, data)}
           onPending={() => setPendingCount((count) => count + 1)}
@@ -189,6 +192,7 @@ export function TaskBoard({
               members={members}
               groupId={groupId}
               eventId={eventId}
+              eventEndsAt={eventEndsAt}
               action={(state, data) => runAction(updateAction, state, data)}
               onPending={() => setPendingCount((count) => count + 1)}
               onSaved={onTaskSaved}
@@ -257,6 +261,7 @@ function TaskComposer({
   id,
   groupId,
   eventId,
+  eventEndsAt,
   members,
   action,
   onPending,
@@ -266,6 +271,7 @@ function TaskComposer({
   id: string;
   groupId: string;
   eventId: string;
+  eventEndsAt: string;
   members: TaskMember[];
   action: TaskAction;
   onPending: () => void;
@@ -274,6 +280,7 @@ function TaskComposer({
 }) {
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("");
+  const [dueAt, setDueAt] = useState("");
   const [state, formAction, pending] = useActionState(
     async (previous: ActionState, data: FormData) => {
       const result = await action(previous, data);
@@ -336,6 +343,16 @@ function TaskComposer({
               </select>
               <ChevronDown size={16} aria-hidden="true" />
             </span>
+          </label>
+          <label>
+            Fecha límite (opcional)
+            <Input
+              type="datetime-local"
+              name="due_at"
+              max={eventEndsAt}
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+            />
           </label>
           <Button type="submit" disabled={pending || !title.trim()}>
             <Plus size={17} aria-hidden="true" />

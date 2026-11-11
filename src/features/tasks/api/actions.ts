@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/features/auth";
 import { databaseError, text, type ActionState } from "@/shared/lib/forms";
+import { fromPanamaInput as parsePanamaDateTime } from "@/shared/lib/utils";
 
 const ids = z.object({ group_id: z.guid(), event_id: z.guid() });
 const status = z.enum(["pending", "in_progress", "done"]);
@@ -27,7 +28,7 @@ async function context(form: FormData) {
     Date.parse(event.ends_at) <= Date.now()
   )
     return null;
-  return { ...parsed.data, supabase, user };
+  return { ...parsed.data, ends_at: event.ends_at, supabase, user };
 }
 
 async function validAssignee(
@@ -59,11 +60,29 @@ export async function createTask(
   const assignee = text(form, "assignee_id");
   if (!ctx || !title.success || !(await validAssignee(ctx, assignee)))
     return { error: "Revisa el título, el evento y la persona asignada." };
+
+  const rawDueAt = text(form, "due_at");
+  let dueAtIso: string | null = null;
+  if (rawDueAt) {
+    const parsed = parsePanamaDateTime(rawDueAt);
+    if (
+      !parsed ||
+      Number.isNaN(Date.parse(parsed)) ||
+      Date.parse(parsed) > Date.parse(ctx.ends_at)
+    ) {
+      return {
+        error: "La fecha límite no puede ser posterior al final de la salida.",
+      };
+    }
+    dueAtIso = parsed;
+  }
+
   const { error } = await ctx.supabase.from("tasks").insert({
     group_id: ctx.group_id,
     event_id: ctx.event_id,
     title: title.data,
     assignee_id: assignee || null,
+    due_at: dueAtIso,
     created_by: ctx.user.id,
   });
   if (error) return { error: databaseError(error.code) };
@@ -86,9 +105,38 @@ export async function updateTask(
     !(await validAssignee(ctx, assignee))
   )
     return { error: "Revisa los datos de la tarea." };
+
+  const payload: {
+    status: "pending" | "in_progress" | "done";
+    assignee_id: string | null;
+    due_at?: string | null;
+  } = {
+    status: nextStatus.data,
+    assignee_id: assignee || null,
+  };
+
+  if (form.has("due_at")) {
+    const rawDueAt = text(form, "due_at");
+    if (rawDueAt) {
+      const parsed = parsePanamaDateTime(rawDueAt);
+      if (
+        !parsed ||
+        Number.isNaN(Date.parse(parsed)) ||
+        Date.parse(parsed) > Date.parse(ctx.ends_at)
+      ) {
+        return {
+          error: "La fecha límite no puede ser posterior al final de la salida.",
+        };
+      }
+      payload.due_at = parsed;
+    } else {
+      payload.due_at = null;
+    }
+  }
+
   const { data, error } = await ctx.supabase
     .from("tasks")
-    .update({ status: nextStatus.data, assignee_id: assignee || null })
+    .update(payload)
     .eq("id", taskId.data)
     .eq("group_id", ctx.group_id)
     .eq("event_id", ctx.event_id)

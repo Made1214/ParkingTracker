@@ -1,5 +1,6 @@
-﻿import "server-only";
+import "server-only";
 import { requireUser } from "@/features/auth";
+import { panamaInput } from "@/shared/lib/utils";
 
 export async function getProposals(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(
@@ -39,25 +40,34 @@ export async function getProposals(groupId: string, eventId: string) {
 
 export async function getPolls(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser();
-  const [{ data, error }, { data: member, error: memberError }] =
-    await Promise.all([
-      supabase
-        .from("polls")
-        .select(
-          "*, poll_options(id,label,position), poll_votes(option_id,user_id)",
-        )
-        .eq("group_id", groupId)
-        .eq("poll_votes.user_id", user.id)
-        .eq("event_id", eventId)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("group_members")
-        .select("role")
-        .eq("group_id", groupId)
-        .eq("user_id", user.id)
-        .maybeSingle(),
-    ]);
-  if (error || memberError)
+  const [
+    { data, error },
+    { data: member, error: memberError },
+    { data: event, error: eventError },
+  ] = await Promise.all([
+    supabase
+      .from("polls")
+      .select(
+        "*, poll_options(id,label,position), poll_votes(option_id,user_id)",
+      )
+      .eq("group_id", groupId)
+      .eq("poll_votes.user_id", user.id)
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("group_members")
+      .select("role")
+      .eq("group_id", groupId)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("events")
+      .select("starts_at, ends_at, created_by, status")
+      .eq("id", eventId)
+      .eq("group_id", groupId)
+      .maybeSingle(),
+  ]);
+  if (error || memberError || eventError || !event)
     throw new Error("No se pudieron cargar las votaciones.");
   const results = await Promise.all(
     data.map(async (poll) => {
@@ -69,10 +79,16 @@ export async function getPolls(groupId: string, eventId: string) {
       return { ...poll, results: counts };
     }),
   );
+  const isAdmin = member?.role === "admin";
+  const canSchedule =
+    event.status === "published" && (isAdmin || event.created_by === user.id);
   return {
     polls: results,
     userId: user.id,
-    isAdmin: member?.role === "admin",
+    isAdmin,
+    canSchedule,
+    eventStartsAt: panamaInput(event.starts_at),
+    eventEndsAt: panamaInput(event.ends_at),
     now: Date.now(),
   };
 }

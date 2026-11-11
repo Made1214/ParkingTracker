@@ -13,13 +13,16 @@ import {
   ChevronDown,
   Circle,
   CircleDot,
+  Clock3,
   LoaderCircle,
   Pencil,
   UserRound,
   X,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 import type { ActionState } from "@/shared/lib/forms";
+import { panamaInput, panamaTime, shortDate } from "@/shared/lib/utils";
 import {
   statusLabels,
   type TaskAction,
@@ -36,6 +39,7 @@ export function TaskRow({
   members,
   groupId,
   eventId,
+  eventEndsAt,
   action,
   onPending,
   onSaved,
@@ -45,6 +49,7 @@ export function TaskRow({
   members: TaskMember[];
   groupId: string;
   eventId: string;
+  eventEndsAt: string;
   action: TaskAction;
   onPending: () => void;
   onSaved: (status: TaskStatus, title: string) => void;
@@ -54,6 +59,9 @@ export function TaskRow({
   const [editing, setEditing] = useState(false);
   const [status, setStatus] = useState(task.status);
   const [assigneeId, setAssigneeId] = useState(task.assigneeId ?? "");
+  const [dueAtInput, setDueAtInput] = useState(
+    task.dueAt ? panamaInput(task.dueAt) : "",
+  );
   const editButton = useRef<HTMLButtonElement>(null);
   const completeButton = useRef<HTMLButtonElement>(null);
   const titleHeading = useRef<HTMLHeadingElement>(null);
@@ -79,7 +87,10 @@ export function TaskRow({
     assignee?.name ??
     (task.assigneeId ? "Miembro no disponible" : "Sin asignar");
   const changed =
-    status !== task.status || assigneeId !== (task.assigneeId ?? "");
+    status !== task.status ||
+    assigneeId !== (task.assigneeId ?? "") ||
+    (task.canEditDueAt &&
+      dueAtInput !== (task.dueAt ? panamaInput(task.dueAt) : ""));
 
   useEffect(() => {
     if (editing) firstOption.current?.focus();
@@ -147,6 +158,12 @@ export function TaskRow({
           <h3 ref={titleHeading} tabIndex={-1}>
             {task.title}
           </h3>
+          {task.dueAt && (
+            <p className={styles.dueDate}>
+              <Clock3 size={13} aria-hidden="true" />
+              {shortDate(task.dueAt)} · {panamaTime(task.dueAt)}
+            </p>
+          )}
           {canEdit && unavailable && (
             <p>Reasigna esta tarea para actualizarla.</p>
           )}
@@ -186,6 +203,7 @@ export function TaskRow({
               else {
                 setStatus(task.status);
                 setAssigneeId(task.assigneeId ?? "");
+                setDueAtInput(task.dueAt ? panamaInput(task.dueAt) : "");
                 setEditing(true);
               }
             }}
@@ -272,6 +290,18 @@ export function TaskRow({
                 <ChevronDown size={16} aria-hidden="true" />
               </span>
             </label>
+            {task.canEditDueAt && (
+              <label className={styles.dueField}>
+                Fecha límite (opcional)
+                <Input
+                  type="datetime-local"
+                  name="due_at"
+                  defaultValue={task.dueAt ? panamaInput(task.dueAt) : ""}
+                  max={eventEndsAt}
+                  onChange={(e) => setDueAtInput(e.target.value)}
+                />
+              </label>
+            )}
             <div className={styles.editorActions}>
               <Button type="button" variant="ghost" onClick={closeEditor}>
                 Cancelar

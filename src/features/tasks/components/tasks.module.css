@@ -291,9 +291,17 @@
   font-size: var(--text-sm);
   margin-bottom: var(--space-3);
 }
+.dueDate {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--task-muted);
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+}
 .createFields {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px) auto;
+  grid-template-columns: minmax(0, 1.5fr) minmax(140px, 1fr) minmax(170px, 1fr) auto;
   align-items: end;
   gap: var(--space-3);
 }
@@ -312,6 +320,14 @@
   grid-template-columns: minmax(0, 1.6fr) minmax(170px, 1fr);
   gap: var(--space-4);
   align-items: start;
+}
+.statusField {
+  grid-column: 1 / -1;
+}
+.dueField {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
 }
 .statusField > legend {
   margin-bottom: var(--space-2);
@@ -491,9 +507,12 @@
     grid-template-columns: 1fr;
   }
   .createFields {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   .titleField {
+    grid-column: 1 / -1;
+  }
+  .createFields > button {
     grid-column: 1 / -1;
   }
 }

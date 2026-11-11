@@ -6,7 +6,9 @@ export type TaskItem = {
   title: string;
   status: TaskStatus;
   assigneeId: string | null;
+  dueAt: string | null;
   canEdit: boolean;
+  canEditDueAt: boolean;
 };
 export type TaskMember = { id: string; name: string; isYou: boolean };
 export type TaskAction = (
