@@ -120,6 +120,26 @@ describe("parseExpenseForm", () => {
     const result = parseExpenseForm(form({ amount: "10", category: "casino" }));
     expect("data" in result && result.data.category).toBe("otro");
   });
+
+  it("parses valid idempotency_key", () => {
+    const key = "e0000000-0000-4000-8000-000000000001";
+    const result = parseExpenseForm(
+      form({ amount: "10", idempotency_key: key }),
+    );
+    expect("data" in result && result.data.idempotency_key).toBe(key);
+  });
+
+  it("leaves idempotency_key undefined when omitted", () => {
+    const result = parseExpenseForm(form({ amount: "10" }));
+    expect("data" in result && result.data.idempotency_key).toBeUndefined();
+  });
+
+  it("rejects invalid idempotency_key", () => {
+    const result = parseExpenseForm(
+      form({ amount: "10", idempotency_key: "invalid-uuid" }),
+    );
+    expect("error" in result && result.error).toContain("idempotencia");
+  });
 });
 
 describe("expenseError", () => {

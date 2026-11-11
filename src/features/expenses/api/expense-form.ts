@@ -54,6 +54,7 @@ export type ExpenseInput = {
   paid_by: string;
   category: Category;
   shares: { user_id: string; amount: number }[];
+  idempotency_key?: string;
 };
 
 /** Valida el formulario de gasto (reparto igual o personalizado). */
@@ -104,6 +105,13 @@ export function parseExpenseForm(
       return { error: "El monto es muy pequeño para repartirlo." };
   }
 
+  const idempotencyKey = z
+    .guid()
+    .optional()
+    .safeParse(text(form, "idempotency_key") || undefined);
+  if (!idempotencyKey.success)
+    return { error: "La clave de idempotencia no es válida." };
+
   return {
     data: {
       ...parsedIds.data,
@@ -114,6 +122,7 @@ export function parseExpenseForm(
         user_id: share.userId,
         amount: share.cents / 100,
       })),
+      ...(idempotencyKey.data ? { idempotency_key: idempotencyKey.data } : {}),
     },
   };
 }

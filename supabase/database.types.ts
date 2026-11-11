@@ -305,6 +305,7 @@ export type Database = {
           event_id: string
           group_id: string
           id: string
+          idempotency_key: string | null
           paid_by: string
           updated_at: string
         }
@@ -317,6 +318,7 @@ export type Database = {
           event_id: string
           group_id: string
           id?: string
+          idempotency_key?: string | null
           paid_by: string
           updated_at?: string
         }
@@ -329,6 +331,7 @@ export type Database = {
           event_id?: string
           group_id?: string
           id?: string
+          idempotency_key?: string | null
           paid_by?: string
           updated_at?: string
         }
