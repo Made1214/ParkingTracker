@@ -10,6 +10,7 @@
   --color-primary-deep: #1e1a3d;
   --color-primary-soft: #eeecf7;
   --on-primary: #ffffff;
+  --on-primary-deep: #ffffff;
   --color-success: #0e7f63;
   --color-warning: #6b5ed6;
   --color-danger: #b23a5b;
@@ -48,6 +49,7 @@
   --color-primary-deep: #9381ff;
   --color-primary-soft: #2a2758;
   --on-primary: #12111f;
+  --on-primary-deep: #12111f;
   --color-success: #5ee6be;
   --color-warning: #9381ff;
   --color-danger: #f49ab0;
