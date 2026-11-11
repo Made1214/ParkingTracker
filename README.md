@@ -104,3 +104,11 @@ so it can never be served regardless of whether the Cloudinary upload
 itself succeeded. See `supabase/migrations/022_photos_cloudinary.sql`
 and [openspec/changes/define-stack/design.md](openspec/changes/define-stack/design.md)
 §7 for the full flow.
+
+## Health check & keep-alive (`GET /api/health`)
+
+Supabase's free tier pauses projects after 7 days of inactivity ([design.md §9](openspec/changes/define-stack/design.md)). To prevent idle auto-pause:
+
+- [`src/app/api/health/route.ts`](src/app/api/health/route.ts) performs a lightweight, data-free round-trip to Supabase using the standard anon client (`Cache-Control: no-store`, `dynamic = "force-dynamic"`) and returns `{ status: "ok", db: "ok", time }` (`200`) or `{ status: "error", db: "error", time }` (`503`).
+- [`vercel.json`](vercel.json) schedules a daily Vercel Cron (`0 8 * * *`) against `/api/health`.
+- **Optional auth**: if `HEALTH_CHECK_SECRET` or `CRON_SECRET` is set in the environment, `GET /api/health` requires `Authorization: Bearer <secret>` (Vercel Cron automatically sends `CRON_SECRET` as a Bearer token when configured in Vercel). Leave both unset to keep the endpoint publicly reachable.

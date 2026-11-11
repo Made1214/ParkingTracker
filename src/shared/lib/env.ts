@@ -15,3 +15,9 @@ export function publicEnv() {
   }
   return { url, key, appUrl: new URL(appUrl).origin };
 }
+
+export function healthCheckSecret() {
+  const secret =
+    process.env.HEALTH_CHECK_SECRET?.trim() || process.env.CRON_SECRET?.trim();
+  return secret || null;
+}
