@@ -29,19 +29,16 @@ returns trigger
 language plpgsql
 set search_path = ''
 as $$
-declare
-  v_status public.event_status;
 begin
   if current_user <> 'authenticated' then
     if tg_op = 'DELETE' then return old; else return new; end if;
   end if;
 
-  select status into v_status
-  from public.events
-  where id = coalesce(new.event_id, old.event_id)
-    and group_id = coalesce(new.group_id, old.group_id);
-
-  if not found or v_status in ('draft', 'cancelled') then
+  if exists (
+    select 1 from public.events e
+    where e.id = coalesce(new.event_id, old.event_id)
+      and e.status in ('draft', 'cancelled')
+  ) then
     raise exception 'photos require a published or finished event'
       using errcode = '23514';
   end if;
@@ -112,8 +109,6 @@ returns trigger
 language plpgsql
 set search_path = ''
 as $$
-declare
-  v_status public.event_status;
 begin
   if current_user <> 'authenticated' then
     if tg_op = 'DELETE' then return old; else return new; end if;
@@ -136,12 +131,11 @@ begin
     end if;
   end if;
 
-  select status into v_status
-  from public.events
-  where id = coalesce(new.event_id, old.event_id)
-    and group_id = coalesce(new.group_id, old.group_id);
-
-  if not found or v_status in ('draft', 'cancelled') then
+  if exists (
+    select 1 from public.events e
+    where e.id = coalesce(new.event_id, old.event_id)
+      and e.status in ('draft', 'cancelled')
+  ) then
     raise exception 'comments require a published or finished event'
       using errcode = '23514';
   end if;
