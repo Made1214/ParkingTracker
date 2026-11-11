@@ -131,7 +131,7 @@ Usuario Next.js (Vercel) Supabase Auth PostgreSQL
 ├────────────────────▶│ 6. /auth/callback │ │
 │ ├── exchangeCodeForSession▶ │
 │ 7. cookies de sesión◀─ (access JWT + refresh) │ │
-│ 8. redirect /dashboard │ │
+│ 8. redirect /groups │ │
 ## 6.2 Sesión en cada request
 1. middleware.ts intercepta cada request privado y refresca el JWT si expiró (@supabase/ssr, cookies httpOnly).
 2. Los Server Components crean un cliente Supabase de servidor con la cookie de sesión: cada query viaja con el JWT del usuario.
@@ -141,7 +141,7 @@ Usuario Next.js (Vercel) Supabase Auth PostgreSQL
 signInWithOAuth({ provider: "google" }) → consentimiento de Google → callback de Supabase → /auth/callback intercambia el código por sesión → si es primer login, el trigger crea el perfil. Los scopes se limitan a email y perfil básico.
 # 7\. Flujo de Datos
 ## 7.1 Lectura (ej.: detalle de evento)
-1. El usuario navega a /grupos/\[id\]/eventos/\[eventId\].
+1. El usuario navega a /groups/\[id\]/events/\[eventId\].
 2. El Server Component ejecuta en paralelo las consultas (evento, asistencia, cronograma, gastos) con el JWT del usuario; RLS filtra automáticamente.
 3. HTML renderizado en servidor llega al cliente; TanStack Query hidrata el estado para interacciones.
 4. El cliente abre canal Realtime del evento para votos/comentarios en vivo.

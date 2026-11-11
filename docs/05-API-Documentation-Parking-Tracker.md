@@ -64,11 +64,13 @@ Authorization: Bearer <access\_token>
 | ---| ---| --- |
 | GET | /events/{eventId}/schedule | Ítems del cronograma ordenados |
 | POST | /events/{eventId}/schedule | Crear ítem |
-| PATCH | /schedule-items/{itemId} | Editar ítem / reordenar (position) |
+| PATCH | /schedule-items/{itemId} | Editar ítem (position solo desempata) |
 | DELETE | /schedule-items/{itemId} | Eliminar ítem |
 | GET | /events/{eventId}/proposals | Listar propuestas |
 | POST | /events/{eventId}/proposals | Crear propuesta |
 | PATCH | /proposals/{proposalId} | Aprobar/rechazar (organizador) |
+
+Nota MVP (RF-402): el cronograma se ordena cronológicamente por \`starts_at\`; \`position\` existe solo como desempate de ítems que empiezan a la misma hora y no hay reordenamiento manual.
 
 ## 3.5 Votaciones
 
@@ -89,6 +91,8 @@ Authorization: Bearer <access\_token>
 | GET | /events/{eventId}/balance | Balance neto por miembro + transferencias sugeridas |
 | POST | /expense-splits/{expenseId}/{userId}/settle | Marcar parte como saldada |
 
+Nota MVP (RF-701): todos los grupos operan en **USD**; no hay selector de moneda por grupo (la columna \`currency\` del esquema persiste \`USD\` por defecto).
+
 ## 3.7 Tareas, comentarios y fotos
 
 | Método | Ruta | Descripción |
@@ -100,10 +104,12 @@ Authorization: Bearer <access\_token>
 | POST | /events/{eventId}/comments | Comentar (parent\_id opcional) |
 | PATCH | /comments/{commentId} | Editar comentario propio |
 | DELETE | /comments/{commentId} | Eliminar (autor o admin) |
-| POST | /events/{eventId}/photos/upload-url | Obtener URL firmada de subida a Storage |
-| POST | /events/{eventId}/photos | Registrar foto subida { storage\_path, caption } |
-| GET | /events/{eventId}/photos | Galería con URLs firmadas (TTL 1 h) |
+| POST | /events/{eventId}/photos | Subir foto (multipart, ≤ 10 MB) — el servidor la valida, la sube a Cloudinary con URL firmada y registra la fila |
+| GET | /events/{eventId}/photos | Galería; cada foto se entrega por la ruta privada de abajo |
+| GET | /groups/{groupId}/events/{eventId}/photos/{photoId} | Entrega de foto: RLS + URL firmada por el servidor (TTL 60 s), transmitida al cliente sin exponerla |
 | DELETE | /photos/{photoId} | Eliminar foto (autor o admin) |
+
+Nota: las fotos **no** usan Supabase Storage. La subida y la entrega se firman en el servidor contra Cloudinary (recurso autenticado) solo después de re-verificar la membresía del grupo con RLS; el cliente nunca recibe una URL firmada. La cuota es de 100 MB por grupo, aplicada por un trigger de la base de datos.
 
 ## 3.8 Historial y estadísticas
 
