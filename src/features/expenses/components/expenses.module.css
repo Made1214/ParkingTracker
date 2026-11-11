@@ -74,7 +74,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
@@ -85,15 +85,32 @@
   background: var(--color-primary-soft);
 }
 .debtPeople {
-  flex: 1 1 180px;
-  display: inline-flex;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
   align-items: center;
   gap: var(--space-2);
   font-weight: var(--weight-semibold);
+  overflow: hidden;
 }
+.debtName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.debtArrow {
+  flex: none;
+  color: var(--muted);
+}
+.debtAmount,
 .debt strong,
 .debtMine strong {
+  flex: none;
+  margin-left: auto;
+  text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .settle {
   margin: 0;
@@ -104,7 +121,9 @@
 }
 .legend {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: var(--space-3);
   margin: var(--space-4) 6.75rem var(--space-2) 8.75rem;
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
@@ -219,6 +238,7 @@
   color: var(--danger-text);
 }
 .face {
+  flex: none;
   display: inline-grid;
   place-items: center;
   width: 30px;
@@ -238,7 +258,13 @@
   min-width: 0;
   display: grid;
 }
+.listMain strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .listAmount {
+  flex: none;
   font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
 }
@@ -279,7 +305,7 @@
   gap: var(--space-3);
 }
 .grow {
-  flex: 2 1 160px;
+  flex: 2 1 135px;
 }
 .amount {
   flex: 1 1 110px;
@@ -355,6 +381,7 @@
 }
 .person {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -364,12 +391,20 @@
   font-weight: var(--weight-semibold);
   cursor: pointer;
 }
+.person > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .person input {
+  flex: none;
   width: 18px;
   height: 18px;
   accent-color: var(--color-primary);
 }
 .personFace {
+  flex: none;
   display: grid;
   place-items: center;
   width: 32px;
@@ -384,6 +419,7 @@
   opacity: 0.55;
 }
 .share {
+  flex: none;
   font-variant-numeric: tabular-nums;
   color: var(--accent-text);
   font-weight: var(--weight-bold);
@@ -391,4 +427,48 @@
 .shareInput {
   max-width: 7rem;
   min-height: 40px;
+}
+@media (max-width: 850px) {
+  .side {
+    order: -1;
+    flex-basis: 100%;
+  }
+  .main {
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .balanceCard {
+    grid-column: 1 / -1;
+  }
+  .kpi,
+  .balanceCard {
+    padding: var(--space-3) var(--space-4);
+  }
+  .kpi strong,
+  .balanceCard strong {
+    font-size: var(--text-3xl);
+  }
+  .debt,
+  .debtMine {
+    padding: var(--space-3);
+  }
+  .settle {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .settle :global(.button) {
+    width: 100%;
+  }
+  .legend {
+    margin: var(--space-3) 0 var(--space-2);
+  }
+  .bars li {
+    grid-template-columns: minmax(4.5rem, 6rem) minmax(0, 1fr) auto;
+    gap: var(--space-2);
+  }
 }
