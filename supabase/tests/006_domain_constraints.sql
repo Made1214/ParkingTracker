@@ -32,7 +32,7 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.photos (group_id, event_id, cloudinary_public_id, bytes, uploaded_by)
      values ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000004',
-             'oversized-photo', 10485761, '00000000-0000-0000-0000-000000000001') $$,
+             'photos/10000000-0000-0000-0000-000000000001/20000000-0000-0000-0000-000000000004/00000000-0000-4000-8000-000000000099', 10485761, '00000000-0000-0000-0000-000000000001') $$,
   '23514',
   null,
   'a photo over 10 MB fails the CHECK constraint'
