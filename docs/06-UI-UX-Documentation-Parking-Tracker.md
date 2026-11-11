@@ -15,34 +15,30 @@ Sitemap, flujos de usuario, wireframes y sistema de componentes
 *   **Estados siempre diseñados:** cada vista define estado vacío, cargando (skeleton), error y éxito.
 # 2\. Sitemap
 /
-├── /login · /registro · /recuperar \[públicas\]
-├── /unirse/\[codigo\] \[invitación a grupo\]
+├── /login · /register · /forgot-password · /reset-password \[públicas\]
+├── /join/\[code\] \[invitación a grupo\]
 └── (privadas, requieren sesión)
-├── /dashboard \[próximas salidas + acciones rápidas\]
-├── /perfil \[editar perfil, cerrar sesión\]
-└── /grupos/\[groupId\]
-├── (home) \[próximos eventos del grupo\]
-├── /eventos/nuevo
-├── /eventos/\[eventId\] \[detalle con 7 pestañas\]
-│ ├── Info (descripción, lugar, asistencia)
-│ ├── Cronograma (agenda del día)
-│ ├── Votaciones (propuestas + polls)
+├── /groups \[grupos del usuario + próximas salidas y acciones rápidas\]
+├── /profile \[editar perfil, cerrar sesión\]
+└── /groups/\[groupId\]
+├── (home) \[próximos eventos del grupo y su historial; crear salida en línea\]
+├── /events/\[eventId\] \[detalle con 5 pestañas: ?section=plan|votaciones|gastos|tareas|fotos\]
+│ ├── Plan (info, cronograma, notas, asistencia y comentarios)
+│ ├── Votos (propuestas + polls)
 │ ├── Gastos (lista + balances)
 │ ├── Tareas (checklist)
-│ ├── Galería (fotos)
-│ └── Comentarios (hilo)
-├── /historial \[eventos finalizados\]
-├── /estadisticas \[participación y gastos\]
-└── /ajustes \[grupo, miembros, invitación\]
+│ └── Fotos (galería)
+├── /stats \[participación y gastos\]
+└── /settings \[grupo, miembros, invitación\]
 # 3\. User Flows
 ## 3.1 Onboarding y primer grupo
 Registro ──▶ Verificar email ──▶ Login ──▶ ¿Tiene grupos?
 │
 no ◀──────────────┴──────────────▶ sí
 │ │
-Pantalla vacía con 2 CTA /dashboard
+Pantalla vacía con 2 CTA /groups
 ├─ "Crear grupo" ─▶ form ─▶ compartir enlace
-└─ "Tengo un código" ─▶ /unirse/\[codigo\] ─▶ grupo
+└─ "Tengo un código" ─▶ /join/\[code\] ─▶ grupo
 ## 3.2 Crear salida y conseguir confirmaciones
 Organizador: Grupo ─▶ \[+ Nueva salida\] ─▶ Form (título, fecha, lugar)
 ─▶ Publicar ─▶ Detalle del evento
@@ -59,10 +55,11 @@ Pestaña Gastos ─▶ \[+ Gasto\] ─▶ monto, pagador, participantes
 ─▶ división igual (default) o personalizada ─▶ guardar
 Vista Balance ─▶ "Debes $47.34 a Ana" ─▶ pagar por fuera
 ─▶ \[Marcar saldado\] ─▶ balance en cero ✓
+Nota MVP (RF-701): todos los montos se registran y muestran en USD, sin selector de moneda por grupo.
 ## 3.5 Después de la salida
 Evento pasa a "Finalizado" ─▶ banner "¡Sube tus fotos!"
-─▶ Galería: subir/ver fotos ─▶ evento queda en /historial
-─▶ /estadisticas refleja asistencia y gasto del evento
+─▶ Galería: subir/ver fotos ─▶ la salida queda en el historial de la home del grupo
+─▶ /stats refleja asistencia y gasto del evento
 # 4\. Wireframes Textuales
 ## 4.1 Dashboard (móvil, 375 px)
 ┌─────────────────────────────────┐
@@ -92,7 +89,7 @@ Evento pasa a "Finalizado" ─▶ banner "¡Sube tus fotos!"
 │ Asistencia: 8 ✓ · 2 ? · 1 ✗ │
 │ \[✓ Voy\] \[? Quizás\] \[✗ No voy\] │
 ├─────────────────────────────────┤
-│ Info│Crono│Votos│Gastos│Tareas│…│ ← tabs scrollables
+│ Plan│Votos│Gastos│Tareas│Fotos│ ← tabs scrollables
 ├─────────────────────────────────┤
 │ (contenido de la pestaña activa)│
 │ │
@@ -140,18 +137,19 @@ Evento pasa a "Finalizado" ─▶ banner "¡Sube tus fotos!"
 | \# | Pantalla | Ruta | Prioridad |
 | ---| ---| ---| --- |
 | 1 | Login | /login | Must |
-| 2 | Registro | /registro | Must |
-| 3 | Recuperar contraseña | /recuperar | Must |
-| 4 | Dashboard | /dashboard | Must |
-| 5 | Unirse a grupo (invitación) | /unirse/\[codigo\] | Must |
-| 6 | Home de grupo (lista de eventos) | /grupos/\[id\] | Must |
-| 7 | Crear/editar evento | /grupos/\[id\]/eventos/nuevo | Must |
-| 8 | Detalle de evento (7 pestañas) | /grupos/\[id\]/eventos/\[eid\] | Must |
-| 9 | Historial | /grupos/\[id\]/historial | Must |
-| 10 | Estadísticas | /grupos/\[id\]/estadisticas | Must |
-| 11 | Ajustes de grupo y miembros | /grupos/\[id\]/ajustes | Must |
-| 12 | Perfil de usuario | /perfil | Must |
-| 13 | Estados vacíos / 404 / error | (transversal) | Must |
+| 2 | Registro | /register | Must |
+| 3 | Recuperar contraseña | /forgot-password · /reset-password | Must |
+| 4 | Grupos del usuario (dashboard) | /groups | Must |
+| 5 | Unirse a grupo (invitación) | /join/\[code\] | Must |
+| 6 | Home de grupo (eventos + historial) | /groups/\[id\] | Must |
+| 7 | Crear/editar evento | /groups/\[id\] (formulario en línea en la home) | Must |
+| 8 | Detalle de evento (5 pestañas) | /groups/\[id\]/events/\[eid\] | Must |
+| 9 | Estadísticas | /groups/\[id\]/stats | Must |
+| 10 | Ajustes de grupo y miembros | /groups/\[id\]/settings | Must |
+| 11 | Perfil de usuario | /profile | Must |
+| 12 | Estados vacíos / 404 / error | (transversal) | Must |
+
+Nota MVP (RF-402): el cronograma se ordena cronológicamente por \`starts_at\`; \`position\` solo desempata ítems que empiezan a la misma hora y no hay reordenamiento manual.
 
 # 6\. Componentes Reutilizables
 ## 6.1 Base (shadcn/ui)
@@ -175,10 +173,10 @@ Button, Input, Textarea, Select, Calendar/DatePicker, Dialog, Sheet (móvil), Ta
 | <GroupSwitcher> | Selector de grupo activo en el header | Layout privado |
 
 # 7\. Tema Visual
-*   **Color primario:** teal 600 (#0F766E) — acción y marca. Secundarios: slate para texto, amber para "Quizás", red para "No voy"/destructivo, green para confirmaciones.
-*   **Tipografía:** Inter (variable), escala 14/16/18/24/30.
-*   **Radios y sombras:** rounded-2xl en cards, sombras suaves; densidad cómoda al pulgar (touch targets ≥ 44 px).
-*   **Modo oscuro** desde el MVP (next-themes + variables CSS de shadcn).
+*   **Color primario:** índigo profundo "Noche serena" — principal \#2E2A6B (claro) / \#B8B8FF (oscuro) para acción y marca. Periwinkle (\#6B5ED6 / \#9381FF) para "Quizás" y votos; jade (\#0E7F63 / \#5EE6BE) como único acento vivo (confirmaciones, "en vivo"); rojos solo para errores. Ver \`docs/design-system.md\` (tokens en \`src/app/design-tokens.css\`).
+*   **Tipografía:** Manrope (variable) para texto e interfaz; Instrument Serif para títulos y cifras destacadas. Escala fluida con tokens \`--text-*\`.
+*   **Radios y sombras:** tokens \`--radius-*\` y \`--shadow-*\`; densidad cómoda al pulgar (touch targets ≥ 44 px).
+*   **Modo oscuro** desde el MVP (next-themes + variables CSS).
 # 8\. Accesibilidad
 *   Contraste AA en todos los pares texto/fondo (verificado con tooling en CI).
 *   Navegación completa por teclado; foco visible; dialogs con focus-trap (Radix lo provee).

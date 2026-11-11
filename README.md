@@ -12,6 +12,76 @@ Architecture and OpenSpec change history live in
 [openspec/](openspec/), including the frozen stack decisions in
 [openspec/changes/define-stack/](openspec/changes/define-stack/).
 
+## Prerequisites
+
+- **Node.js >= 22** (see `engines.node` in `package.json`; CI runs Node 22).
+- **pnpm 10** — the package manager used by the lockfile and CI.
+- **Docker** — required only for the local Supabase stack
+  (`pnpm db:start` / `pnpm db:test`).
+
+## Getting started
+
+```bash
+pnpm install                 # install dependencies
+cp .env.example .env.local   # then fill in real values (see table below)
+pnpm dev                     # start the dev server on http://localhost:3000
+```
+
+The dev server does not need a local Supabase stack — point
+`NEXT_PUBLIC_SUPABASE_URL` at your hosted project (or start one with
+`pnpm db:start`). See `.env.example` for the reasoning behind every
+constraint (for example: `service_role` must never be imported from `src/`).
+
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in the values. Required for
+the app to boot:
+
+| Variable | Scope | Description |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | client + server | Supabase project URL (Auth + Postgres). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | Supabase anon key; every data access is user-scoped by RLS. |
+| `NEXT_PUBLIC_APP_URL` | client + server | Public URL of the app (auth redirects and callbacks). |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | client + server | Cloudinary cloud name for gallery photos. |
+| `CLOUDINARY_API_KEY` | server only | Cloudinary API key, used to sign uploads and delivery URLs. |
+| `CLOUDINARY_API_SECRET` | server only | Cloudinary API secret, used to sign uploads and delivery URLs. |
+
+`.env.example` also documents optional/reminder variables the app does not
+read at runtime: `SUPABASE_SERVICE_ROLE_KEY` (tooling only — never imported
+under `src/`), the Google OAuth client pair (configured on the Supabase Auth
+provider settings), and `HEALTH_CHECK_SECRET` (for the `/api/health` endpoint).
+
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Start the Next.js dev server. |
+| `pnpm build` | Production build (CI uses placeholder env values; no DB connection). |
+| `pnpm typecheck` | `next typegen` + `tsc --noEmit`. |
+| `pnpm lint` | ESLint (`eslint .`). |
+| `pnpm test` | Unit tests with Vitest (`src/**/*.test.ts`). |
+| `pnpm format` | Rewrite formatting with Prettier. |
+| `pnpm format:check` | Verify formatting without writing. |
+| `pnpm db:start` | Start the local Supabase Docker stack (migrations + seed). |
+| `pnpm db:test` | Run the pgTAP RLS test suite against the local stack. |
+
+`pnpm test:e2e` (Playwright) exists in `package.json` but has no configured
+suite yet — see the RLS test suite section below for the database tests that
+do run in CI.
+
+## Product scope (MVP)
+
+Two documented requirements are intentionally scoped down for the MVP:
+
+- **Currency (RF-701).** All groups use **USD** — every amount is entered,
+  stored (as cents) and displayed in US dollars. The schema has a
+  `currency` column defaulting to `USD`, but the MVP ships no per-group
+  currency selector.
+- **Schedule ordering (RF-402).** Schedule items are ordered
+  **chronologically by `starts_at`**, with the `position` column as a
+  tie-breaker for items starting at the same time. There is no manual
+  reorder UI in the MVP; ordering by time is considered sufficient.
+
 ## Database
 
 Multitenant Postgres schema on Supabase. The **group** is the tenant:
