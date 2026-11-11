@@ -29,8 +29,8 @@ function table(result: Result) {
 }
 
 function setup(tables: Record<string, Result>) {
-  const from = vi.fn(
-    (name: string) => table(tables[name] ?? { data: null, error: null }),
+  const from = vi.fn((name: string) =>
+    table(tables[name] ?? { data: null, error: null }),
   );
   mocks.session.mockResolvedValue({
     user: { id: SELF },
@@ -40,7 +40,9 @@ function setup(tables: Record<string, Result>) {
 }
 
 /** Un grupo con dos salidas terminadas, una por venir y tres miembros. */
-function populated(overrides: Record<string, Result> = {}): Record<string, Result> {
+function populated(
+  overrides: Record<string, Result> = {},
+): Record<string, Result> {
   return {
     groups: { data: { name: "Los de siempre" }, error: null },
     events: {
@@ -80,7 +82,12 @@ function populated(overrides: Record<string, Result> = {}): Record<string, Resul
           events_attended: 4,
           events_invited: 6,
         },
-        { user_id: ANA, display_name: "Ana", events_attended: 2, events_invited: 3 },
+        {
+          user_id: ANA,
+          display_name: "Ana",
+          events_attended: 2,
+          events_invited: 3,
+        },
         {
           user_id: LUIS,
           display_name: "Luis",
@@ -163,7 +170,9 @@ describe("group statistics aggregation", () => {
       "2026-05",
       "2026-06",
     ]);
-    expect(stats.months.map((month) => month.total)).toEqual([0, 0, 0, 0, 1, 2]);
+    expect(stats.months.map((month) => month.total)).toEqual([
+      0, 0, 0, 0, 1, 2,
+    ]);
     expect(stats.months.map((month) => month.current)).toEqual([
       false,
       false,

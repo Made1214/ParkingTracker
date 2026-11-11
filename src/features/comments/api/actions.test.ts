@@ -56,7 +56,12 @@ describe("createComment", () => {
     const query = commentsTable({ data: null, error: null });
     await createComment(
       {},
-      form({ group_id: group, event_id: event, body: "Voy", parent_id: parent }),
+      form({
+        group_id: group,
+        event_id: event,
+        body: "Voy",
+        parent_id: parent,
+      }),
     );
     expect(query.insert).toHaveBeenCalledWith(
       expect.objectContaining({ parent_id: parent }),
@@ -71,7 +76,9 @@ describe("createComment", () => {
       {},
       form({ group_id: group, event_id: event, ...values }),
     );
-    expect(result.error).toBe("Escribe un comentario de hasta 2000 caracteres.");
+    expect(result.error).toBe(
+      "Escribe un comentario de hasta 2000 caracteres.",
+    );
     expect(query.insert).not.toHaveBeenCalled();
     expect(mocks.revalidate).not.toHaveBeenCalled();
   });
@@ -100,7 +107,12 @@ describe("createComment", () => {
     commentsTable({ data: null, error: { code } });
     const result = await createComment(
       {},
-      form({ group_id: group, event_id: event, body: "Hola", parent_id: parent }),
+      form({
+        group_id: group,
+        event_id: event,
+        body: "Hola",
+        parent_id: parent,
+      }),
     );
     expect(result.error).toBe(message);
     expect(mocks.revalidate).not.toHaveBeenCalled();
@@ -112,7 +124,12 @@ describe("updateComment", () => {
     const query = commentsTable({ data: { id: comment }, error: null });
     const result = await updateComment(
       {},
-      form({ group_id: group, event_id: event, id: comment, body: " Editado " }),
+      form({
+        group_id: group,
+        event_id: event,
+        id: comment,
+        body: " Editado ",
+      }),
     );
     expect(result.success).toContain("actualizado");
     expect(query.update).toHaveBeenCalledWith({ body: "Editado" });
@@ -136,7 +153,9 @@ describe("updateComment", () => {
       {},
       form({ group_id: group, event_id: event, id: comment, body: " " }),
     );
-    expect(result.error).toBe("Escribe un comentario de hasta 2000 caracteres.");
+    expect(result.error).toBe(
+      "Escribe un comentario de hasta 2000 caracteres.",
+    );
     expect(query.update).not.toHaveBeenCalled();
   });
   it.each([
