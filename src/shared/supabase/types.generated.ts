@@ -302,6 +302,7 @@ export type Database = {
           event_id: string
           group_id: string
           id: string
+          idempotency_key: string | null
           paid_by: string
           updated_at: string
         }
@@ -316,6 +317,7 @@ export type Database = {
           event_id: string
           group_id: string
           id?: string
+          idempotency_key?: string | null
           paid_by: string
           updated_at?: string
         }
@@ -329,6 +331,7 @@ export type Database = {
           event_id?: string
           group_id?: string
           id?: string
+          idempotency_key?: string | null
           paid_by?: string
           updated_at?: string
         }
@@ -949,6 +952,7 @@ export type Database = {
           p_event_id: string
           p_paid_by: string
           p_shares: Json
+          p_idempotency_key?: string | null
         }
         Returns: string
       }
