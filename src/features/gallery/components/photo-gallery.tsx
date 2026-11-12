@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ImagePlus, Images, X } from "lucide-react";
 import type { ActionState } from "@/shared/lib/forms";
 import { ActionForm } from "@/shared/ui/action-form";
 import { dateLabel } from "@/shared/lib/utils";
+import { swipeStep } from "../lib/swipe";
 import styles from "./gallery.module.css";
 
 type Photo = {
@@ -66,6 +67,8 @@ export function PhotoGallery({
   const grid = useRef<HTMLUListElement>(null);
   const direction = useRef(0);
   const [openId, setOpenId] = useState<string | null>(null);
+  // Inicio del gesto de deslizar en el visor (E9.F2.T1).
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number }>();
   const [errors, setErrors] = useState<string[]>([]);
   const [, startTransition] = useTransition();
@@ -326,7 +329,24 @@ export function PhotoGallery({
         }}
       >
         {current && (
-          <figure>
+          <figure
+            onPointerDown={(event) => {
+              swipeStart.current = { x: event.clientX, y: event.clientY };
+            }}
+            onPointerUp={(event) => {
+              const start = swipeStart.current;
+              swipeStart.current = null;
+              if (!start || photos.length < 2) return;
+              const direction = swipeStep(
+                event.clientX - start.x,
+                event.clientY - start.y,
+              );
+              if (direction) step(direction);
+            }}
+            onPointerCancel={() => {
+              swipeStart.current = null;
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               key={current.id}
