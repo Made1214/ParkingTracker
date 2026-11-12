@@ -136,7 +136,7 @@ the app.
 never touched by CI.
 
 Staging's migration history already records every file up to
-`20261114010000` (checked on 12 Nov 2026), including `020`, `022` and
+`20261114020000` (checked on 12 Nov 2026), including `020`, `022` and
 `023`, so `db push` needs no `migration repair` before auto-apply is turned
 on. Check with `pnpm exec supabase migration list` after linking.
 
