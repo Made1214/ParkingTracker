@@ -46,6 +46,7 @@ the app to boot:
 | `CLOUDINARY_API_KEY` | server only | Cloudinary API key, used to sign uploads and delivery URLs. |
 | `CLOUDINARY_API_SECRET` | server only | Cloudinary API secret, used to sign uploads and delivery URLs. |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | server only, optional | Shared rate-limit counter (60 mutations/min per user). Without them the limit is counted in memory per instance. |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | server / client, optional | Error reporting. Without them, unhandled server errors are only logged as JSON lines. |
 
 `.env.example` also documents optional/reminder variables the app does not
 read at runtime: the Google OAuth client pair (configured on the Supabase Auth
@@ -60,14 +61,12 @@ provider settings), and `HEALTH_CHECK_SECRET` (for the `/api/health` endpoint).
 | `pnpm typecheck` | `next typegen` + `tsc --noEmit`. |
 | `pnpm lint` | ESLint (`eslint .`). |
 | `pnpm test` | Unit tests with Vitest (`src/**/*.test.ts`). |
+| `pnpm test:coverage` | Unit tests with coverage of business logic (`src/features/*/api`, `src/shared/lib`). Fails under 60 % overall or under 80 % in expenses and polls (RNF-10). HTML report in `coverage/`. |
+| `pnpm test:e2e` | Playwright end-to-end suite (see below), including the axe WCAG 2.1 AA scan. |
 | `pnpm format` | Rewrite formatting with Prettier. |
 | `pnpm format:check` | Verify formatting without writing. |
 | `pnpm db:start` | Start the local Supabase Docker stack (migrations + seed). |
 | `pnpm db:test` | Run the pgTAP RLS test suite against the local stack. |
-
-`pnpm test:e2e` (Playwright) exists in `package.json` but has no configured
-suite yet — see the RLS test suite section below for the database tests that
-do run in CI.
 
 ## Product scope (MVP)
 
@@ -177,7 +176,9 @@ pnpm build && pnpm test:e2e
 ```
 
 They cover group isolation by direct URL, invite link → join → RSVP, live
-comments between two sessions, and the PWA manifest and offline behavior. CI
+comments and live poll votes between two sessions (RF-504), the PWA manifest
+and offline behavior, and an axe-core WCAG 2.1 AA scan (contrast included) of
+every main screen in light and dark mode at phone width (`e2e/a11y.spec.ts`). CI
 runs them as their own job on every pull request. Set `E2E_BASE_URL` to target
 a server that is already running, and `E2E_CHROMIUM_PATH` to reuse an
 installed Chromium.
@@ -195,6 +196,19 @@ so it can never be served regardless of whether the Cloudinary upload
 itself succeeded. See `supabase/migrations/022_photos_cloudinary.sql`
 and [openspec/changes/define-stack/design.md](openspec/changes/define-stack/design.md)
 §7 for the full flow.
+
+## Observability
+
+- **Structured logs:** `src/instrumentation.ts` writes every unhandled
+  server error as one JSON line (`level`, `message`, `request_id`, `method`,
+  `path` without query string, `route`, `error`). Vercel's log view can
+  filter by any of those fields.
+- **Sentry:** enabled only when `SENTRY_DSN` (server) and
+  `NEXT_PUBLIC_SENTRY_DSN` (browser) are set. The browser SDK is imported
+  lazily so it does not count toward the initial bundle; no PII is sent.
+- **Vercel Analytics & Speed Insights:** `<Analytics />` and
+  `<SpeedInsights />` in the root layout. Turn them on in the Vercel project;
+  Speed Insights reports the real LCP against the SRS target (< 2.5 s).
 
 ## Health check & keep-alive (`GET /api/health`)
 

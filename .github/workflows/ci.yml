@@ -37,7 +37,8 @@ jobs:
         run: '! grep -rnE "service_role|SUPABASE_SERVICE_ROLE_KEY" src/'
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm test
+      # Pruebas unitarias con los umbrales de cobertura de RNF-10.
+      - run: pnpm test:coverage
       - run: pnpm format:check
       - run: pnpm build
 

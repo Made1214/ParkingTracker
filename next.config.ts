@@ -6,14 +6,28 @@ const supabaseUrl = new URL(url);
 const supabaseOrigin = supabaseUrl.origin;
 const supabaseWsOrigin = `${supabaseUrl.protocol === "https:" ? "wss:" : "ws:"}//${supabaseUrl.host}`;
 const isDev = process.env.NODE_ENV === "development";
+// Sentry (opcional): el navegador envía los errores al host del DSN.
+// Un DSN mal escrito no debe tumbar el build: se ignora en la CSP.
+function sentryCspOrigin(dsn?: string) {
+  if (!dsn?.trim()) return "";
+  try {
+    const { protocol, origin } = new URL(dsn.trim());
+    return protocol === "https:" ? ` ${origin}` : "";
+  } catch {
+    return "";
+  }
+}
+const sentryOrigin = sentryCspOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN);
+// En desarrollo, Vercel Analytics carga su script de depuración desde aquí.
+const vercelScripts = isDev ? " https://va.vercel-scripts.com" : "";
 
 const cspReportOnly = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${vercelScripts}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' blob: data: https://res.cloudinary.com https://lh3.googleusercontent.com ${supabaseOrigin}`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} https://api.cloudinary.com https://res.cloudinary.com`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} https://api.cloudinary.com https://res.cloudinary.com${sentryOrigin}`,
   "object-src 'none'",
   "base-uri 'self'",
   `form-action 'self' ${supabaseOrigin} https://accounts.google.com`,
