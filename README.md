@@ -45,6 +45,7 @@ the app to boot:
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | client + server | Cloudinary cloud name for gallery photos. |
 | `CLOUDINARY_API_KEY` | server only | Cloudinary API key, used to sign uploads and delivery URLs. |
 | `CLOUDINARY_API_SECRET` | server only | Cloudinary API secret, used to sign uploads and delivery URLs. |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | server / client, optional | Error reporting. Without them, unhandled server errors are only logged as JSON lines. |
 
 `.env.example` also documents optional/reminder variables the app does not
 read at runtime: `SUPABASE_SERVICE_ROLE_KEY` (tooling only — never imported
@@ -174,6 +175,19 @@ so it can never be served regardless of whether the Cloudinary upload
 itself succeeded. See `supabase/migrations/022_photos_cloudinary.sql`
 and [openspec/changes/define-stack/design.md](openspec/changes/define-stack/design.md)
 §7 for the full flow.
+
+## Observability
+
+- **Structured logs:** `src/instrumentation.ts` writes every unhandled
+  server error as one JSON line (`level`, `message`, `request_id`, `method`,
+  `path` without query string, `route`, `error`). Vercel's log view can
+  filter by any of those fields.
+- **Sentry:** enabled only when `SENTRY_DSN` (server) and
+  `NEXT_PUBLIC_SENTRY_DSN` (browser) are set. The browser SDK is imported
+  lazily so it does not count toward the initial bundle; no PII is sent.
+- **Vercel Analytics & Speed Insights:** `<Analytics />` and
+  `<SpeedInsights />` in the root layout. Turn them on in the Vercel project;
+  Speed Insights reports the real LCP against the SRS target (< 2.5 s).
 
 ## Health check & keep-alive (`GET /api/health`)
 
