@@ -7,6 +7,8 @@ RSVPs, schedules, polls, shared expenses, photos, and stats. See the
 ## Documentation
 
 Project docs live in [docs/](docs/), including the [PRD](docs/01-PRD-Parking-Tracker.md).
+What is still missing before launch, checked against the docs and ClickUp, is
+tracked in [docs/pendientes-parking-tracker.md](docs/pendientes-parking-tracker.md).
 
 Architecture and OpenSpec change history live in
 [openspec/](openspec/), including the frozen stack decisions in
