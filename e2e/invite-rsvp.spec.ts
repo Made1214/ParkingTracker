@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { groupUrl, register, seed, upcomingEventPath } from "./helpers";
+import { groupUrl, login, register, seed, upcomingEventPath } from "./helpers";
 
 test("enlace de invitación → unirse → confirmar asistencia", async ({
   page,
@@ -10,14 +10,15 @@ test("enlace de invitación → unirse → confirmar asistencia", async ({
   await page.waitForURL((url) => url.pathname === "/login");
   const name = await register(page, invite);
 
-  // Nada obliga a instalar la app antes de aceptar (PWA, US-02).
+  // Antes de aceptar se ve a qué grupo se entra (E3.F2.T1), y nada obliga a
+  // instalar la app (PWA, US-02).
   await expect(
-    page.getByRole("heading", { name: "Súmate al plan." }),
+    page.getByRole("heading", { name: seed.groupName, level: 1 }),
   ).toBeVisible();
-  await expect(page.getByLabel("Código de invitación")).toHaveValue(
-    seed.inviteCode,
-  );
-  await page.getByRole("button", { name: "Aceptar invitación" }).click();
+  await expect(page.getByText(/\d+ miembros?/)).toBeVisible();
+  await page
+    .getByRole("button", { name: `Unirme a ${seed.groupName}` })
+    .click();
   await page.waitForURL((url) => url.pathname === groupUrl);
   await expect(
     page.getByRole("heading", { name: seed.groupName, level: 1 }),
@@ -34,4 +35,24 @@ test("enlace de invitación → unirse → confirmar asistencia", async ({
     page.getByRole("button", { name: "Voy", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText(name).first()).toBeVisible();
+});
+
+test("un código que no existe deja escribir otro", async ({ browser }) => {
+  const page = await (await browser.newContext()).newPage();
+  await page.goto("/join/NOEXISTE");
+  await page.waitForURL((url) => url.pathname === "/login");
+  await register(page, "/join/NOEXISTE");
+  await expect(
+    page.getByText("No encontramos un grupo con ese enlace", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Código de invitación")).toHaveValue("NOEXISTE");
+});
+
+test("quien ya es miembro va directo a su grupo", async ({ page }) => {
+  await login(page, seed.member.email, `/join/${seed.inviteCode}`);
+  await expect(
+    page.getByRole("heading", { name: `Ya eres parte de ${seed.groupName}.` }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Ir al grupo" }).click();
+  await page.waitForURL((url) => url.pathname === groupUrl);
 });

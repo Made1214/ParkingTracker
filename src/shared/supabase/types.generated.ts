@@ -984,6 +984,16 @@ export type Database = {
           debtor: string
         }[]
       }
+      get_invite_preview: {
+        Args: { p_code: string }
+        Returns: {
+          already_member: boolean
+          description: string | null
+          group_id: string
+          member_count: number
+          name: string
+        }[]
+      }
       get_group_balances: {
         Args: { p_group_id: string }
         Returns: {
