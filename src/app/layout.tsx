@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { PwaRuntime } from "@/shared/pwa";
+import { publicEnv } from "@/shared/lib/env";
+import { site } from "@/shared/lib/site";
 import "./globals.css";
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-sans" });
 const instrumentSerif = Instrument_Serif({
@@ -11,9 +13,23 @@ const instrumentSerif = Instrument_Serif({
   variable: "--font-display",
 });
 export const metadata: Metadata = {
-  title: "Parking Tracker · Planes con tu gente",
-  description: "Organiza salidas, reúne a tu grupo y confirma el próximo plan.",
-  applicationName: "Parking Tracker",
+  metadataBase: new URL(publicEnv().appUrl),
+  title: { default: site.title, template: `%s · ${site.name}` },
+  description: site.description,
+  applicationName: site.name,
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    title: site.title,
+    description: site.description,
+    locale: site.locale,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: site.title,
+    description: site.description,
+  },
   appleWebApp: {
     capable: true,
     title: "Parking Tracker",

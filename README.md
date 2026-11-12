@@ -45,6 +45,7 @@ the app to boot:
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | client + server | Cloudinary cloud name for gallery photos. |
 | `CLOUDINARY_API_KEY` | server only | Cloudinary API key, used to sign uploads and delivery URLs. |
 | `CLOUDINARY_API_SECRET` | server only | Cloudinary API secret, used to sign uploads and delivery URLs. |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | client + server, optional | Contact address shown on `/privacy` and `/terms`. Without it, the pages point to the Parking Tracker team. |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | server only, optional | Shared rate-limit counter (60 mutations/min per user). Without them the limit is counted in memory per instance. |
 
 `.env.example` also documents optional/reminder variables the app does not
