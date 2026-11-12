@@ -116,6 +116,16 @@ export async function EventScreen({
         pollCount={live.openCount}
       />
 
+      {event.status === "cancelled" && (
+        <aside className={styles.cancelBanner} aria-label="Salida cancelada">
+          <strong>Esta salida se canceló.</strong>
+          {event.cancel_reason && (
+            <p>
+              Motivo: <q>{event.cancel_reason}</q>
+            </p>
+          )}
+        </aside>
+      )}
       {event.status === "finished" && active !== "fotos" && (
         <aside
           className={styles.photoBanner}

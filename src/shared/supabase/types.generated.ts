@@ -186,6 +186,7 @@ export type Database = {
       }
       events: {
         Row: {
+          cancel_reason: string | null
           cover_public_id: string | null
           created_at: string
           created_by: string | null
@@ -201,6 +202,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          cancel_reason?: string | null
           cover_public_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -215,6 +217,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancel_reason?: string | null
           cover_public_id?: string | null
           created_at?: string
           created_by?: string | null
