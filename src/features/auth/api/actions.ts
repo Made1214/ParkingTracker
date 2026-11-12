@@ -5,9 +5,18 @@ import { serverClient } from "@/shared/supabase/server";
 import { publicEnv } from "@/shared/lib/env";
 import { safeNext } from "@/shared/lib/utils";
 import { text, type ActionState } from "@/shared/lib/forms";
+import {
+  PASSWORD_HINT,
+  PASSWORD_MAX,
+  isWeakPasswordError,
+  passwordProblem,
+} from "./password-policy";
+// Al entrar solo se exige que haya contraseña: las reglas de longitud y
+// caracteres aplican a las nuevas, y las cuentas anteriores deben seguir
+// pudiendo entrar con la suya.
 const credentials = z.object({
   email: z.email(),
-  password: z.string().min(8).max(128),
+  password: z.string().min(1).max(PASSWORD_MAX),
 });
 export async function login(
   _: ActionState,
@@ -19,8 +28,7 @@ export async function login(
   });
   if (!parsed.success)
     return {
-      error:
-        "Escribe un correo válido y una contraseña de al menos 8 caracteres.",
+      error: "Escribe un correo válido y tu contraseña.",
     };
   const supabase = await serverClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
@@ -42,10 +50,9 @@ export async function register(
       password: String(form.get("password") ?? ""),
       name: text(form, "name"),
     });
-  if (!parsed.success)
-    return {
-      error: "Revisa tu nombre, correo y contraseña (mínimo 8 caracteres).",
-    };
+  if (!parsed.success) return { error: "Revisa tu nombre y tu correo." };
+  const problem = passwordProblem(parsed.data.password);
+  if (problem) return { error: problem };
   const supabase = await serverClient();
   const next = safeNext(form.get("next"));
   const { data, error } = await supabase.auth.signUp({
@@ -56,6 +63,8 @@ export async function register(
       emailRedirectTo: `${publicEnv().appUrl}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
+  if (isWeakPasswordError(error))
+    return { error: `Esa contraseña no es segura. Usa ${PASSWORD_HINT}` };
   if (error)
     return {
       error: "No pudimos crear la cuenta. Inténtalo de nuevo en unos minutos.",

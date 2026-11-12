@@ -2,6 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import {
+  PASSWORD_HINT,
+  isWeakPasswordError,
+  passwordProblem,
+} from "./password-policy";
 import { serverClient } from "@/shared/supabase/server";
 import { publicEnv } from "@/shared/lib/env";
 import { text, type ActionState } from "@/shared/lib/forms";
@@ -32,13 +37,16 @@ export async function resetPassword(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const password = z.string().min(8).max(128).safeParse(form.get("password"));
-  if (!password.success)
-    return { error: "Usa una contraseña de entre 8 y 128 caracteres." };
+  const password = z.string().safeParse(form.get("password"));
+  if (!password.success) return { error: "Escribe tu nueva contraseña." };
+  const problem = passwordProblem(password.data);
+  if (problem) return { error: problem };
   if (password.data !== form.get("confirm_password"))
     return { error: "Las contraseñas no coinciden." };
   const { supabase } = await requireUser("/reset-password");
   const { error } = await supabase.auth.updateUser({ password: password.data });
+  if (isWeakPasswordError(error))
+    return { error: `Esa contraseña no es segura. Usa ${PASSWORD_HINT}` };
   if (error)
     return {
       error:
