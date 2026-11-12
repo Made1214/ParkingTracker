@@ -61,14 +61,12 @@ provider settings), and `HEALTH_CHECK_SECRET` (for the `/api/health` endpoint).
 | `pnpm typecheck` | `next typegen` + `tsc --noEmit`. |
 | `pnpm lint` | ESLint (`eslint .`). |
 | `pnpm test` | Unit tests with Vitest (`src/**/*.test.ts`). |
+| `pnpm test:coverage` | Unit tests with coverage of business logic (`src/features/*/api`, `src/shared/lib`). Fails under 60 % overall or under 80 % in expenses and polls (RNF-10). HTML report in `coverage/`. |
+| `pnpm test:e2e` | Playwright end-to-end suite (see below), including the axe WCAG 2.1 AA scan. |
 | `pnpm format` | Rewrite formatting with Prettier. |
 | `pnpm format:check` | Verify formatting without writing. |
 | `pnpm db:start` | Start the local Supabase Docker stack (migrations + seed). |
 | `pnpm db:test` | Run the pgTAP RLS test suite against the local stack. |
-
-`pnpm test:e2e` (Playwright) exists in `package.json` but has no configured
-suite yet — see the RLS test suite section below for the database tests that
-do run in CI.
 
 ## Product scope (MVP)
 
@@ -157,7 +155,9 @@ pnpm build && pnpm test:e2e
 ```
 
 They cover group isolation by direct URL, invite link → join → RSVP, live
-comments between two sessions, and the PWA manifest and offline behavior. CI
+comments and live poll votes between two sessions (RF-504), the PWA manifest
+and offline behavior, and an axe-core WCAG 2.1 AA scan (contrast included) of
+every main screen in light and dark mode at phone width (`e2e/a11y.spec.ts`). CI
 runs them as their own job on every pull request. Set `E2E_BASE_URL` to target
 a server that is already running, and `E2E_CHROMIUM_PATH` to reuse an
 installed Chromium.
