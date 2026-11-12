@@ -169,6 +169,17 @@ export function ManageEvent({
           >
             <input type="hidden" name="event_id" value={event.id} />
             <input type="hidden" name="group_id" value={event.group_id} />
+            <label>
+              Motivo (opcional)
+              <textarea
+                className="input"
+                name="cancel_reason"
+                maxLength={300}
+                rows={2}
+                placeholder="Ej. Pronóstico de lluvia; lo movemos a otra fecha."
+              />
+              <span className="small muted">Lo verá todo el grupo.</span>
+            </label>
           </ActionForm>
         </Disclosure>
       )}

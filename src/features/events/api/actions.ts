@@ -149,10 +149,15 @@ export async function cancelEvent(
   });
   if (!ids.success) return { error: "No se pudo identificar el evento." };
   const { group_id, event_id } = ids.data;
+  // Motivo opcional (plan E4.F1.T4): viaja en el mismo UPDATE que cancela,
+  // porque después la salida queda congelada.
+  const reason = text(form, "cancel_reason");
+  if (reason.length > 300)
+    return { error: "El motivo admite hasta 300 caracteres." };
   const { supabase } = await requireUser();
   const { data, error } = await supabase
     .from("events")
-    .update({ status: "cancelled" })
+    .update({ status: "cancelled", cancel_reason: reason || null })
     .eq("id", event_id)
     .eq("group_id", group_id)
     .eq("status", "published")
