@@ -17,8 +17,7 @@ export async function TasksPanel({
   eventId: string;
   readOnly: boolean;
 }) {
-  const { tasks, members, event, user } = await getTasks(groupId, eventId);
-  const now = Date.now();
+  const { tasks, members, event, user, now } = await getTasks(groupId, eventId);
   const isAdmin = members.some(
     (member) => member.user_id === user.id && member.role === "admin",
   );
