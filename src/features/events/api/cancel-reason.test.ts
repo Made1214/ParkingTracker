@@ -43,12 +43,9 @@ describe("cancelEvent con motivo", () => {
     });
   });
 
-  it("sin motivo guarda null", async () => {
-    await cancelEvent({}, form());
-    expect(mocks.update).toHaveBeenCalledWith({
-      status: "cancelled",
-      cancel_reason: null,
-    });
+  it("sin motivo no envía la columna (queda null por defecto)", async () => {
+    await cancelEvent({}, form({ cancel_reason: "   " }));
+    expect(mocks.update).toHaveBeenCalledWith({ status: "cancelled" });
   });
 
   it("rechaza motivos de más de 300 caracteres sin tocar la base", async () => {

@@ -157,7 +157,7 @@ export async function cancelEvent(
   const { supabase } = await requireUser();
   const { data, error } = await supabase
     .from("events")
-    .update({ status: "cancelled", cancel_reason: reason || null })
+    .update({ status: "cancelled", ...(reason && { cancel_reason: reason }) })
     .eq("id", event_id)
     .eq("group_id", group_id)
     .eq("status", "published")
