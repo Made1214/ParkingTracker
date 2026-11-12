@@ -47,3 +47,41 @@
 .avatarCard:hover .initials {
   transform: scale(1.04) rotate(-2deg);
 }
+
+/* Disponibilidad del usuario (E2.F3.T2). Jade = disponible; el rojo queda
+   solo para el error de usuario ocupado, como pide el sistema de diseño. */
+.usernameStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 1.25rem;
+  margin: calc(var(--space-2) * -1) 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+.usernameStatus:empty {
+  display: none;
+}
+.usernameStatus[data-status="available"] {
+  color: var(--success-text);
+}
+.usernameStatus[data-status="taken"] {
+  color: var(--danger-text);
+}
+.suggestion {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.suggestion:hover {
+  border-color: var(--color-warning);
+}

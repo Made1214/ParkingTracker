@@ -1,17 +1,27 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type React from "react";
-import { Trash2 } from "lucide-react";
+import { Check, Trash2, X } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Disclosure } from "@/shared/ui/disclosure";
-import { deleteAccount, updateProfile, updateAvatar } from "../api/actions";
+import {
+  checkUsername,
+  deleteAccount,
+  updateProfile,
+  updateAvatar,
+  type UsernameStatus,
+} from "../api/actions";
+import { normalizeUsername } from "../api/username";
 import styles from "./profile.module.css";
 
 export function ProfileForm({
   profile,
+  suggestion,
   children,
 }: {
+  /** Usuario sugerido a partir del correo, si aún no tiene uno. */
+  suggestion?: string | null;
   /** Contenido extra bajo los datos (p. ej. apariencia). */
   children?: React.ReactNode;
   profile: {
@@ -24,6 +34,30 @@ export function ProfileForm({
 }) {
   const [name, setName] = useState(profile.display_name);
   const [username, setUsername] = useState(profile.username ?? "");
+  const [status, setStatus] = useState<UsernameStatus | "checking" | null>(
+    null,
+  );
+  const timer = useRef<number | undefined>(undefined);
+  const latest = useRef("");
+  // Disponibilidad en vivo (E2.F3.T2): espera a que se deje de escribir y
+  // descarta respuestas de valores anteriores.
+  const changeUsername = (value: string) => {
+    setUsername(value);
+    window.clearTimeout(timer.current);
+    const candidate = normalizeUsername(value);
+    latest.current = candidate;
+    if (!candidate || candidate === (profile.username ?? "")) {
+      setStatus(null);
+      return;
+    }
+    setStatus("checking");
+    timer.current = window.setTimeout(async () => {
+      const result = await checkUsername(candidate).catch(
+        () => "error" as const,
+      );
+      if (latest.current === candidate) setStatus(result);
+    }, 400);
+  };
   const [failedAvatar, setFailedAvatar] = useState(false);
   return (
     <div className={styles.columns}>
@@ -47,7 +81,8 @@ export function ProfileForm({
               <Input
                 name="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => changeUsername(e.target.value)}
+                aria-invalid={status === "taken" || undefined}
                 required
                 minLength={3}
                 maxLength={24}
@@ -58,6 +93,37 @@ export function ProfileForm({
                 aria-describedby="username-help"
               />
             </label>
+            <p
+              className={styles.usernameStatus}
+              data-status={status ?? undefined}
+              aria-live="polite"
+            >
+              {status === "checking" && "Comprobando…"}
+              {status === "available" && (
+                <>
+                  <Check size={15} aria-hidden="true" /> Disponible
+                </>
+              )}
+              {status === "taken" && (
+                <>
+                  <X size={15} aria-hidden="true" /> Ya está en uso. Prueba con
+                  otro.
+                </>
+              )}
+              {status === "invalid" &&
+                "Usa de 3 a 24 letras, números o guiones bajos."}
+              {status === "error" &&
+                "No pudimos comprobarlo ahora; se validará al guardar."}
+            </p>
+            {!username && suggestion && (
+              <button
+                type="button"
+                className={styles.suggestion}
+                onClick={() => changeUsername(suggestion)}
+              >
+                Usar «{suggestion}»
+              </button>
+            )}
             <p id="username-help" className="small muted">
               Único en Parking Tracker. De 3 a 24 letras, números o guiones
               bajos; se guarda en minúsculas.
