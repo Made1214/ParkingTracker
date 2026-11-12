@@ -1,4 +1,4 @@
--- 023_security_definer_membership.sql
+-- 025_security_definer_membership.sql
 -- Verifies that every SECURITY DEFINER function callable via the API
 -- rejects non-members (or relevant abuse cases for group creation/joining).
 -- Covers the 8 public SECURITY DEFINER RPCs:

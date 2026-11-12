@@ -2,7 +2,7 @@
 
 ## Technical Approach
 
-A single Next.js (App Router) application, installable as a PWA, talking to Supabase through a **user-scoped client only**. Authorization lives entirely in Postgres RLS; the application layer never decides who may see what. Source is **feature-sliced**, one directory per MVP module, with a public-API rule per slice so 8 developers can work in parallel. Atomic multi-table logic lives in Postgres functions. Media is compressed client-side and served straight from Supabase Storage, never through `next/image`.
+A single Next.js (App Router) application, installable as a PWA, talking to Supabase through a **user-scoped client only**. Authorization lives entirely in Postgres RLS; the application layer never decides who may see what. Source is **feature-sliced**, one directory per MVP module, with a public-API rule per slice so 8 developers can work in parallel. Atomic multi-table logic lives in Postgres functions. Media is compressed client-side, uploaded to **Cloudinary** with server-signed parameters and delivered through server routes that re-check membership, never through `next/image` (§7; this replaced the original Supabase Storage design).
 
 The stack is settled by the proposal and is not revisited here. Rejected alternatives are recorded in one line each at the end.
 

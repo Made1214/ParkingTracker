@@ -122,6 +122,27 @@ the app.
     startup bug unrelated to this schema, and neither service is needed
     for Postgres/Auth/PostgREST-level testing.
 
+### Applying migrations to Staging from CI
+
+`.github/workflows/staging-migrations.yml` runs after every green CI on
+`main`: it links Staging, prints `supabase migration list` and a
+`db push --dry-run`. It only applies the pending files when the
+`STAGING_AUTO_APPLY` repository variable is `"true"`, or when run by hand
+(Actions → *Migraciones a Staging* → `apply: true`). It needs the
+`SUPABASE_ACCESS_TOKEN` and `STAGING_DB_PASSWORD` secrets and the
+`STAGING_PROJECT_REF` variable; without them it skips. Production is
+never touched by CI.
+
+**One-time step before turning auto-apply on.** Staging's history has no
+rows for `020`, `022` and `023` (they were skipped on purpose), so
+`db push` refuses to run until they are marked as applied there:
+
+```bash
+pnpm exec supabase link --project-ref xyubdpmdrvaxvtiwbnro
+pnpm exec supabase migration repair --status applied 020 022 023
+pnpm exec supabase migration list   # local and remote columns must match
+```
+
 Full design rationale (RLS policy shapes, the tenant-integrity attack
 composite FKs close, `FORCE ROW LEVEL SECURITY`, view security, RPC
 contracts) is documented inline in the migration files themselves.
