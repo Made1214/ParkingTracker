@@ -688,6 +688,12 @@ textarea {
   text-align: center;
   margin-top: var(--space-8);
 }
+/* Enlaces dentro de una frase: subrayados para distinguirlos sin color (WCAG 1.4.1). */
+.auth-box > .small a,
+.app-footer nav a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .app-shell {
   min-height: 100svh;
   display: flex;

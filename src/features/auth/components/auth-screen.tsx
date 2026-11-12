@@ -126,7 +126,9 @@ export function AuthScreen({
             </Link>
           </p>
           <p className="small muted">
-            Tus planes y recuerdos, solo para tu grupo.
+            {signup ? "Al crear tu cuenta aceptas los " : "Consulta los "}
+            <Link href="/terms">Términos de uso</Link> y la{" "}
+            <Link href="/privacy">Política de privacidad</Link>.
           </p>
         </div>
       </section>
