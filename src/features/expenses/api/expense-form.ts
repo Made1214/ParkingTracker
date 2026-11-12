@@ -31,9 +31,24 @@ export function formatMoney(cents: number) {
 }
 
 /** Reparte en partes iguales sin perder centavos: el resto va a los primeros. */
-export function equalShares(totalCents: number, people: string[]) {
+/**
+ * Reparte un monto en partes iguales sin perder centavos. Los centavos que
+ * sobran van a quien pagó si participa (plan E8.F1: "el redondeo asigna el
+ * resto al pagador"); si no participa, se reparten de uno en uno desde el
+ * primero de la lista.
+ */
+export function equalShares(
+  totalCents: number,
+  people: string[],
+  payer?: string,
+) {
   const base = Math.floor(totalCents / people.length);
   const remainder = totalCents - base * people.length;
+  if (payer && people.includes(payer))
+    return people.map((userId) => ({
+      userId,
+      cents: base + (userId === payer ? remainder : 0),
+    }));
   return people.map((userId, index) => ({
     userId,
     cents: base + (index < remainder ? 1 : 0),
@@ -100,7 +115,7 @@ export function parseExpenseForm(
         error: `Los montos suman ${formatMoney(sum)} y el gasto es ${formatMoney(total)}.`,
       };
   } else {
-    shares = equalShares(total, participants);
+    shares = equalShares(total, participants, parsedIds.data.paid_by);
     if (shares.some((share) => share.cents <= 0))
       return { error: "El monto es muy pequeño para repartirlo." };
   }

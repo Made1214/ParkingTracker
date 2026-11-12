@@ -60,9 +60,40 @@ describe("equalShares", () => {
     expect(shares.map((share) => share.cents)).toEqual([334, 333, 333]);
     expect(shares.reduce((sum, share) => sum + share.cents, 0)).toBe(1000);
   });
+
+  it("gives the leftover cents to the payer when they take part", () => {
+    expect(
+      equalShares(1000, [ANA, LUIS, SOFIA], LUIS).map((s) => s.cents),
+    ).toEqual([333, 334, 333]);
+    const seven = Array.from(
+      { length: 7 },
+      (_, i) => `00000000-0000-4000-8000-00000000010${i}`,
+    );
+    const shares = equalShares(100, seven, seven[6]);
+    expect(shares.map((s) => s.cents)).toEqual([14, 14, 14, 14, 14, 14, 16]);
+    expect(shares.reduce((sum, s) => sum + s.cents, 0)).toBe(100);
+  });
+
+  it("spreads the leftover from the top when the payer does not take part", () => {
+    expect(equalShares(1000, [ANA, SOFIA], LUIS).map((s) => s.cents)).toEqual([
+      500, 500,
+    ]);
+    expect(equalShares(1001, [ANA, SOFIA], LUIS).map((s) => s.cents)).toEqual([
+      501, 500,
+    ]);
+  });
 });
 
 describe("parseExpenseForm", () => {
+  it("assigns the rounding cent to the payer", () => {
+    const result = parseExpenseForm(form({ amount: "10" }));
+    expect("data" in result && result.data.shares).toEqual([
+      { user_id: ANA, amount: 3.33 },
+      { user_id: LUIS, amount: 3.34 },
+      { user_id: SOFIA, amount: 3.33 },
+    ]);
+  });
+
   it("splits equally by default", () => {
     const result = parseExpenseForm(form({ amount: "90" }));
     expect("data" in result && result.data.shares).toEqual([
