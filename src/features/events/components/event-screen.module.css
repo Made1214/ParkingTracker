@@ -20,6 +20,40 @@
   gap: var(--space-6);
 }
 
+.panelError {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  color: var(--ink);
+}
+.panelError p {
+  display: grid;
+  flex: 1 1 14rem;
+  gap: var(--space-1);
+  margin: 0;
+}
+.panelRetry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.panelRetry:hover {
+  background: var(--surface-subtle);
+}
 .skeleton {
   padding: var(--space-6);
   border: 1px solid var(--line);

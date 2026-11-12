@@ -159,8 +159,14 @@ export function TaskRow({
             {task.title}
           </h3>
           {task.dueAt && (
-            <p className={styles.dueDate}>
+            <p
+              className={styles.dueDate}
+              data-overdue={task.overdue || undefined}
+            >
               <Clock3 size={13} aria-hidden="true" />
+              {task.overdue && (
+                <strong className={styles.overdue}>Vencida ·</strong>
+              )}
               {shortDate(task.dueAt)} · {panamaTime(task.dueAt)}
             </p>
           )}

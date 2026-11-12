@@ -7,6 +7,8 @@ export type TaskItem = {
   status: TaskStatus;
   assigneeId: string | null;
   dueAt: string | null;
+  /** Fecha límite pasada y sin completar (calculado en el servidor). */
+  overdue: boolean;
   canEdit: boolean;
   canEditDueAt: boolean;
 };
