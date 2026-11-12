@@ -1,6 +1,8 @@
 import "server-only";
 import { z } from "zod";
 import { serverClient } from "@/shared/supabase/server";
+import { apiError } from "@/shared/lib/api-errors";
+import { currentRequestId } from "@/shared/lib/request-id";
 import { mediaConfigured, privateImageUrl } from "@/shared/cloudinary/server";
 
 // Las fotos no cambian: caché solo en el navegador de quien ya pudo verlas.
@@ -15,15 +17,16 @@ export async function photoResponse(
   eventId: string,
   photoId: string,
 ) {
+  const requestId = await currentRequestId();
   if (
     ![groupId, eventId, photoId].every((id) => z.guid().safeParse(id).success)
   )
-    return new Response(null, { status: 404, headers });
+    return apiError("NOT_FOUND", { requestId, headers });
   const supabase = await serverClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return new Response(null, { status: 401, headers });
+  if (!user) return apiError("UNAUTHENTICATED", { requestId, headers });
   const { data: photo, error } = await supabase
     .from("photos")
     .select("cloudinary_public_id")
@@ -31,9 +34,10 @@ export async function photoResponse(
     .eq("event_id", eventId)
     .eq("group_id", groupId)
     .maybeSingle();
-  if (error) return new Response(null, { status: 503, headers });
-  if (!photo) return new Response(null, { status: 404, headers });
-  if (!mediaConfigured()) return new Response(null, { status: 503, headers });
+  if (error) return apiError("SERVICE_UNAVAILABLE", { requestId, headers });
+  if (!photo) return apiError("NOT_FOUND", { requestId, headers });
+  if (!mediaConfigured())
+    return apiError("SERVICE_UNAVAILABLE", { requestId, headers });
   try {
     const response = await fetch(privateImageUrl(photo.cloudinary_public_id), {
       cache: "no-store",
@@ -43,11 +47,11 @@ export async function photoResponse(
       !response.ok ||
       !response.headers.get("content-type")?.startsWith("image/")
     )
-      return new Response(null, { status: 502, headers });
+      return apiError("UPSTREAM_ERROR", { requestId, headers });
     return new Response(response.body, {
       headers: { ...headers, "Content-Type": "image/webp" },
     });
   } catch {
-    return new Response(null, { status: 502, headers });
+    return apiError("UPSTREAM_ERROR", { requestId, headers });
   }
 }

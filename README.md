@@ -45,10 +45,10 @@ the app to boot:
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | client + server | Cloudinary cloud name for gallery photos. |
 | `CLOUDINARY_API_KEY` | server only | Cloudinary API key, used to sign uploads and delivery URLs. |
 | `CLOUDINARY_API_SECRET` | server only | Cloudinary API secret, used to sign uploads and delivery URLs. |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | server only, optional | Shared rate-limit counter (60 mutations/min per user). Without them the limit is counted in memory per instance. |
 
 `.env.example` also documents optional/reminder variables the app does not
-read at runtime: `SUPABASE_SERVICE_ROLE_KEY` (tooling only — never imported
-under `src/`), the Google OAuth client pair (configured on the Supabase Auth
+read at runtime: the Google OAuth client pair (configured on the Supabase Auth
 provider settings), and `HEALTH_CHECK_SECRET` (for the `/api/health` endpoint).
 
 ## Scripts
