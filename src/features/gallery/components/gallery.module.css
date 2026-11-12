@@ -176,6 +176,10 @@
 }
 .lightbox img {
   display: block;
+  /* El navegador mantiene el scroll vertical; el gesto horizontal es nuestro. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-drag: none;
   max-width: 100%;
   max-height: calc(94vh - 76px);
   margin: 0 auto;
