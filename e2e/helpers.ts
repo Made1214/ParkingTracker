@@ -3,6 +3,8 @@ import { expect, type Browser, type Page } from "@playwright/test";
 /** Datos fijos de `supabase/seed.sql`. */
 export const seed = {
   password: "devpassword",
+  /** Cuentas nuevas: cumple la regla de 10+ caracteres con letras y números. */
+  newPassword: "devpassword10",
   admin: { email: "ana@example.com", name: "Ana Torres" },
   member: { email: "luis@example.com", name: "Luis Fernández" },
   groupId: "10000000-0000-0000-0000-000000000001",
@@ -33,7 +35,7 @@ export async function register(page: Page, next = "/groups") {
   await page.goto(`/register?next=${encodeURIComponent(next)}`);
   await page.getByLabel("Tu nombre").fill(name);
   await page.getByLabel("Correo electrónico").fill(`e2e-${id}@example.com`);
-  await page.getByLabel("Contraseña").fill(seed.password);
+  await page.getByLabel("Contraseña").fill(seed.newPassword);
   await page.getByRole("button", { name: "Crear mi cuenta" }).click();
   await page.waitForURL((url) => url.pathname === next.split("?")[0]);
   return name;

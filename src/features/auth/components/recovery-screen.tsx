@@ -4,6 +4,11 @@ import { Input } from "@/shared/ui/input";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 import { BrandMark } from "@/shared/ui/brand-mark";
 import { requestPasswordReset, resetPassword } from "../api/recovery-actions";
+import {
+  PASSWORD_HINT,
+  PASSWORD_MAX,
+  PASSWORD_MIN,
+} from "../api/password-policy";
 
 export function RecoveryScreen({ reset = false }: { reset?: boolean }) {
   return (
@@ -45,10 +50,14 @@ export function RecoveryScreen({ reset = false }: { reset?: boolean }) {
                     type="password"
                     autoComplete="new-password"
                     required
-                    minLength={8}
-                    maxLength={128}
+                    minLength={PASSWORD_MIN}
+                    maxLength={PASSWORD_MAX}
+                    aria-describedby="password-rule"
                   />
                 </label>
+                <p id="password-rule" className="small muted">
+                  {PASSWORD_HINT}
+                </p>
                 <label>
                   Repite la contraseña
                   <Input
@@ -56,8 +65,8 @@ export function RecoveryScreen({ reset = false }: { reset?: boolean }) {
                     type="password"
                     autoComplete="new-password"
                     required
-                    minLength={8}
-                    maxLength={128}
+                    minLength={PASSWORD_MIN}
+                    maxLength={PASSWORD_MAX}
                   />
                 </label>
               </>

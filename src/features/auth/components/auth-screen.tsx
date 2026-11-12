@@ -6,6 +6,11 @@ import { ThemeSelect } from "@/shared/ui/theme-select";
 import { login, register, googleLogin } from "../api/actions";
 import { BrandMark } from "@/shared/ui/brand-mark";
 import { AuthOrbit } from "./auth-orbit";
+import {
+  PASSWORD_HINT,
+  PASSWORD_MAX,
+  PASSWORD_MIN,
+} from "../api/password-policy";
 export function AuthScreen({
   mode,
   next,
@@ -101,12 +106,18 @@ export function AuthScreen({
                 type="password"
                 name="password"
                 autoComplete={signup ? "new-password" : "current-password"}
-                minLength={8}
-                maxLength={128}
+                minLength={signup ? PASSWORD_MIN : undefined}
+                maxLength={PASSWORD_MAX}
                 required
-                placeholder="Al menos 8 caracteres"
+                placeholder={signup ? "Crea una contraseña" : "Tu contraseña"}
+                aria-describedby={signup ? "password-rule" : undefined}
               />
             </label>
+            {signup && (
+              <p id="password-rule" className="small muted">
+                {PASSWORD_HINT}
+              </p>
+            )}
           </ActionForm>
           {!signup && (
             <p className="small">

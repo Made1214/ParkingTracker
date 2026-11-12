@@ -53,7 +53,7 @@ describe("password recovery", () => {
   });
   it("rejects mismatched passwords without mutating auth", async () => {
     const form = new FormData();
-    form.set("password", "longpassword");
+    form.set("password", "longpassword1");
     form.set("confirm_password", "different");
     expect((await resetPassword({}, form)).error).toContain("no coinciden");
     expect(mocks.update).not.toHaveBeenCalled();
@@ -61,17 +61,17 @@ describe("password recovery", () => {
   it("requires a verified session before changing the password", async () => {
     mocks.requireUser.mockRejectedValue(new Error("redirect to login"));
     const form = new FormData();
-    form.set("password", "longpassword");
-    form.set("confirm_password", "longpassword");
+    form.set("password", "longpassword1");
+    form.set("confirm_password", "longpassword1");
     await expect(resetPassword({}, form)).rejects.toThrow("redirect to login");
     expect(mocks.update).not.toHaveBeenCalled();
   });
   it("redirects after a successful password change", async () => {
     const form = new FormData();
-    form.set("password", "longpassword");
-    form.set("confirm_password", "longpassword");
+    form.set("password", "longpassword1");
+    form.set("confirm_password", "longpassword1");
     await resetPassword({}, form);
-    expect(mocks.update).toHaveBeenCalledWith({ password: "longpassword" });
+    expect(mocks.update).toHaveBeenCalledWith({ password: "longpassword1" });
     expect(mocks.redirect).toHaveBeenCalledWith("/profile?password=updated");
   });
 });

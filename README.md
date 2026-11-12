@@ -55,6 +55,20 @@ the app to boot:
 read at runtime: the Google OAuth client pair (configured on the Supabase Auth
 provider settings), and `HEALTH_CHECK_SECRET` (for the `/api/health` endpoint).
 
+## Password rules
+
+New passwords (sign-up and password reset) need **10 or more characters with
+letters and digits**. The rule lives in
+`src/features/auth/api/password-policy.ts` and must match Supabase Auth:
+
+- Local stack and CI: `supabase/config.toml` (`minimum_password_length = 10`,
+  `password_requirements = "letters_digits"`).
+- Staging and Production: Authentication → Sign In / Providers → Email, same
+  two values. Leaked password protection needs the Pro plan.
+
+Signing in does not apply the rule, so accounts created before it keep
+working.
+
 ## Scripts
 
 | Command | Description |
