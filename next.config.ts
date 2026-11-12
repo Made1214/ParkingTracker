@@ -7,8 +7,17 @@ const supabaseOrigin = supabaseUrl.origin;
 const supabaseWsOrigin = `${supabaseUrl.protocol === "https:" ? "wss:" : "ws:"}//${supabaseUrl.host}`;
 const isDev = process.env.NODE_ENV === "development";
 // Sentry (opcional): el navegador envía los errores al host del DSN.
-const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN?.trim();
-const sentryOrigin = sentryDsn ? ` ${new URL(sentryDsn).origin}` : "";
+// Un DSN mal escrito no debe tumbar el build: se ignora en la CSP.
+function sentryCspOrigin(dsn?: string) {
+  if (!dsn?.trim()) return "";
+  try {
+    const { protocol, origin } = new URL(dsn.trim());
+    return protocol === "https:" ? ` ${origin}` : "";
+  } catch {
+    return "";
+  }
+}
+const sentryOrigin = sentryCspOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN);
 // En desarrollo, Vercel Analytics carga su script de depuración desde aquí.
 const vercelScripts = isDev ? " https://va.vercel-scripts.com" : "";
 
