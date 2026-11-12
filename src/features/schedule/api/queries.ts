@@ -1,5 +1,6 @@
 import "server-only";
 import { requireUser } from "@/features/auth";
+import { annotateTimeline } from "./timeline";
 
 export async function getSchedule(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(
@@ -37,7 +38,8 @@ export async function getSchedule(groupId: string, eventId: string) {
     throw new Error("No se pudo cargar el cronograma.");
   const scheduled = new Set(items.data.map((item) => item.proposal_id));
   return {
-    items: items.data,
+    // Hora del servidor: misma marca en servidor y cliente al hidratar.
+    items: annotateTimeline(items.data, Date.now()),
     event: event.data,
     // Mismas reglas que private.can_manage_schedule en la base de datos.
     canEdit:
