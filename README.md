@@ -6,6 +6,8 @@ RSVPs, schedules, polls, shared expenses, photos, and stats. See the
 
 ## Documentation
 
+New here? Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+
 Project docs live in [docs/](docs/), including the [PRD](docs/01-PRD-Parking-Tracker.md).
 What is still missing before launch, checked against the docs and ClickUp, is
 tracked in [docs/pendientes-parking-tracker.md](docs/pendientes-parking-tracker.md).
@@ -70,6 +72,7 @@ provider settings), and `HEALTH_CHECK_SECRET` (for the `/api/health` endpoint).
 | `pnpm format:check` | Verify formatting without writing. |
 | `pnpm db:start` | Start the local Supabase Docker stack (migrations + seed). |
 | `pnpm db:test` | Run the pgTAP RLS test suite against the local stack. |
+| `pnpm gen:types` / `pnpm gen:types:staging` | Regenerate `src/shared/supabase/types.generated.ts` from the local stack or from Staging (needs `supabase login`). |
 
 ## Product scope (MVP)
 
