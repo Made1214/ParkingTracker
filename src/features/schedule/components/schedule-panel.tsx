@@ -1,4 +1,9 @@
-import { CalendarPlus, EllipsisVertical, Plus } from "lucide-react";
+import {
+  CalendarPlus,
+  EllipsisVertical,
+  Plus,
+  TriangleAlert,
+} from "lucide-react";
 import { Disclosure } from "@/shared/ui/disclosure";
 import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
@@ -109,7 +114,12 @@ export async function SchedulePanel({
       {items.length ? (
         <ol className={styles.timeline}>
           {items.map((item, index) => (
-            <li key={item.id} className={styles.item}>
+            <li
+              key={item.id}
+              className={styles.item}
+              data-current={item.current || undefined}
+              aria-current={item.current ? "time" : undefined}
+            >
               <span className={styles.time}>
                 {panamaTime(item.starts_at)}
                 {item.ends_at && (
@@ -120,13 +130,31 @@ export async function SchedulePanel({
               </span>
               <span className={styles.rail} aria-hidden="true">
                 <span
-                  className={item.proposal_id ? styles.dotProposal : styles.dot}
+                  className={
+                    item.current
+                      ? styles.dotNow
+                      : item.proposal_id
+                        ? styles.dotProposal
+                        : styles.dot
+                  }
                 />
                 {index < items.length - 1 && <span className={styles.line} />}
               </span>
               <div className={styles.body}>
+                {item.current && (
+                  <span className={styles.now}>
+                    <span className="status-beacon" aria-hidden="true" />
+                    AHORA
+                  </span>
+                )}
                 <h3>{item.title}</h3>
                 {item.description && <p>{item.description}</p>}
+                {item.overlaps.length > 0 && (
+                  <p className={styles.overlap}>
+                    <TriangleAlert size={14} aria-hidden="true" />
+                    Se cruza con {item.overlaps.join(", ")}
+                  </p>
+                )}
                 {item.proposal_id && (
                   <span className="badge">Propuesta del grupo</span>
                 )}
