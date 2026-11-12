@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft, Settings2, TrendingUp } from "lucide-react";
-import { EventList, CreateEventForm, listEvents } from "@/features/events";
+import {
+  EventList,
+  CreateEventForm,
+  listEventPage,
+  listEvents,
+  type EventTab,
+} from "@/features/events";
 import { publicEnv } from "@/shared/lib/env";
 import { initials } from "@/shared/lib/utils";
 import { Card } from "@/shared/ui/card";
@@ -10,10 +16,20 @@ import { GroupImage } from "./group-image";
 import styles from "./group.module.css";
 import { Motion } from "@/shared/ui/motion";
 
-export async function GroupScreen({ groupId }: { groupId: string }) {
-  const [{ group, members, user }, events] = await Promise.all([
+export async function GroupScreen({
+  groupId,
+  tab,
+  cursor,
+}: {
+  groupId: string;
+  tab: EventTab;
+  /** Id de la última salida de la página anterior (`?desde=`). */
+  cursor?: string;
+}) {
+  const [{ group, members, user }, events, page] = await Promise.all([
     getGroup(groupId),
     listEvents(groupId),
+    listEventPage(groupId, tab, cursor),
   ]);
   const name = (member: (typeof members)[number]) =>
     member.user_id === user.id
@@ -39,6 +55,15 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
   const finished = events.filter((e) => e.status === "finished").length;
   const upcoming = events.filter((e) => e.status === "published").length;
   const drafts = events.filter((e) => e.status === "draft").length;
+  const cancelled = events.filter((e) => e.status === "cancelled").length;
+  const tabs = [
+    { value: "proximas", label: "Próximas", count: upcoming + drafts },
+    { value: "pasadas", label: "Pasadas", count: finished + cancelled },
+  ] as const;
+  const tabHref = (value: EventTab) =>
+    value === "pasadas"
+      ? `/groups/${groupId}?salidas=pasadas#group-events`
+      : `/groups/${groupId}#group-events`;
 
   return (
     <>
@@ -112,9 +137,40 @@ export async function GroupScreen({ groupId }: { groupId: string }) {
         <section className={styles.events} aria-labelledby="group-events">
           <div className={styles.sectionHead}>
             <h2 id="group-events">Salidas</h2>
-            <span className="small muted">Próximas primero</span>
           </div>
-          <EventList groupId={groupId} events={events} />
+          <nav className={styles.eventTabs} aria-label="Filtrar salidas">
+            {tabs.map((item) => (
+              <Link
+                key={item.value}
+                href={tabHref(item.value)}
+                aria-current={item.value === tab ? "page" : undefined}
+                scroll={false}
+              >
+                {item.label}
+                <span className={styles.tabCount}>{item.count}</span>
+              </Link>
+            ))}
+          </nav>
+          <EventList groupId={groupId} events={page.events} tab={tab} />
+          {(page.nextCursor || !page.isFirstPage) && (
+            <nav className={styles.pager} aria-label="Más salidas">
+              {!page.isFirstPage && (
+                <Link href={tabHref(tab)} scroll={false}>
+                  {tab === "pasadas"
+                    ? "← Volver a las más recientes"
+                    : "← Volver a las más cercanas"}
+                </Link>
+              )}
+              {page.nextCursor && (
+                <Link
+                  href={`/groups/${groupId}?${tab === "pasadas" ? "salidas=pasadas&" : ""}desde=${page.nextCursor}#group-events`}
+                  scroll={false}
+                >
+                  {tab === "pasadas" ? "Ver más antiguas →" : "Ver más →"}
+                </Link>
+              )}
+            </nav>
+          )}
           <Card className={styles.members}>
             <div className={styles.sectionHead}>
               <h2>Miembros</h2>

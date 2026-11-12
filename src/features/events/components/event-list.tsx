@@ -10,21 +10,26 @@ export const statusLabels = {
 };
 type EventSummary = Awaited<ReturnType<typeof listEvents>>[number];
 
-/** Próximas primero (por fecha) y después el historial, del más reciente. */
+/** Una página de salidas, ya ordenada por la consulta. */
 export function EventList({
   groupId,
-  events: all,
+  events,
+  tab = "proximas",
 }: {
   groupId: string;
   events: EventSummary[];
+  tab?: "proximas" | "pasadas";
 }) {
-  const upcoming = all.filter(
-    (event) => event.status === "published" || event.status === "draft",
-  );
-  const past = all.filter((event) => !upcoming.includes(event)).reverse();
-  const events = [...upcoming, ...past];
   if (!events.length)
-    return (
+    return tab === "pasadas" ? (
+      <div className="card empty-state">
+        <CalendarDays size={30} />
+        <h3>Todavía no hay historia.</h3>
+        <p className="muted">
+          Las salidas terminadas o canceladas aparecerán aquí.
+        </p>
+      </div>
+    ) : (
       <div className="card empty-state">
         <CalendarDays size={30} />
         <h3>El próximo plan puede ser tuyo.</h3>
