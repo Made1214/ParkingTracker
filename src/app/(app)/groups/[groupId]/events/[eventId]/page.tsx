@@ -4,8 +4,13 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ groupId: string; eventId: string }>;
-  searchParams: Promise<{ section?: string | string[] }>;
+  searchParams: Promise<{
+    section?: string | string[];
+    comentarios?: string | string[];
+  }>;
 }) {
-  const { section } = await searchParams;
-  return <EventScreen {...await params} section={section} />;
+  const { section, comentarios } = await searchParams;
+  return (
+    <EventScreen {...await params} section={section} comments={comentarios} />
+  );
 }

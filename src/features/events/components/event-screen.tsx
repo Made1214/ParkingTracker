@@ -17,7 +17,7 @@ import {
 } from "@/features/proposals";
 import { TasksPanel, getTaskProgress } from "@/features/tasks";
 import { SchedulePanel } from "@/features/schedule";
-import { CommentsPanel } from "@/features/comments";
+import { CommentsPanel, commentLimit } from "@/features/comments";
 import { GalleryPanel } from "@/features/gallery";
 import {
   ExpensesPanel,
@@ -46,10 +46,13 @@ export async function EventScreen({
   groupId,
   eventId,
   section,
+  comments,
 }: {
   groupId: string;
   eventId: string;
   section?: string | string[];
+  /** `?comentarios=`: cuántos hilos de comentarios mostrar. */
+  comments?: string | string[];
 }) {
   const [{ event, organizer, user, canRespond, canManage }, live] =
     await Promise.all([
@@ -151,7 +154,11 @@ export async function EventScreen({
                 </Card>
               )}
               <Suspense fallback={<PanelSkeleton label="comentarios" />}>
-                <CommentsPanel groupId={groupId} eventId={eventId} />
+                <CommentsPanel
+                  groupId={groupId}
+                  eventId={eventId}
+                  limit={commentLimit(comments)}
+                />
               </Suspense>
               {canManage && (
                 <div id="gestionar" className={styles.manage}>

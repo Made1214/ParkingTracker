@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { Card } from "@/shared/ui/card";
 import { ActionForm } from "@/shared/ui/action-form";
 import { initials, timeAgo } from "@/shared/lib/utils";
 import { createComment, deleteComment, updateComment } from "../api/actions";
-import { getComments } from "../api/queries";
+import { COMMENT_PAGE_SIZE, getComments } from "../api/queries";
 import { CommentsRealtime } from "./comments-realtime";
 import styles from "./comments.module.css";
 
@@ -13,14 +14,19 @@ type Item = Omit<Thread, "replies"> & { replies?: Thread["replies"] };
 export async function CommentsPanel({
   groupId,
   eventId,
+  limit,
 }: {
   groupId: string;
   eventId: string;
+  /** Hilos a mostrar (`?comentarios=`); por defecto, una página. */
+  limit?: number;
 }) {
-  const { threads, total, now, canComment } = await getComments(
+  const { threads, total, now, canComment, hasMore } = await getComments(
     groupId,
     eventId,
+    limit,
   );
+  const shown = threads.reduce((n, thread) => n + 1 + thread.replies.length, 0);
   const hidden = (
     <>
       <input type="hidden" name="group_id" value={groupId} />
@@ -135,6 +141,17 @@ export async function CommentsPanel({
         <h2 id="comments-title">Comentarios</h2>
         <span className="count">{total}</span>
       </div>
+      {hasMore && (
+        <Link
+          className={styles.more}
+          href={`/groups/${groupId}/events/${eventId}?section=plan&comentarios=${(limit ?? COMMENT_PAGE_SIZE) + COMMENT_PAGE_SIZE}#comments-title`}
+          scroll={false}
+          prefetch={false}
+        >
+          Ver comentarios anteriores
+          <span className="small muted"> ({total - shown} más)</span>
+        </Link>
+      )}
       {threads.length ? (
         <div className={styles.threads}>
           {threads.map((thread) => comment(thread, false))}

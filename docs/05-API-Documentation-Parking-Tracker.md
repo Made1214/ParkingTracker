@@ -109,6 +109,8 @@ Nota MVP (RF-701): todos los grupos operan en **USD**; no hay selector de moneda
 | GET | /groups/{groupId}/events/{eventId}/photos/{photoId} | Entrega de foto: RLS + URL firmada por el servidor (TTL 60 s), transmitida al cliente sin exponerla |
 | DELETE | /photos/{photoId} | Eliminar foto (autor o admin) |
 
+Nota MVP (comentarios paginados): la pantalla de la salida muestra los 20 hilos más recientes con todas sus respuestas; "Ver comentarios anteriores" amplía la vista de 20 en 20 (`?comentarios=40`, hasta 200 hilos). Las respuestas no se paginan porque solo hay un nivel.
+
 Nota: las fotos **no** usan Supabase Storage. La subida y la entrega se firman en el servidor contra Cloudinary (recurso autenticado) solo después de re-verificar la membresía del grupo con RLS; el cliente nunca recibe una URL firmada. La cuota es de 100 MB por grupo, aplicada por un trigger de la base de datos.
 
 ## 3.8 Historial y estadísticas
