@@ -144,6 +144,7 @@ describe("updateComment", () => {
       {},
       form({ group_id: group, event_id: event, id: comment, body: "Editado" }),
     );
+    expect(query.update).toHaveBeenCalled();
     expect(result.error).toContain("tus propios comentarios");
     expect(mocks.revalidate).not.toHaveBeenCalled();
   });

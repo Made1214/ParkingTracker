@@ -15,7 +15,10 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "db:start": "supabase start",
-    "db:test": "supabase test db"
+    "db:test": "supabase test db",
+    "gen:types": "supabase gen types typescript --local --schema public > src/shared/supabase/types.generated.ts",
+    "gen:types:staging": "supabase gen types typescript --project-id xyubdpmdrvaxvtiwbnro --schema public > src/shared/supabase/types.generated.ts",
+    "prepare": "husky || true"
   },
   "engines": {
     "node": ">=22"
@@ -51,10 +54,19 @@
     "@vitest/coverage-v8": "5.1.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.5",
+    "husky": "9.1.7",
+    "lint-staged": "15.5.2",
     "prettier": "3.9.10",
     "supabase": "2.122.1",
     "tailwindcss": "4.3.4",
     "typescript": "6.0.3",
     "vitest": "5.1.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs}": [
+      "eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{css,json,yml,yaml}": "prettier --write"
   }
 }
