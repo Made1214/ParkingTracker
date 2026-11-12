@@ -1013,6 +1013,10 @@ export type Database = {
           votes: number
         }[]
       }
+      is_username_available: {
+        Args: { p_username: string }
+        Returns: boolean
+      }
       join_group_by_invite: {
         Args: { p_code: string }
         Returns: {

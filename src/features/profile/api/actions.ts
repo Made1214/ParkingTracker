@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireUser } from "@/features/auth";
 import { text, databaseError, type ActionState } from "@/shared/lib/forms";
 import { imageValidationError } from "@/shared/lib/images";
+import { USERNAME_PATTERN, normalizeUsername } from "./username";
 import {
   deletePrivateImage,
   mediaConfigured,
@@ -48,6 +49,23 @@ export async function updateProfile(
     return { error: "No se pudo guardar tu perfil. Inténtalo de nuevo." };
   revalidatePath("/", "layout");
   return { success: "Perfil actualizado." };
+}
+
+export type UsernameStatus = "available" | "taken" | "invalid" | "error";
+
+/**
+ * Disponibilidad de un usuario mientras se escribe (plan E2.F3.T2). Es una
+ * server action (POST), así que cuenta para el límite de 60 por minuto.
+ */
+export async function checkUsername(value: string): Promise<UsernameStatus> {
+  const username = normalizeUsername(value);
+  if (!USERNAME_PATTERN.test(username)) return "invalid";
+  const { supabase } = await requireUser("/profile");
+  const { data, error } = await supabase.rpc("is_username_available", {
+    p_username: username,
+  });
+  if (error) return "error";
+  return data ? "available" : "taken";
 }
 
 export async function updateAvatar(

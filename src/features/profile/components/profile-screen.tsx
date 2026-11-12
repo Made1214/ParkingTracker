@@ -5,6 +5,7 @@ import { InstallCard } from "@/shared/pwa";
 import { Card } from "@/shared/ui/card";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 import { ProfileForm } from "./profile-form";
+import { suggestUsername } from "../api/username";
 
 export async function ProfileScreen({
   passwordUpdated = false,
@@ -35,7 +36,11 @@ export async function ProfileScreen({
           Tu contraseña se actualizó.
         </p>
       )}
-      <ProfileForm key={profile.updated_at} profile={profile}>
+      <ProfileForm
+        key={profile.updated_at}
+        profile={profile}
+        suggestion={profile.username ? null : suggestUsername(user.email)}
+      >
         <Card className="appearance-card">
           <div>
             <h2>Apariencia</h2>
