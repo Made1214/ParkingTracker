@@ -1,4 +1,4 @@
--- 022_photo_comment_hardening.sql
+-- 023_photo_comment_hardening.sql
 -- Verifies database security hardening for gallery photos, event comments,
 -- and the activity_proposals_insert InitPlan policy (findings 1.1–1.5, 8.1).
 

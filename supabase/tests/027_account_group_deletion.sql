@@ -1,4 +1,4 @@
--- 025_account_group_deletion.sql
+-- 027_account_group_deletion.sql
 -- API §3.2 (delete group) and RNF-12 (delete account): the RPCs delete
 -- the rows and hand every Cloudinary public_id back to the caller.
 begin;
