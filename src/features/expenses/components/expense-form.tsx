@@ -27,6 +27,7 @@ export function ExpenseForm({
   const [amount, setAmount] = useState("");
   const [mode, setMode] = useState<"equal" | "custom">("equal");
   const [selected, setSelected] = useState(() => members.map((m) => m.id));
+  const [payer, setPayer] = useState(userId);
   const [custom, setCustom] = useState<Record<string, string>>({});
   const [idempotencyKey, setIdempotencyKey] = useState(() =>
     crypto.randomUUID(),
@@ -35,7 +36,7 @@ export function ExpenseForm({
   const total = toCents(amount) ?? 0;
   const preview = new Map(
     selected.length && total
-      ? equalShares(total, selected).map((s) => [s.userId, s.cents])
+      ? equalShares(total, selected, payer).map((s) => [s.userId, s.cents])
       : [],
   );
   const customSum = selected.reduce(
@@ -78,7 +79,12 @@ export function ExpenseForm({
       <div className={styles.row}>
         <label className={styles.grow}>
           Pagó
-          <select className="input" name="paid_by" defaultValue={userId}>
+          <select
+            className="input"
+            name="paid_by"
+            value={payer}
+            onChange={(event) => setPayer(event.target.value)}
+          >
             {members.map((member) => (
               <option key={member.id} value={member.id}>
                 {member.name}
