@@ -61,3 +61,29 @@ export async function getShellData() {
     displayName: profile.data?.display_name ?? "",
   };
 }
+
+/**
+ * Lo que se ve de un grupo antes de aceptar su invitación (plan E3.F2.T1):
+ * nombre, descripción y tamaño. `null` si el código no existe o no tiene
+ * el formato de 8 caracteres.
+ */
+export async function getInvitePreview(code: string) {
+  const normalized = code.trim().toUpperCase();
+  const { supabase } = await requireUser(`/join/${encodeURIComponent(code)}`);
+  if (!/^[A-Z0-9]{8}$/.test(normalized)) return null;
+  const { data, error } = await supabase.rpc("get_invite_preview", {
+    p_code: normalized,
+  });
+  if (error) throw new Error("No se pudo comprobar la invitación.");
+  const group = data[0];
+  return group
+    ? {
+        code: normalized,
+        groupId: group.group_id,
+        name: group.name,
+        description: group.description,
+        memberCount: group.member_count,
+        alreadyMember: group.already_member,
+      }
+    : null;
+}

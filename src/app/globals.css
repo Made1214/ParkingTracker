@@ -1058,6 +1058,37 @@ hr {
   font-size: var(--text-4xl);
   margin-top: var(--space-4);
 }
+.join-card > .button {
+  margin-top: var(--space-4);
+}
+.join-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+.join-group h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.join-group-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  background: var(--surface-tint);
+  color: var(--accent-text);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--text-3xl);
+}
+.join-group-size {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+}
 @media (max-width: 850px) {
   .app-content {
     padding-bottom: calc(76px + env(safe-area-inset-bottom));

@@ -12,6 +12,7 @@ Application code uses only the public key plus the user's JWT. Elevated operatio
 | `private.guard_membership_changes()`                           | Lock group and ensure at least one admin remains on role/member changes      | trigger only                    |
 | `public.create_group(text,text)`                               | Atomically create a group and its first admin; checks `auth.uid()`           | authenticated RPC               |
 | `public.join_group_by_invite(text)`                            | Join before membership exists; verifies identity/code, idempotent insert     | authenticated RPC               |
+| `public.get_invite_preview(text)`                              | Show name, description and size of the group behind a code to a non-member   | authenticated RPC               |
 | `public.create_activity_proposal(uuid,text,text)`              | Lock and validate the event and membership before creating a proposal        | authenticated RPC               |
 | `public.review_activity_proposal(uuid,public.proposal_status)` | Lock event and proposal; verify organizer or admin before status change      | authenticated RPC               |
 | `public.create_poll(uuid,text,text[],boolean,timestamptz)`     | Atomically create validated options for a member and an open event           | authenticated RPC               |
