@@ -20,20 +20,6 @@
   gap: var(--space-6);
 }
 
-.cancelBanner {
-  display: grid;
-  gap: var(--space-1);
-  margin-bottom: var(--space-5);
-  padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--danger-border);
-  border-radius: var(--radius-xl);
-  background: var(--danger-bg);
-  color: var(--danger-text);
-}
-.cancelBanner p {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
 .skeleton {
   padding: var(--space-6);
   border: 1px solid var(--line);
@@ -478,4 +464,20 @@
   .photoBannerAction {
     width: 100%;
   }
+}
+
+/* Salida cancelada: motivo visible para todo el grupo (E4.F1.T4). */
+.cancelBanner {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-xl);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+.cancelBanner p {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
