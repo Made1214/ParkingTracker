@@ -1,5 +1,6 @@
 import { createTask, updateTask } from "../api/actions";
 import { getTasks } from "../api/queries";
+import { isOverdue } from "../api/overdue";
 import type React from "react";
 import { Card } from "@/shared/ui/card";
 import { initials, panamaInput } from "@/shared/lib/utils";
@@ -16,7 +17,7 @@ export async function TasksPanel({
   eventId: string;
   readOnly: boolean;
 }) {
-  const { tasks, members, event, user } = await getTasks(groupId, eventId);
+  const { tasks, members, event, user, now } = await getTasks(groupId, eventId);
   const isAdmin = members.some(
     (member) => member.user_id === user.id && member.role === "admin",
   );
@@ -57,6 +58,7 @@ export async function TasksPanel({
           status: task.status,
           assigneeId: task.assignee_id,
           dueAt: task.due_at,
+          overdue: isOverdue(task.due_at, task.status, now),
           canEdit:
             !readOnly &&
             (isAdmin ||

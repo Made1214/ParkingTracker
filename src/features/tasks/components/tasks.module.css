@@ -299,6 +299,13 @@
   font-size: var(--text-xs);
   margin-top: var(--space-1);
 }
+.dueDate[data-overdue] {
+  color: var(--danger-text);
+  font-weight: var(--weight-bold);
+}
+.overdue {
+  font-weight: var(--weight-bold);
+}
 .createFields {
   display: grid;
   grid-template-columns:

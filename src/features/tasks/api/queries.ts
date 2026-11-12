@@ -23,7 +23,14 @@ export async function getTasks(groupId: string, eventId: string) {
   ]);
   if (tasks.error || members.error || event.error || !event.data)
     throw new Error("No se pudieron cargar las tareas.");
-  return { tasks: tasks.data, members: members.data, event: event.data, user };
+  return {
+    tasks: tasks.data,
+    members: members.data,
+    event: event.data,
+    user,
+    // Hora del servidor para marcar tareas vencidas sin desfase al hidratar.
+    now: Date.now(),
+  };
 }
 
 /** Progreso de tareas de una salida para el resumen del plan. */

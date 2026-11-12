@@ -32,6 +32,7 @@ import { statusLabels } from "./event-list";
 import { ManageEvent } from "./manage-event";
 import { EventCover } from "./event-cover";
 import { EventTabs } from "./event-tabs";
+import { PanelBoundary } from "./panel-boundary";
 import styles from "./event-screen.module.css";
 
 const sections = [
@@ -142,9 +143,11 @@ export async function EventScreen({
         <>
           <div className={styles.planGrid}>
             <div className={styles.planMain}>
-              <Suspense fallback={<PanelSkeleton label="cronograma" />}>
-                <SchedulePanel groupId={groupId} eventId={eventId} />
-              </Suspense>
+              <PanelBoundary label="cronograma">
+                <Suspense fallback={<PanelSkeleton label="cronograma" />}>
+                  <SchedulePanel groupId={groupId} eventId={eventId} />
+                </Suspense>
+              </PanelBoundary>
               {event.description && (
                 <Card className={styles.notes}>
                   <h2>
@@ -153,13 +156,15 @@ export async function EventScreen({
                   <p>{event.description}</p>
                 </Card>
               )}
-              <Suspense fallback={<PanelSkeleton label="comentarios" />}>
-                <CommentsPanel
-                  groupId={groupId}
-                  eventId={eventId}
-                  limit={commentLimit(comments)}
-                />
-              </Suspense>
+              <PanelBoundary label="comentarios">
+                <Suspense fallback={<PanelSkeleton label="comentarios" />}>
+                  <CommentsPanel
+                    groupId={groupId}
+                    eventId={eventId}
+                    limit={commentLimit(comments)}
+                  />
+                </Suspense>
+              </PanelBoundary>
               {canManage && (
                 <div id="gestionar" className={styles.manage}>
                   <ManageEvent event={event} />
@@ -203,42 +208,58 @@ export async function EventScreen({
                   </Link>
                 </Motion>
               )}
-              <Suspense fallback={null}>
-                <PlanStats groupId={groupId} eventId={eventId} />
-              </Suspense>
+              <PanelBoundary label="el resumen" quiet>
+                <Suspense fallback={null}>
+                  <PlanStats groupId={groupId} eventId={eventId} />
+                </Suspense>
+              </PanelBoundary>
             </aside>
           </div>
         </>
       )}
       {active === "votaciones" && (
         <div className={styles.panels}>
-          <Suspense fallback={<PanelSkeleton label="votaciones" />}>
-            <PollsPanel groupId={groupId} eventId={eventId} open={open} />
-          </Suspense>
+          <PanelBoundary label="votaciones">
+            <Suspense fallback={<PanelSkeleton label="votaciones" />}>
+              <PollsPanel groupId={groupId} eventId={eventId} open={open} />
+            </Suspense>
+          </PanelBoundary>
           <div className={styles.side}>
             {open && (
               <PollComposer groupId={groupId} eventId={eventId} standalone />
             )}
-            <Suspense fallback={<PanelSkeleton label="propuestas" />}>
-              <ProposalsPanel groupId={groupId} eventId={eventId} open={open} />
-            </Suspense>
+            <PanelBoundary label="propuestas">
+              <Suspense fallback={<PanelSkeleton label="propuestas" />}>
+                <ProposalsPanel
+                  groupId={groupId}
+                  eventId={eventId}
+                  open={open}
+                />
+              </Suspense>
+            </PanelBoundary>
           </div>
         </div>
       )}
       {active === "gastos" && (
-        <Suspense fallback={<PanelSkeleton label="gastos" />}>
-          <ExpensesPanel groupId={groupId} eventId={eventId} />
-        </Suspense>
+        <PanelBoundary label="gastos">
+          <Suspense fallback={<PanelSkeleton label="gastos" />}>
+            <ExpensesPanel groupId={groupId} eventId={eventId} />
+          </Suspense>
+        </PanelBoundary>
       )}
       {active === "fotos" && (
-        <Suspense fallback={<PanelSkeleton label="fotos" />}>
-          <GalleryPanel groupId={groupId} eventId={eventId} />
-        </Suspense>
+        <PanelBoundary label="fotos">
+          <Suspense fallback={<PanelSkeleton label="fotos" />}>
+            <GalleryPanel groupId={groupId} eventId={eventId} />
+          </Suspense>
+        </PanelBoundary>
       )}
       {active === "tareas" && (
-        <Suspense fallback={<PanelSkeleton label="tareas" />}>
-          <TasksPanel groupId={groupId} eventId={eventId} readOnly={!open} />
-        </Suspense>
+        <PanelBoundary label="tareas">
+          <Suspense fallback={<PanelSkeleton label="tareas" />}>
+            <TasksPanel groupId={groupId} eventId={eventId} readOnly={!open} />
+          </Suspense>
+        </PanelBoundary>
       )}
     </>
   );
