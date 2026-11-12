@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaRuntime } from "@/shared/pwa";
 import "./globals.css";
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-sans" });
@@ -40,6 +42,9 @@ export default function RootLayout({
           {children}
           <PwaRuntime />
         </ThemeProvider>
+        {/* Solo envían datos en Vercel; no usan cookies ni datos personales. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

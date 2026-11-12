@@ -22,8 +22,11 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.5.0",
+    "@sentry/nextjs": "11.12.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.119.0",
+    "@vercel/analytics": "2.0.1",
+    "@vercel/speed-insights": "2.1.0",
     "class-variance-authority": "0.7.1",
     "cloudinary": "^2.11.0",
     "clsx": "2.1.1",

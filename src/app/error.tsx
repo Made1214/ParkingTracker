@@ -1,6 +1,15 @@
 "use client";
+import { useEffect } from "react";
 import { Button } from "@/shared/ui/button";
-export default function ErrorPage({ reset }: { reset: () => void }) {
+import { reportClientError } from "@/shared/lib/report-error";
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => reportClientError(error), [error]);
   return (
     <main className="app-main">
       <h1>No pudimos cargar tus planes.</h1>
