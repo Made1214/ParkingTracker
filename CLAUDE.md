@@ -87,8 +87,10 @@ schema is live anywhere, edits become new files — no exceptions.
 - **Parking Tracker Staging** (`xyubdpmdrvaxvtiwbnro`) — mirrors Prod's
   *end state*, not its full file-by-file history: it was created after
   the Cloudinary decision, so its `016_photos.sql`-equivalent went in
-  already shaped for Cloudinary, and it never applied 020/022/023 at
-  all. This is where development and testing happen, including the seed
+  already shaped for Cloudinary. Its migration history nevertheless
+  records 020/022/023 (verified on 12 Nov 2026 with `list_migrations`),
+  so `supabase db push` lines up with the repo without any
+  `migration repair`. This is where development and testing happen, including the seed
   data (`supabase/seed.sql`, once it exists). Prod never receives
   seed/test data.
 - From here forward, **every new migration is applied to Staging first**,

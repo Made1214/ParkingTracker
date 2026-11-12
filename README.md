@@ -135,15 +135,10 @@ the app.
 `STAGING_PROJECT_REF` variable; without them it skips. Production is
 never touched by CI.
 
-**One-time step before turning auto-apply on.** Staging's history has no
-rows for `020`, `022` and `023` (they were skipped on purpose), so
-`db push` refuses to run until they are marked as applied there:
-
-```bash
-pnpm exec supabase link --project-ref xyubdpmdrvaxvtiwbnro
-pnpm exec supabase migration repair --status applied 020 022 023
-pnpm exec supabase migration list   # local and remote columns must match
-```
+Staging's migration history already records every file up to
+`20261114010000` (checked on 12 Nov 2026), including `020`, `022` and
+`023`, so `db push` needs no `migration repair` before auto-apply is turned
+on. Check with `pnpm exec supabase migration list` after linking.
 
 Full design rationale (RLS policy shapes, the tenant-integrity attack
 composite FKs close, `FORCE ROW LEVEL SECURITY`, view security, RPC
