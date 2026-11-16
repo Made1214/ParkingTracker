@@ -16,6 +16,11 @@ vi.mock("@/shared/cloudinary/server", () => ({
 
 import { uploadPhoto } from "./actions";
 
+// Cabecera mínima de un WebP: el servidor comprueba los bytes, no el nombre.
+const WEBP_HEADER = new Uint8Array([
+  0x52, 0x49, 0x46, 0x46, 0x24, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
+]);
+
 const group = "10000000-0000-4000-8000-000000000001";
 const eventId = "20000000-0000-4000-8000-000000000001";
 
@@ -45,7 +50,7 @@ function setup(
   form.set("event_id", eventId);
   form.set(
     "photo",
-    new File(["image-bytes"], "photo.webp", { type: "image/webp" }),
+    new File([WEBP_HEADER], "photo.webp", { type: "image/webp" }),
   );
   return { event, photos, form };
 }

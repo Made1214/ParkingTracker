@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/features/auth";
 import { type ActionState, text } from "@/shared/lib/forms";
-import { imageValidationError } from "@/shared/lib/images";
+import { MAX_PHOTO_BYTES, imageValidationError } from "@/shared/lib/images";
 import {
   deletePrivateImage,
   mediaConfigured,
@@ -42,7 +42,7 @@ export async function uploadPhoto(
     };
   const file = form.get("photo");
   if (!(file instanceof File)) return { error: "Selecciona una imagen." };
-  const validationError = imageValidationError(file);
+  const validationError = await imageValidationError(file);
   if (validationError) return { error: validationError };
 
   const publicId = `photos/${group_id}/${event_id}/${randomUUID()}`;
@@ -57,7 +57,7 @@ export async function uploadPhoto(
     if (
       !Number.isInteger(bytes) ||
       bytes <= 0 ||
-      bytes > 10 * 1024 * 1024 ||
+      bytes > MAX_PHOTO_BYTES ||
       !Number.isInteger(width) ||
       width <= 0 ||
       !Number.isInteger(height) ||

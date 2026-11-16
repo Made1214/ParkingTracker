@@ -178,7 +178,7 @@ export async function updateGroupAvatar(
   const file = form.get("avatar");
   if (!remove) {
     if (!(file instanceof File)) return { error: "Selecciona una imagen." };
-    const issue = imageValidationError(file);
+    const issue = await imageValidationError(file);
     if (issue) return { error: issue };
   }
   let publicId: string | null = null;

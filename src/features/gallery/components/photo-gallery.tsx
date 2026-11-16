@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ChevronLeft, ChevronRight, ImagePlus, Images, X } from "lucide-react";
 import type { ActionState } from "@/shared/lib/forms";
 import { ActionForm } from "@/shared/ui/action-form";
+import { MAX_PHOTO_BYTES } from "@/shared/lib/images";
 import { dateLabel } from "@/shared/lib/utils";
 import { swipeStep } from "../lib/swipe";
 import styles from "./gallery.module.css";
@@ -19,7 +20,6 @@ type Photo = {
 };
 type Action = (state: ActionState, form: FormData) => Promise<ActionState>;
 
-const MAX_ORIGINAL_BYTES = 10 * 1024 * 1024;
 const MAX_SIDE = 1600;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -180,7 +180,7 @@ export function PhotoGallery({
       for (const [position, original] of files.entries()) {
         if (!TYPES.includes(original.type))
           failed.push(`${original.name}: usa JPG, PNG o WebP.`);
-        else if (original.size > MAX_ORIGINAL_BYTES)
+        else if (original.size > MAX_PHOTO_BYTES)
           failed.push(`${original.name}: supera los 10 MB.`);
         else {
           const data = new FormData();

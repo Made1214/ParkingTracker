@@ -14,6 +14,11 @@ vi.mock("@/shared/cloudinary/server", () => ({
 }));
 import { updateEventCover } from "./cover-actions";
 
+// Cabecera mínima de un WebP: el servidor comprueba los bytes, no el nombre.
+const WEBP_HEADER = new Uint8Array([
+  0x52, 0x49, 0x46, 0x46, 0x24, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
+]);
+
 const group = "10000000-0000-4000-8000-000000000001";
 const eventId = "20000000-0000-4000-8000-000000000001";
 const original = `events/${group}/${eventId}/11111111-1111-4111-8111-111111111111`;
@@ -57,7 +62,7 @@ function setup(owner = true, saved = true) {
   form.set("group_id", group);
   form.set(
     "cover",
-    new File(["test image"], "cover.webp", { type: "image/webp" }),
+    new File([WEBP_HEADER], "cover.webp", { type: "image/webp" }),
   );
   return { event, form };
 }
