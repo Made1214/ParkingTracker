@@ -63,7 +63,7 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
       - if: steps.config.outputs.ready == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # El commit que pasó el CI, no el último de main.
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
