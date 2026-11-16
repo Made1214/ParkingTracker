@@ -1,4 +1,5 @@
 import { getAttendance } from "../api/queries";
+import { AttendanceRealtime } from "./attendance-realtime";
 import { AttendanceView } from "./attendance-view";
 export async function AttendancePanel({
   groupId,
@@ -13,12 +14,15 @@ export async function AttendancePanel({
 }) {
   const attendance = await getAttendance(groupId, eventId);
   return (
-    <AttendanceView
-      groupId={groupId}
-      eventId={eventId}
-      userId={userId}
-      open={open}
-      attendance={attendance}
-    />
+    <>
+      <AttendanceRealtime eventId={eventId} />
+      <AttendanceView
+        groupId={groupId}
+        eventId={eventId}
+        userId={userId}
+        open={open}
+        attendance={attendance}
+      />
+    </>
   );
 }
