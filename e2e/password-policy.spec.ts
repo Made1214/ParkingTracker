@@ -70,7 +70,12 @@ test("se puede cambiar la contraseña desde el perfil pidiendo la actual", async
     "La contraseña actual no es correcta.",
   );
 
+  // React 19 vacía todos los campos del formulario al terminar la acción, aunque
+  // haya fallado: hay que volver a llenarlos, o el navegador bloquea el envío
+  // por los campos obligatorios vacíos.
   await current.fill(seed.newPassword);
+  await next.fill("otraclave2026");
+  await repeat.fill("otraclave2026");
   await page.getByRole("button", { name: "Cambiar contraseña" }).click();
   await expect(page.locator("p[role=status]").first()).toHaveText(
     "Tu contraseña se actualizó.",
