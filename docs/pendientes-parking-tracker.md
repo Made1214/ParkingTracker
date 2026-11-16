@@ -67,10 +67,10 @@ Criterios del documento 08 que no aparecen en el código. Ordenados por priorida
 | E5.F1.T1 Cronograma | Urgent | **Aviso de solape** entre actividades (advertencia, no bloqueo). |
 | E5.F1.T2 Timeline | High | **Actividad en curso destacada** el día de la salida. |
 | E9.F2.T1 Lightbox | High | **Deslizar con el dedo** entre fotos (hoy solo flechas de teclado y botones). |
-| E1.F4.T2 AppShell | High | **Cambio rápido de grupo** (GroupSwitcher) y migas de pan. |
-| E4.F3.T3 Asistencia en vivo | Normal | Contadores de asistencia por Realtime (hoy se actualizan al recargar o por el sondeo). |
-| E7.F2.T2 Comentarios en vivo | Normal | **Insignia de no leídos** en la pestaña. |
-| E1.F4 criterio de aceptación | — | Página `/dev/ui` (o Storybook) con los componentes en claro y oscuro. |
+| ~~E1.F4.T2 AppShell~~ | High | Hecho el 16 nov: el selector de grupo ya estaba en `AppSidebar` y se añadieron las migas de pan (`shared/ui/breadcrumbs`). |
+| ~~E4.F3.T3 Asistencia en vivo~~ | Normal | Hecho el 16 nov: `event_attendance` en Realtime (migración `20261116210234`, aplicada en Staging) y `AttendanceRealtime`. |
+| ~~E7.F2.T2 Comentarios en vivo~~ | Normal | Hecho el 16 nov: insignia de no leídos en la pestaña Comentarios (en memoria, como pide la tarea). |
+| ~~E1.F4 criterio de aceptación~~ | — | Hecho el 16 nov: `/dev/ui` con los componentes en claro y oscuro (solo fuera de producción). |
 
 Fuera del MVP según la arquitectura: API REST `/api/v1`.
 
@@ -78,7 +78,7 @@ Fuera del MVP según la arquitectura: API REST `/api/v1`.
 
 ## 3. Móvil y experiencia de uso
 
-- **Plan sigue muy largo en móvil.** El documento UI/UX propone Comentarios en su propia pestaña; el plan de ClickUp (E4.F4.T1) pedía 7 pestañas y hay 5. Decidir: mover Comentarios a una pestaña o colapsar secciones.
+- ~~Plan largo en móvil~~: resuelto el 16 nov moviendo Comentarios a su propia pestaña (6 pestañas; el plan de ClickUp pedía 7 porque separaba Info y Cronograma).
 
 ---
 
