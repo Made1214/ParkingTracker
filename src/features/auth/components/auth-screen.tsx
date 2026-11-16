@@ -6,6 +6,7 @@ import { ThemeSelect } from "@/shared/ui/theme-select";
 import { login, register, googleLogin } from "../api/actions";
 import { BrandMark } from "@/shared/ui/brand-mark";
 import { AuthOrbit } from "./auth-orbit";
+import { SignedInRedirect } from "./signed-in-redirect";
 import {
   PASSWORD_HINT,
   PASSWORD_MAX,
@@ -23,6 +24,7 @@ export function AuthScreen({
   const signup = mode === "register";
   return (
     <main className="auth-layout">
+      <SignedInRedirect next={next} />
       <section className="auth-story auth-story-orbit">
         <AuthOrbit />
         <Link href="/" className="brand">
