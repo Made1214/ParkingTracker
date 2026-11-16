@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft, History } from "lucide-react";
+import { History } from "lucide-react";
 import { formatMoney } from "@/features/expenses";
+import { Breadcrumbs } from "@/shared/ui/breadcrumbs";
 import { Card } from "@/shared/ui/card";
 import { initials, shortDate } from "@/shared/lib/utils";
 import { getGroupStats } from "../api/queries";
@@ -17,9 +18,13 @@ export async function StatsScreen({ groupId }: { groupId: string }) {
   return (
     <Motion>
       <header className={styles.header}>
-        <Link className={styles.back} href={`/groups/${groupId}`}>
-          <ArrowLeft size={16} aria-hidden="true" /> Volver al grupo
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: "Inicio", href: "/groups" },
+            { label: data.groupName, href: `/groups/${groupId}` },
+            { label: "Estadísticas" },
+          ]}
+        />
         <span className="eyebrow">HISTORIAL Y ESTADÍSTICAS</span>
         <h1>{data.groupName}</h1>
       </header>

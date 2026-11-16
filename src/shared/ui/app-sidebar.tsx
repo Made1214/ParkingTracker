@@ -11,6 +11,7 @@ import {
   Images,
   ListChecks,
   LogOut,
+  MessageCircle,
   Plus,
   Settings2,
   TrendingUp,
@@ -164,6 +165,13 @@ export function AppSidebar({
               "Fotos",
               <Images size={16} aria-hidden="true" />,
               section === "fotos",
+              true,
+            )}
+            {item(
+              `${eventUrl}?section=comentarios`,
+              "Comentarios",
+              <MessageCircle size={16} aria-hidden="true" />,
+              section === "comentarios",
               true,
             )}
           </div>

@@ -22,12 +22,13 @@ Sitemap, flujos de usuario, wireframes y sistema de componentes
 ├── /profile \[editar perfil, cerrar sesión\]
 └── /groups/\[groupId\]
 ├── (home) \[próximos eventos del grupo y su historial; crear salida en línea\]
-├── /events/\[eventId\] \[detalle con 5 pestañas: ?section=plan|votaciones|gastos|tareas|fotos\]
-│ ├── Plan (info, cronograma, notas, asistencia y comentarios)
+├── /events/\[eventId\] \[detalle con 6 pestañas: ?section=plan|votaciones|gastos|tareas|fotos|comentarios\]
+│ ├── Plan (info, cronograma, notas y asistencia en vivo)
 │ ├── Votos (propuestas + polls)
 │ ├── Gastos (lista + balances)
 │ ├── Tareas (checklist)
-│ └── Fotos (galería)
+│ ├── Fotos (galería)
+│ └── Comentarios (hilo en vivo; la pestaña muestra los no leídos)
 ├── /stats \[participación y gastos\]
 └── /settings \[grupo, miembros, invitación\]
 # 3\. User Flows
@@ -143,7 +144,7 @@ Evento pasa a "Finalizado" ─▶ banner "¡Sube tus fotos!"
 | 5 | Unirse a grupo (invitación) | /join/\[code\] | Must |
 | 6 | Home de grupo (eventos + historial) | /groups/\[id\] | Must |
 | 7 | Crear/editar evento | /groups/\[id\] (formulario en línea en la home) | Must |
-| 8 | Detalle de evento (5 pestañas) | /groups/\[id\]/events/\[eid\] | Must |
+| 8 | Detalle de evento (6 pestañas) | /groups/\[id\]/events/\[eid\] | Must |
 | 9 | Estadísticas | /groups/\[id\]/stats | Must |
 | 10 | Ajustes de grupo y miembros | /groups/\[id\]/settings | Must |
 | 11 | Perfil de usuario | /profile | Must |

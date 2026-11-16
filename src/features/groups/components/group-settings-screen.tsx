@@ -1,12 +1,4 @@
-import Link from "next/link";
-import {
-  ArrowLeft,
-  ImagePlus,
-  LogOut,
-  RefreshCw,
-  Trash2,
-  UserCog,
-} from "lucide-react";
+import { ImagePlus, LogOut, RefreshCw, Trash2, UserCog } from "lucide-react";
 import { getGroup } from "../api/queries";
 import {
   deleteGroup,
@@ -18,6 +10,7 @@ import {
 import { publicEnv } from "@/shared/lib/env";
 import { initials } from "@/shared/lib/utils";
 import { ActionForm } from "@/shared/ui/action-form";
+import { Breadcrumbs } from "@/shared/ui/breadcrumbs";
 import { Disclosure } from "@/shared/ui/disclosure";
 import { Input } from "@/shared/ui/input";
 import { GroupDetailsForm } from "./group-details-form";
@@ -42,9 +35,13 @@ export async function GroupSettingsScreen({ groupId }: { groupId: string }) {
   return (
     <>
       <header className={styles.header}>
-        <Link className={styles.back} href={`/groups/${groupId}`}>
-          <ArrowLeft size={16} aria-hidden="true" /> Volver al grupo
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: "Inicio", href: "/groups" },
+            { label: group.name, href: `/groups/${groupId}` },
+            { label: "Ajustes" },
+          ]}
+        />
         <span className="eyebrow">AJUSTES DEL GRUPO</span>
         <h1>{group.name}</h1>
         <p className="muted">
