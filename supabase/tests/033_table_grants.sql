@@ -3,9 +3,19 @@ select plan(9);
 
 -- anon no tiene nada en el esquema public: ni el esquema, ni tablas, vistas,
 -- secuencias o funciones.
+-- Se mira el permiso directo de anon, no `has_schema_privilege`: Postgres 15+
+-- da USAGE sobre `public` a PUBLIC y anon lo heredaría aunque la migración se lo
+-- haya quitado (en Staging ese permiso de PUBLIC ya no existe, en el stack local
+-- sí). Sin permisos de tabla, ese USAGE heredado no da acceso a nada.
 select ok(
-  not has_schema_privilege('anon', 'public', 'USAGE'),
-  'anon has no USAGE on schema public'
+  not exists (
+    select 1
+    from pg_namespace n, aclexplode(n.nspacl) a
+    where n.nspname = 'public'
+      and a.grantee = (select oid from pg_roles where rolname = 'anon')
+      and a.privilege_type = 'USAGE'
+  ),
+  'anon has no direct USAGE grant on schema public'
 );
 select is(
   (select count(*) from pg_class c
