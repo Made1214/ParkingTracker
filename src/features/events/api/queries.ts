@@ -97,12 +97,16 @@ export async function getEvent(groupId: string, eventId: string) {
     .maybeSingle();
   if (error) throw new Error("No se pudo cargar el evento.");
   if (!data) notFound();
-  const { data: membership, error: membershipError } = await supabase
-    .from("group_members")
-    .select("role")
-    .eq("group_id", groupId)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data: membership, error: membershipError }, { data: group }] =
+    await Promise.all([
+      supabase
+        .from("group_members")
+        .select("role")
+        .eq("group_id", groupId)
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase.from("groups").select("name").eq("id", groupId).maybeSingle(),
+    ]);
   if (membershipError)
     throw new Error("No se pudieron comprobar los permisos del evento.");
   const organizer =
@@ -119,6 +123,7 @@ export async function getEvent(groupId: string, eventId: string) {
         : null;
   return {
     event: withEffectiveStatus(data),
+    groupName: group?.name ?? "Grupo",
     organizer,
     user,
     canManage:
