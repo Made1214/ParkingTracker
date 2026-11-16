@@ -6,15 +6,8 @@ import {
   apiError,
   newRequestId,
 } from "@/shared/lib/api-errors";
+import { clientIp } from "@/shared/lib/client-ip";
 import { RATE_LIMIT, hitRateLimit, isMutation } from "@/shared/lib/rate-limit";
-
-function clientIp(request: NextRequest) {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
-}
 
 export async function proxy(request: NextRequest) {
   // Correlaciona la respuesta, los logs y Sentry (docs/05-API §5).
@@ -47,7 +40,9 @@ export async function proxy(request: NextRequest) {
   if (isMutation(request.method)) {
     // Por usuario; sin sesión (login, registro), por IP.
     const userId = data?.claims?.sub;
-    const identity = userId ? `user:${userId}` : `ip:${clientIp(request)}`;
+    const identity = userId
+      ? `user:${userId}`
+      : `ip:${clientIp(request.headers)}`;
     const limit = await hitRateLimit(identity);
     if (!limit.allowed) {
       return apiError("RATE_LIMITED", {

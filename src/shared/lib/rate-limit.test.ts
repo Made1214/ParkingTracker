@@ -4,8 +4,39 @@ import {
   hitRateLimit,
   isMutation,
   memoryHit,
+  memoryPeek,
+  peekRateLimit,
   resetMemoryRateLimit,
 } from "./rate-limit";
+
+describe("límite con tope propio", () => {
+  beforeEach(() => resetMemoryRateLimit());
+
+  it("bloquea al pasar el tope dado, no el general", async () => {
+    const options = { scope: "x", limit: 3 };
+    for (let i = 0; i < 3; i++)
+      expect((await hitRateLimit("a", options)).allowed).toBe(true);
+    expect((await hitRateLimit("a", options)).allowed).toBe(false);
+  });
+
+  it("mirar no suma intentos y los ámbitos van aparte", async () => {
+    const options = { scope: "x", limit: 2 };
+    for (let i = 0; i < 5; i++) await peekRateLimit("a", options);
+    expect((await peekRateLimit("a", options)).remaining).toBe(2);
+    await hitRateLimit("a", options);
+    await hitRateLimit("a", options);
+    expect((await peekRateLimit("a", options)).allowed).toBe(false);
+    expect((await peekRateLimit("a", { scope: "y", limit: 2 })).allowed).toBe(
+      true,
+    );
+  });
+
+  it("la lectura en memoria reinicia al pasar la ventana", () => {
+    memoryHit("k", 0, 1);
+    expect(memoryPeek("k", 1_000, 1).allowed).toBe(false);
+    expect(memoryPeek("k", 61_000, 1).allowed).toBe(true);
+  });
+});
 
 describe("límite de peticiones en memoria", () => {
   beforeEach(() => resetMemoryRateLimit());

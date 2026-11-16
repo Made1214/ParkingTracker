@@ -1,8 +1,16 @@
 "use server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { serverClient } from "@/shared/supabase/server";
 import { publicEnv } from "@/shared/lib/env";
+import { clientIp } from "@/shared/lib/client-ip";
+import { hitRateLimit, peekRateLimit } from "@/shared/lib/rate-limit";
+import {
+  FAILED_PER_EMAIL,
+  FAILED_PER_IP,
+  TOO_MANY_LOGINS,
+} from "./login-limits";
 import { safeNext } from "@/shared/lib/utils";
 import { text, type ActionState } from "@/shared/lib/forms";
 import {
@@ -30,13 +38,25 @@ export async function login(
     return {
       error: "Escribe un correo válido y tu contraseña.",
     };
+  const email = parsed.data.email.toLowerCase();
+  const ip = clientIp(await headers());
+  const [byEmail, byIp] = await Promise.all([
+    peekRateLimit(email, FAILED_PER_EMAIL),
+    peekRateLimit(ip, FAILED_PER_IP),
+  ]);
+  if (!byEmail.allowed || !byIp.allowed) return { error: TOO_MANY_LOGINS };
   const supabase = await serverClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error)
+  if (error) {
+    await Promise.all([
+      hitRateLimit(email, FAILED_PER_EMAIL),
+      hitRateLimit(ip, FAILED_PER_IP),
+    ]);
     return {
       error:
         "No pudimos iniciar sesión. Revisa tus datos y confirma tu correo.",
     };
+  }
   redirect(safeNext(form.get("next")));
 }
 export async function register(
