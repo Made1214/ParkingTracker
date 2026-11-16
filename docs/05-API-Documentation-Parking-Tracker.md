@@ -231,7 +231,7 @@ Formato uniforme de error en todas las rutas:
 
 *   Los errores 4xx nunca exponen detalles internos (SQL, stack traces).
 *   \`request\_id\` correlaciona la respuesta con los logs y Sentry.
-*   Rate limiting en mutaciones: 60 req/min por usuario (middleware - Upstash o token bucket en memoria edge).
+*   Login: además, 5 intentos fallidos por correo y 20 por IP cada minuto devuelven el error del formulario (los aciertos no cuentan). Rate limiting en mutaciones: 60 req/min por usuario (middleware - Upstash o token bucket en memoria edge).
 *   Implementación: `src/proxy.ts` asigna un `request_id` (`req_` + 12 hex) a cada petición, lo reenvía a la app en `x-request-id` y lo devuelve en `X-Request-Id`. Toda petición que no sea `GET`/`HEAD`/`OPTIONS` (incluidas las server actions) cuenta para el límite, por usuario o, sin sesión, por IP; el contador vive en Upstash si `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` están definidos y, si no, en memoria por instancia. La respuesta 429 lleva `Retry-After`, `X-RateLimit-Limit` y `X-RateLimit-Remaining`.
 # 6\. Convenciones Adicionales
 *   **Idempotencia:** PUT de asistencia y voto son idempotentes (upsert). POST de gastos acepta cabecera Idempotency-Key opcional.
