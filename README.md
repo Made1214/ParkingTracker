@@ -163,7 +163,7 @@ contracts) is documented inline in the migration files themselves.
 
 ## RLS test suite
 
-[supabase/tests/](supabase/tests/) is a pgTAP suite (22 files, also run in
+[supabase/tests/](supabase/tests/) is a pgTAP suite (32 files, also run in
 CI on every pull request) proving the isolation model actually holds — not just that
 policies exist, but that a non-member gets zero rows, that the
 composite-FK tenant-integrity mechanism rejects a cross-group write RLS
@@ -191,7 +191,7 @@ pnpm build && pnpm test:e2e
 ```
 
 They cover group isolation by direct URL, invite link → join → RSVP, live
-comments and live poll votes between two sessions (RF-504), the PWA manifest
+comments, attendance and poll votes between two sessions (RF-504), the PWA manifest
 and offline behavior, and an axe-core WCAG 2.1 AA scan (contrast included) of
 every main screen in light and dark mode at phone width (`e2e/a11y.spec.ts`). CI
 runs them as their own job on every pull request. Set `E2E_BASE_URL` to target
