@@ -1,11 +1,15 @@
-# Actualizaciones de dependencias (issue #54). Un PR agrupado por semana, en
-# vez de uno por paquete, para no inundar la revisión.
+# Actualizaciones de dependencias (issue #54). Se revisan cada dos semanas (los
+# días 1 y 15) y las de npm se agrupan en un solo PR, en vez de uno por paquete,
+# para no inundar la revisión. Dependabot no tiene un intervalo "quincenal":
+# `cron` es la forma de pedirlo.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
+      interval: cron
+      cronjob: "0 6 1,15 * *"
+      timezone: America/Panama
     open-pull-requests-limit: 5
     groups:
       minor-and-patch:
@@ -13,4 +17,6 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: cron
+      cronjob: "0 6 1,15 * *"
+      timezone: America/Panama
