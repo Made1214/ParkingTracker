@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 import { Disclosure } from "@/shared/ui/disclosure";
 import { Input } from "@/shared/ui/input";
+import { PasswordInput } from "@/shared/ui/password-input";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 import styles from "./ui.module.css";
 
@@ -76,6 +77,10 @@ const samples = [
         <label>
           Con valor
           <Input defaultValue="Cumple de Luis" />
+        </label>
+        <label>
+          Contraseña
+          <PasswordInput defaultValue="devpassword10" />
         </label>
         <label>
           Deshabilitado
