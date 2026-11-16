@@ -1,0 +1,44 @@
+.page {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+}
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-4);
+}
+/* Cada panel fija su propio fondo y texto: `.dark` solo cambia las variables. */
+.theme {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  color: var(--ink);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.stack {
+  display: grid;
+  gap: var(--space-3);
+}
+.stack label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+.mark {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+}
