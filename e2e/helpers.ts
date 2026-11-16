@@ -23,7 +23,7 @@ export async function newSession(browser: Browser) {
 export async function login(page: Page, email: string, next = "/groups") {
   await page.goto(`/login?next=${encodeURIComponent(next)}`);
   await page.getByLabel("Correo electrónico").fill(email);
-  await page.getByLabel("Contraseña").fill(seed.password);
+  await page.getByLabel("Contraseña", { exact: true }).fill(seed.password);
   await page.getByRole("button", { name: "Entrar a mis planes" }).click();
   await page.waitForURL((url) => url.pathname === next.split("?")[0]);
 }
@@ -35,7 +35,7 @@ export async function register(page: Page, next = "/groups") {
   await page.goto(`/register?next=${encodeURIComponent(next)}`);
   await page.getByLabel("Tu nombre").fill(name);
   await page.getByLabel("Correo electrónico").fill(`e2e-${id}@example.com`);
-  await page.getByLabel("Contraseña").fill(seed.newPassword);
+  await page.getByLabel("Contraseña", { exact: true }).fill(seed.newPassword);
   await page.getByRole("button", { name: "Crear mi cuenta" }).click();
   await page.waitForURL((url) => url.pathname === next.split("?")[0]);
   return name;

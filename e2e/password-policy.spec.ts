@@ -12,7 +12,7 @@ test("el registro explica qué le falta a una contraseña débil", async ({
   await page
     .getByLabel("Correo electrónico")
     .fill(`e2e-debil-${Date.now()}@example.com`);
-  await page.getByLabel("Contraseña").fill("sololetraslargas");
+  await page.getByLabel("Contraseña", { exact: true }).fill("sololetraslargas");
   await page.getByRole("button", { name: "Crear mi cuenta" }).click();
   await expect(page.locator("p[role=alert]")).toHaveText(
     "A tu contraseña le falta un número.",
