@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
+import { PasswordInput } from "@/shared/ui/password-input";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 import { login, register, googleLogin } from "../api/actions";
 import { BrandMark } from "@/shared/ui/brand-mark";
@@ -104,8 +105,7 @@ export function AuthScreen({
             </label>
             <label>
               Contraseña
-              <Input
-                type="password"
+              <PasswordInput
                 name="password"
                 autoComplete={signup ? "new-password" : "current-password"}
                 minLength={signup ? PASSWORD_MIN : undefined}

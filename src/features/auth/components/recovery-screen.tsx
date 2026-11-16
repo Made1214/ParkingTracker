@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
+import { PasswordInput } from "@/shared/ui/password-input";
 import { ThemeSelect } from "@/shared/ui/theme-select";
 import { BrandMark } from "@/shared/ui/brand-mark";
 import { requestPasswordReset, resetPassword } from "../api/recovery-actions";
@@ -45,9 +46,8 @@ export function RecoveryScreen({ reset = false }: { reset?: boolean }) {
               <>
                 <label>
                   Nueva contraseña
-                  <Input
+                  <PasswordInput
                     name="password"
-                    type="password"
                     autoComplete="new-password"
                     required
                     minLength={PASSWORD_MIN}
@@ -60,9 +60,8 @@ export function RecoveryScreen({ reset = false }: { reset?: boolean }) {
                 </p>
                 <label>
                   Repite la contraseña
-                  <Input
+                  <PasswordInput
                     name="confirm_password"
-                    type="password"
                     autoComplete="new-password"
                     required
                     minLength={PASSWORD_MIN}

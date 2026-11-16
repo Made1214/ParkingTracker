@@ -27,3 +27,26 @@ test("las cuentas anteriores entran con su contraseña de siempre", async ({
   await login(page, seed.member.email);
   await expect(page).toHaveURL(/\/groups$/);
 });
+
+test("la contraseña se puede mostrar y vuelve a ocultarse al enviar", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  const field = page.getByLabel("Contraseña", { exact: true });
+  await field.fill("devpassword");
+  await expect(field).toHaveAttribute("type", "password");
+
+  const toggle = page.getByRole("button", { name: "Mostrar contraseña" });
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await toggle.click();
+  await expect(field).toHaveAttribute("type", "text");
+  await expect(field).toHaveValue("devpassword");
+  await expect(
+    page.getByRole("button", { name: "Ocultar contraseña" }),
+  ).toHaveAttribute("aria-pressed", "true");
+
+  // Al enviar vuelve a ocultarse, aunque el login falle.
+  await page.getByLabel("Correo electrónico").fill("nadie@example.com");
+  await page.getByRole("button", { name: "Entrar a mis planes" }).click();
+  await expect(field).toHaveAttribute("type", "password");
+});
