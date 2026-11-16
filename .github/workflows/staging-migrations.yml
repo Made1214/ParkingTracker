@@ -68,7 +68,7 @@ jobs:
           # El commit que pasó el CI, no el último de main.
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - if: steps.config.outputs.ready == 'true'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
       - if: steps.config.outputs.ready == 'true'
