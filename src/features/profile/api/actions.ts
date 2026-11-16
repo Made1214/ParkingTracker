@@ -88,7 +88,7 @@ export async function updateAvatar(
   const file = form.get("avatar");
   if (!remove) {
     if (!(file instanceof File)) return { error: "Selecciona una imagen." };
-    const validationError = imageValidationError(file);
+    const validationError = await imageValidationError(file);
     if (validationError) return { error: validationError };
   }
   let publicId: string | null = null;
