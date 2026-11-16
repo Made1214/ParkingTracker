@@ -1,0 +1,55 @@
+/* Hereda el color del contenedor: se usa dentro de cabeceras claras y oscuras. */
+.crumbs {
+  justify-self: start;
+  /* En un grid, sin esto el elemento no baja de su ancho de contenido. */
+  min-width: 0;
+  max-width: 100%;
+  font-size: var(--text-sm);
+}
+.crumbs ol {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.crumbs li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+/* Los dos primeros tramos conservan su tamaño; el último cede espacio. */
+.crumbs li:not(:last-child) {
+  flex: 0 1 auto;
+}
+.crumbs li:last-child {
+  flex: 1 1 0;
+}
+.crumbs a,
+.crumbs span[aria-current] {
+  display: inline-flex;
+  align-items: center;
+  /* Objetivo táctil de 44 px (UI/UX §8). */
+  min-height: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crumbs a {
+  font-weight: var(--weight-semibold);
+  opacity: 0.85;
+}
+.crumbs a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+.crumbs span[aria-current] {
+  opacity: 0.7;
+}
+.crumbs svg {
+  flex: none;
+  opacity: 0.6;
+}

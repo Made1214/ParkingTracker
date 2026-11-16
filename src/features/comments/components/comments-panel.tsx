@@ -144,7 +144,7 @@ export async function CommentsPanel({
       {hasMore && (
         <Link
           className={styles.more}
-          href={`/groups/${groupId}/events/${eventId}?section=plan&comentarios=${(limit ?? COMMENT_PAGE_SIZE) + COMMENT_PAGE_SIZE}#comments-title`}
+          href={`/groups/${groupId}/events/${eventId}?section=comentarios&comentarios=${(limit ?? COMMENT_PAGE_SIZE) + COMMENT_PAGE_SIZE}#comments-title`}
           scroll={false}
           prefetch={false}
         >
