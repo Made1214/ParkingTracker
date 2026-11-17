@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { login, seed } from "./helpers";
+import { login, register, seed } from "./helpers";
 
 test("el registro explica qué le falta a una contraseña débil", async ({
   page,
@@ -49,4 +49,35 @@ test("la contraseña se puede mostrar y vuelve a ocultarse al enviar", async ({
   await page.getByLabel("Correo electrónico").fill("nadie@example.com");
   await page.getByRole("button", { name: "Entrar a mis planes" }).click();
   await expect(field).toHaveAttribute("type", "password");
+});
+
+test("se puede cambiar la contraseña desde el perfil pidiendo la actual", async ({
+  page,
+}) => {
+  // Cuenta propia: cambiar la contraseña de un usuario del seed rompería el resto.
+  await register(page);
+  await page.goto("/profile");
+  await page.getByText("Cambiar contraseña", { exact: true }).first().click();
+  const current = page.getByLabel("Contraseña actual", { exact: true });
+  const next = page.getByLabel("Contraseña nueva", { exact: true });
+  const repeat = page.getByLabel("Repite la contraseña nueva", { exact: true });
+
+  await current.fill("no-es-la-actual1");
+  await next.fill("otraclave2026");
+  await repeat.fill("otraclave2026");
+  await page.getByRole("button", { name: "Cambiar contraseña" }).click();
+  await expect(page.locator("p[role=alert]")).toHaveText(
+    "La contraseña actual no es correcta.",
+  );
+
+  // React 19 vacía todos los campos del formulario al terminar la acción, aunque
+  // haya fallado: hay que volver a llenarlos, o el navegador bloquea el envío
+  // por los campos obligatorios vacíos.
+  await current.fill(seed.newPassword);
+  await next.fill("otraclave2026");
+  await repeat.fill("otraclave2026");
+  await page.getByRole("button", { name: "Cambiar contraseña" }).click();
+  await expect(page.locator("p[role=status]").first()).toHaveText(
+    "Tu contraseña se actualizó.",
+  );
 });
