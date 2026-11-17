@@ -45,7 +45,7 @@ deudas mínimas y «Marcar saldado» existentes funcionan sin cambios.
   borra sus gastos (solo si nadie marcó un pago como saldado) y vuelve a
   borrador; al finalizar de nuevo se recrean.
 
-### Garantías en la base de datos (`20261116230000_receipts_and_guests.sql`)
+### Garantías en la base de datos (`20261117003047_receipts_and_guests.sql`)
 
 | Regla | Mecanismo |
 | --- | --- |
@@ -114,7 +114,7 @@ factura liquidada, «Imprimir o guardar PDF» con estilos de impresión.
 | Fase | Estado |
 | --- | --- |
 | Motor, impuestos, propinas, pagos, netos | Hecho y probado |
-| Migración + RLS + pgTAP | Hecho; verificado en Postgres 16 local. **Pendiente aplicar en Staging** (el workflow `staging-migrations.yml` lo hace) |
+| Migración + RLS + pgTAP | Hecho; verificado en Postgres 16 local y aplicado en Staging (17 nov 2026, advisors sin hallazgos nuevos). **Pendiente en Producción** |
 | OCR + parser + revisión | Hecho |
 | UI móvil y escritorio | Hecho; revisada con capturas en Chromium |
 | Integración en Gastos e invitados | Hecho |
@@ -123,7 +123,7 @@ factura liquidada, «Imprimir o guardar PDF» con estilos de impresión.
 ## Limitaciones y siguientes pasos
 
 - No probado contra Supabase real (sin Docker aquí): falta una prueba E2E
-  del flujo con la foto, y aplicar la migración en Staging.
+  del flujo con la foto,.
 - Reparto de propina por importes personalizados: el motor lo soporta, la UI
   solo ofrece proporcional o partes iguales.
 - PDF de facturas como entrada no soportado (solo imágenes).
