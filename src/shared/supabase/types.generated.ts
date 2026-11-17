@@ -184,6 +184,49 @@ export type Database = {
           },
         ]
       }
+      event_guests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_name: string
+          event_id: string
+          group_id: string
+          id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_name: string
+          event_id: string
+          group_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          event_id?: string
+          group_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eg_event_fk"
+            columns: ["event_id", "group_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id", "group_id"]
+          },
+          {
+            foreignKeyName: "event_guests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           cancel_reason: string | null
@@ -248,6 +291,52 @@ export type Database = {
           },
         ]
       }
+      expense_guest_shares: {
+        Row: {
+          expense_id: string
+          group_id: string
+          guest_id: string
+          id: string
+          settled: boolean
+          settled_at: string | null
+          share_amount: number
+        }
+        ComputedFields: never
+        Insert: {
+          expense_id: string
+          group_id: string
+          guest_id: string
+          id?: string
+          settled?: boolean
+          settled_at?: string | null
+          share_amount: number
+        }
+        Update: {
+          expense_id?: string
+          group_id?: string
+          guest_id?: string
+          id?: string
+          settled?: boolean
+          settled_at?: string | null
+          share_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "egs_expense_fk"
+            columns: ["expense_id", "group_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id", "group_id"]
+          },
+          {
+            foreignKeyName: "egs_guest_fk"
+            columns: ["guest_id", "group_id"]
+            isOneToOne: false
+            referencedRelation: "event_guests"
+            referencedColumns: ["id", "group_id"]
+          },
+        ]
+      }
       expense_splits: {
         Row: {
           expense_id: string
@@ -307,6 +396,7 @@ export type Database = {
           id: string
           idempotency_key: string | null
           paid_by: string
+          receipt_id: string | null
           updated_at: string
         }
         ComputedFields: never
@@ -322,6 +412,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           paid_by: string
+          receipt_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -336,6 +427,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           paid_by?: string
+          receipt_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -366,6 +458,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exp_receipt_fk"
+            columns: ["receipt_id", "group_id"]
+            isOneToOne: false
+            referencedRelation: "receipts"
+            referencedColumns: ["id", "group_id"]
           },
         ]
       }
@@ -716,6 +815,76 @@ export type Database = {
         }
         Relationships: []
       }
+      receipts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          document: Json
+          event_id: string
+          finalized_at: string | null
+          group_id: string
+          id: string
+          image_public_id: string | null
+          merchant: string | null
+          printed_total_cents: number | null
+          receipt_date: string | null
+          result: Json | null
+          status: string
+          updated_at: string
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          document?: Json
+          event_id: string
+          finalized_at?: string | null
+          group_id: string
+          id?: string
+          image_public_id?: string | null
+          merchant?: string | null
+          printed_total_cents?: number | null
+          receipt_date?: string | null
+          result?: Json | null
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          document?: Json
+          event_id?: string
+          finalized_at?: string | null
+          group_id?: string
+          id?: string
+          image_public_id?: string | null
+          merchant?: string | null
+          printed_total_cents?: number | null
+          receipt_date?: string | null
+          result?: Json | null
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rcp_event_fk"
+            columns: ["event_id", "group_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id", "group_id"]
+          },
+          {
+            foreignKeyName: "receipts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_items: {
         Row: {
           created_at: string
@@ -972,6 +1141,19 @@ export type Database = {
           deleted_photos: string[]
         }[]
       }
+      finalize_receipt: {
+        Args: {
+          p_document: Json
+          p_expenses: Json
+          p_merchant: string
+          p_printed_total_cents: number
+          p_receipt_date: string | null
+          p_receipt_id: string
+          p_result: Json
+          p_version: number
+        }
+        Returns: number
+      }
       get_event_balances: {
         Args: { p_event_id: string }
         Returns: {
@@ -1036,6 +1218,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      reopen_receipt: {
+        Args: { p_receipt_id: string; p_version: number }
+        Returns: number
       }
       review_activity_proposal: {
         Args: {
