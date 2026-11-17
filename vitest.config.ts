@@ -8,7 +8,11 @@ export default defineConfig({
       provider: "v8",
       // Lógica de negocio (RNF-10): acciones, consultas y utilidades compartidas.
       // Los componentes de React se cubren con las pruebas E2E.
-      include: ["src/features/*/api/**/*.ts", "src/shared/lib/**/*.ts"],
+      include: [
+        "src/features/*/api/**/*.ts",
+        "src/features/receipts/lib/**/*.ts",
+        "src/shared/lib/**/*.ts",
+      ],
       exclude: ["**/*.test.ts"],
       reporter: ["text-summary", "text", "html"],
       reportsDirectory: "coverage",
@@ -19,6 +23,8 @@ export default defineConfig({
         // ≥ 80 % en gastos y votaciones.
         "src/features/expenses/api/**": { lines: 80, statements: 80 },
         "src/features/proposals/api/**": { lines: 80, statements: 80 },
+        // Motor de reparto de facturas: precisión monetaria crítica.
+        "src/features/receipts/lib/**": { lines: 95, statements: 95 },
       },
     },
   },
