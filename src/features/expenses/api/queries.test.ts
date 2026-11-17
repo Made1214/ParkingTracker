@@ -20,6 +20,8 @@ const expenses = [
     paid_by: ids.luis,
     created_by: ids.luis,
     created_at: "2026-11-01T00:00:00Z",
+    receipt_id: null,
+    expense_guest_shares: [],
     expense_splits: [
       { user_id: ids.ana, share_amount: 15, settled: false },
       { user_id: ids.luis, share_amount: 15, settled: false },
@@ -33,6 +35,8 @@ const expenses = [
     paid_by: "ex-miembro",
     created_by: ids.ana,
     created_at: "2026-11-01T01:00:00Z",
+    receipt_id: null,
+    expense_guest_shares: [{ guest_id: "invitado" }],
     expense_splits: [{ user_id: ids.sofia, share_amount: 12.5, settled: true }],
   },
 ];
@@ -99,8 +103,36 @@ describe("getExpenses", () => {
         id: "e2",
         payer: "Ex miembro",
         cents: 1250,
+        people: 2,
         canDelete: true,
       }),
+    ]);
+  });
+
+  it("los gastos de una factura no se borran sueltos, ni siquiera un admin", async () => {
+    db(ids.sofia, {
+      expenses: {
+        data: [
+          {
+            id: "e3",
+            description: "Factura · La Fonda",
+            amount: 9,
+            category: "comida",
+            paid_by: ids.ana,
+            created_by: ids.ana,
+            created_at: "2026-11-01T02:00:00Z",
+            receipt_id: "r1",
+            expense_guest_shares: [],
+            expense_splits: [
+              { user_id: ids.ana, share_amount: 9, settled: false },
+            ],
+          },
+        ],
+      },
+    });
+    const result = await getExpenses(ids.group, ids.event);
+    expect(result.expenses).toEqual([
+      expect.objectContaining({ id: "e3", receiptId: "r1", canDelete: false }),
     ]);
   });
 
@@ -109,7 +141,9 @@ describe("getExpenses", () => {
     const result = await getExpenses(ids.group, ids.event);
     expect(result.open).toBe(false);
     expect(result.debts[0]).toMatchObject({ canSettle: true, mine: false });
-    expect(result.expenses.every((e) => e.canDelete)).toBe(true);
+    expect(
+      result.expenses.filter((e) => !e.receiptId).every((e) => e.canDelete),
+    ).toBe(true);
   });
 
   it("quien no está en la deuda no puede saldarla", async () => {

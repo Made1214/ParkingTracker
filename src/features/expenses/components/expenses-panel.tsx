@@ -10,6 +10,8 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
+import { ReceiptsSection } from "@/features/receipts";
 import { initials } from "@/shared/lib/utils";
 import { Card } from "@/shared/ui/card";
 import { ActionForm } from "@/shared/ui/action-form";
@@ -198,7 +200,15 @@ export async function ExpensesPanel({
                         <Icon size={18} />
                       </span>
                       <span className={styles.listMain}>
-                        <strong>{expense.description}</strong>
+                        {expense.receiptId ? (
+                          <Link
+                            href={`/groups/${groupId}/events/${eventId}/receipts/${expense.receiptId}`}
+                          >
+                            <strong>{expense.description}</strong>
+                          </Link>
+                        ) : (
+                          <strong>{expense.description}</strong>
+                        )}
                         <span className="small muted">
                           Pagó {expense.payer} ·{" "}
                           {categories.find((c) => c.value === expense.category)
@@ -241,6 +251,11 @@ export async function ExpensesPanel({
         </div>
 
         <div className={styles.side}>
+          <ReceiptsSection
+            groupId={groupId}
+            eventId={eventId}
+            open={data.open}
+          />
           {data.open && (
             <Card>
               <div className={styles.cardHeading}>

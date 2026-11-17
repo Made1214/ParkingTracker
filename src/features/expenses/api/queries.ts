@@ -14,7 +14,7 @@ export async function getExpenses(groupId: string, eventId: string) {
     supabase
       .from("expenses")
       .select(
-        "id, description, amount, category, paid_by, created_by, created_at, expense_splits(user_id, share_amount, settled)",
+        "id, description, amount, category, paid_by, created_by, created_at, receipt_id, expense_splits(user_id, share_amount, settled), expense_guest_shares(guest_id)",
       )
       .eq("group_id", groupId)
       .eq("event_id", eventId)
@@ -94,8 +94,11 @@ export async function getExpenses(groupId: string, eventId: string) {
       category: e.category,
       cents: cents(e.amount),
       payer: name(e.paid_by),
-      people: e.expense_splits.length,
-      canDelete: isAdmin || e.created_by === user.id,
+      people: e.expense_splits.length + e.expense_guest_shares.length,
+      receiptId: e.receipt_id,
+      // Los gastos de una factura se corrigen desde la factura (la base de
+      // datos tampoco deja borrarlos sueltos).
+      canDelete: !e.receipt_id && (isAdmin || e.created_by === user.id),
     })),
   };
 }

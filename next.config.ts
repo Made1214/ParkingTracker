@@ -18,16 +18,20 @@ function sentryCspOrigin(dsn?: string) {
   }
 }
 const sentryOrigin = sentryCspOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN);
+// Lector de facturas (Tesseract.js): el motor y el modelo de idioma se
+// descargan de jsDelivr y corren en un worker. La foto no sale del navegador.
+const ocrAssets = "https://cdn.jsdelivr.net";
 // En desarrollo, Vercel Analytics carga su script de depuración desde aquí.
 const vercelScripts = isDev ? " https://va.vercel-scripts.com" : "";
 
 const cspReportOnly = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${vercelScripts}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' ${ocrAssets}${isDev ? " 'unsafe-eval'" : ""}${vercelScripts}`,
+  `worker-src 'self' blob: ${ocrAssets}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' blob: data: https://res.cloudinary.com https://lh3.googleusercontent.com ${supabaseOrigin}`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} https://api.cloudinary.com https://res.cloudinary.com${sentryOrigin}`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} https://api.cloudinary.com https://res.cloudinary.com ${ocrAssets}${sentryOrigin}`,
   "object-src 'none'",
   "base-uri 'self'",
   `form-action 'self' ${supabaseOrigin} https://accounts.google.com`,
