@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card } from "@/shared/ui/card";
 import { Motion } from "@/shared/ui/motion";
 import { deletePhoto, uploadPhoto } from "../api/actions";
@@ -7,25 +8,25 @@ import styles from "./gallery.module.css";
 
 const megabytes = (bytes: number) => `${(bytes / 1048576).toFixed(1)} MB`;
 
+// Muestra la página de fotos junto con la cuota y la navegación de la galería.
 export async function GalleryPanel({
   groupId,
   eventId,
+  cursor,
 }: {
   groupId: string;
   eventId: string;
+  cursor?: string;
 }) {
-  const data = await getPhotos(groupId, eventId);
+  const data = await getPhotos(groupId, eventId, cursor);
+  const photosUrl = `/groups/${groupId}/events/${eventId}?section=fotos`;
   const used = Math.min(100, (data.usedBytes / data.quotaBytes) * 100);
   return (
     <Card className={styles.panel} aria-labelledby="gallery-title">
       <div className={styles.heading}>
         <div>
           <h2 id="gallery-title">Fotos</h2>
-          <p className="small muted">
-            {data.photos.length}{" "}
-            {data.photos.length === 1 ? "recuerdo" : "recuerdos"} · solo
-            visibles para el grupo
-          </p>
+          <p className="small muted">Solo visibles para el grupo</p>
         </div>
         <div className={styles.quota}>
           <span className="small muted">
@@ -47,6 +48,16 @@ export async function GalleryPanel({
         uploadAction={uploadPhoto}
         deleteAction={deletePhoto}
       />
+      {data.pastPage && (
+        <Link href={`${photosUrl}#gallery-title`}>
+          Volver a las fotos recientes
+        </Link>
+      )}
+      {data.nextCursor && (
+        <Link href={`${photosUrl}&fotos=${data.nextCursor}#gallery-title`}>
+          Ver fotos anteriores
+        </Link>
+      )}
     </Card>
   );
 }

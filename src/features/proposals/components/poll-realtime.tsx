@@ -1,84 +1,51 @@
-﻿"use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import type { RealtimeChannel } from "@supabase/supabase-js";
-import { browserClient } from "@/shared/supabase/client";
+"use client";
+import { useEventChannel } from "@/shared/supabase/use-event-channel";
+import { useRealtimeRefresh } from "@/shared/supabase/use-realtime-refresh";
 
+/** Actualiza las votaciones de la salida sin volver a suscribirse al cambiar los datos. */
 export function PollRealtime({
   groupId,
   eventId,
   pollIds,
   refreshAt,
+  open,
 }: {
   groupId: string;
   eventId: string;
   pollIds: string;
   refreshAt?: number;
+  open: boolean;
 }) {
-  const router = useRouter();
-  useEffect(() => {
-    const client = browserClient();
-    let refreshTimer: number | undefined;
-    const scheduleRefresh = () => {
-      if (document.visibilityState === "hidden") return;
-      window.clearTimeout(refreshTimer);
-      refreshTimer = window.setTimeout(() => router.refresh(), 250);
-    };
-    let cancelled = false;
-    let channel: RealtimeChannel | undefined;
-    // El canal debe unirse ya con el JWT de la sesión. Si se une antes de que
-    // el cliente termine de leerla, entra como anónimo y RLS descarta todos
-    // los avisos sin dar error.
-    void client.realtime
-      .setAuth()
-      .catch(() => undefined)
-      .then(() => {
-        if (cancelled) return;
-        channel = client
-          .channel(`polls:${eventId}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "*",
-              schema: "public",
-              table: "polls",
-              filter: `event_id=eq.${eventId}`,
-            },
-            scheduleRefresh,
-          )
-          .on(
-            "postgres_changes",
-            {
-              event: "INSERT",
-              schema: "public",
-              table: "poll_votes",
-              filter: `group_id=eq.${groupId}`,
-            },
-            (payload) => {
-              if (pollIds.split(",").includes(String(payload.new.poll_id)))
-                scheduleRefresh();
-            },
-          )
-          .subscribe((status) => {
-            if (status === "SUBSCRIBED") scheduleRefresh();
-          });
-      });
-    const timer = window.setInterval(scheduleRefresh, 30000);
-    const deadlineTimer = refreshAt
-      ? window.setTimeout(
-          scheduleRefresh,
-          Math.min(Math.max(refreshAt - Date.now() + 100, 0), 2147483647),
-        )
-      : undefined;
-    document.addEventListener("visibilitychange", scheduleRefresh);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-      window.clearTimeout(refreshTimer);
-      window.clearTimeout(deadlineTimer);
-      document.removeEventListener("visibilitychange", scheduleRefresh);
-      if (channel) void client.removeChannel(channel);
-    };
-  }, [groupId, eventId, pollIds, refreshAt, router]);
+  const refresh = useRealtimeRefresh(open, refreshAt);
+  const visiblePolls = new Set(pollIds.split(","));
+  useEventChannel({
+    channel: `polls:${eventId}`,
+    table: "polls",
+    filter: `event_id=eq.${eventId}`,
+    enabled: open,
+    withDeletes: true,
+    onChange: (change) => {
+      if (
+        change.eventType !== "DELETE" ||
+        visiblePolls.has(String(change.old.id))
+      )
+        refresh();
+    },
+    onReconnect: refresh,
+  });
+  useEventChannel({
+    channel: `votes:${eventId}`,
+    table: "poll_votes",
+    filter: `group_id=eq.${groupId}`,
+    enabled: open,
+    onChange: (change) => {
+      if (
+        change.eventType === "INSERT" &&
+        visiblePolls.has(String(change.new.poll_id))
+      )
+        refresh();
+    },
+    onReconnect: refresh,
+  });
   return null;
 }

@@ -1,7 +1,9 @@
 .toast {
   position: fixed;
   z-index: 100;
-  inset: auto var(--space-4) var(--space-4) auto;
+  inset: auto var(--space-4)
+    calc(var(--space-4) + var(--mobile-nav-offset, env(safe-area-inset-bottom)))
+    auto;
   display: flex;
   align-items: center;
   gap: var(--space-4);

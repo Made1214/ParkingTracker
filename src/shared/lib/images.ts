@@ -1,12 +1,9 @@
 /**
  * Límites de tamaño de imágenes, en un solo lugar (issue #54):
  *
- * - `MAX_IMAGE_BYTES` (5 MB): avatares y portadas, que viajan por una server
- *   action. `serverActions.bodySizeLimit` (6 MB, next.config.ts) deja margen
- *   para el resto del formulario; si se sube uno, hay que subir el otro.
- * - `MAX_PHOTO_BYTES` (10 MB): fotos de la galería (RF-901). Se reducen en el
- *   navegador y suben directo a Cloudinary; la base de datos también lo exige
- *   con un CHECK.
+ * - `MAX_IMAGE_BYTES` (5 MB) para avatares, portadas y recibos.
+ * - `MAX_PHOTO_BYTES` (10 MB) para originales de la galería. Se reducen en
+ *   el navegador antes de enviarlos a la acción y a Cloudinary.
  */
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -35,10 +32,14 @@ export function imageTypeFromBytes(
   return null;
 }
 
-export async function imageValidationError(file: File) {
+// Valida el tamaño y que el encabezado coincida con el tipo de imagen declarado.
+export async function imageValidationError(
+  file: File,
+  maxBytes = MAX_IMAGE_BYTES,
+) {
   if (!file.size) return "Selecciona una imagen.";
-  if (file.size > MAX_IMAGE_BYTES)
-    return "La imagen debe pesar como máximo 5 MB.";
+  if (file.size > maxBytes)
+    return `La imagen debe pesar como máximo ${maxBytes / 1048576} MB.`;
   if (!(IMAGE_TYPES as readonly string[]).includes(file.type))
     return "Usa una imagen JPG, PNG o WebP.";
   const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());

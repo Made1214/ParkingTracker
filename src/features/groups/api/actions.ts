@@ -17,6 +17,7 @@ export async function createGroup(
   revalidatePath("/groups");
   redirect(`/groups/${data.id}`);
 }
+// Canjea la invitación y abre el grupo cuando se confirma la membresía.
 export async function joinGroup(
   _: ActionState,
   form: FormData,
@@ -28,6 +29,8 @@ export async function joinGroup(
   const { data, error } = await supabase.rpc("join_group_by_invite", {
     p_code: code,
   });
+  if (error?.code === "P0002")
+    return { error: "El código de invitación no es válido." };
   if (error) return { error: databaseError(error.code) };
   revalidatePath("/groups");
   redirect(`/groups/${data.id}`);

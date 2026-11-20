@@ -1077,6 +1077,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_event_poll_results: {
+        Args: { p_event_id: string }
+        Returns: { poll_id: string; option_id: string; label: string; votes: number; is_winner: boolean }[]
+      }
       get_dashboard_balance: {
         Args: Record<PropertyKey, never>
         Returns: number

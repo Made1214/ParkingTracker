@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ session: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/features/auth", () => ({ requireUser: mocks.session }));
-import { COMMENT_PAGE_SIZE, commentLimit, getComments } from "./queries";
+import { COMMENT_PAGE_SIZE, getComments } from "./queries";
 
 const group = "10000000-0000-4000-8000-000000000001";
 const event = "20000000-0000-4000-8000-000000000002";
@@ -50,8 +50,11 @@ function database(rows: Row[]) {
         return { count: rows.length, data: null, error: null };
       if (has("is")) {
         const limit = has("limit")?.[1][0] as number;
+        const before = /created_at.lt."([^"]+)"/.exec(
+          String(has("or")?.[1][0]),
+        )?.[1];
         const roots = rows
-          .filter((r) => !r.parent_id)
+          .filter((r) => !r.parent_id && (!before || r.created_at < before))
           .sort((a, b) => b.created_at.localeCompare(a.created_at));
         return { data: roots.slice(0, limit), error: null };
       }
@@ -62,7 +65,7 @@ function database(rows: Row[]) {
       };
     };
     const chain: Record<string, unknown> = {};
-    for (const op of ["select", "eq", "is", "in", "order", "limit"])
+    for (const op of ["select", "eq", "is", "in", "order", "limit", "or"])
       chain[op] = (...args: unknown[]) => {
         ops.push([op, args]);
         return chain;
@@ -87,7 +90,7 @@ describe("getComments", () => {
     database(rows);
     const result = await getComments(group, event);
     expect(result.total).toBe(27);
-    expect(result.hasMore).toBe(true);
+    expect(result.nextCursor).toBeTruthy();
     expect(result.threads).toHaveLength(COMMENT_PAGE_SIZE);
     expect(result.threads[0].id).toBe("root-5");
     expect(result.threads.at(-1)?.id).toBe("root-24");
@@ -98,8 +101,8 @@ describe("getComments", () => {
 
   it("pide solo las respuestas de los hilos visibles", async () => {
     const calls = database([row("a", 1), row("b", 2), row("r", 3, "a")]);
-    const result = await getComments(group, event, 20);
-    expect(result.hasMore).toBe(false);
+    const result = await getComments(group, event);
+    expect(result.nextCursor).toBeNull();
     expect(result.threads.map((t) => t.id)).toEqual(["a", "b"]);
     const replies = calls.find((c) => c.ops.some(([op]) => op === "in"));
     expect(replies?.ops.find(([op]) => op === "in")?.[1]).toEqual([
@@ -114,18 +117,20 @@ describe("getComments", () => {
     expect(result.threads).toEqual([]);
     expect(calls.some((c) => c.ops.some(([op]) => op === "in"))).toBe(false);
   });
-});
-
-describe("commentLimit", () => {
-  it.each([
-    [undefined, 20],
-    ["abc", 20],
-    ["-5", 20],
-    ["40", 40],
-    ["41", 60],
-    [["60", "80"], 60],
-    ["100000", 200],
-  ])("%s → %d", (value, expected) => {
-    expect(commentLimit(value as string | string[] | undefined)).toBe(expected);
+  it("recorre más de 200 hilos sin repetirlos", async () => {
+    database(
+      Array.from({ length: 223 }, (_, i) =>
+        row(`30000000-0000-4000-8000-${String(i).padStart(12, "0")}`, i),
+      ),
+    );
+    const seen = new Set<string>();
+    let page = await getComments(group, event);
+    for (let i = 0; i < 12; i++) {
+      for (const thread of page.threads) seen.add(thread.id);
+      if (!page.nextCursor) break;
+      page = await getComments(group, event, page.nextCursor);
+    }
+    expect(seen.size).toBe(223);
+    expect(page.nextCursor).toBeNull();
   });
 });

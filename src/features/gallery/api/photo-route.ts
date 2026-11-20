@@ -16,6 +16,7 @@ export async function photoResponse(
   groupId: string,
   eventId: string,
   photoId: string,
+  thumbnail = false,
 ) {
   const requestId = await currentRequestId();
   if (
@@ -39,7 +40,10 @@ export async function photoResponse(
   if (!mediaConfigured())
     return apiError("SERVICE_UNAVAILABLE", { requestId, headers });
   try {
-    const response = await fetch(privateImageUrl(photo.cloudinary_public_id), {
+    const url = thumbnail
+      ? privateImageUrl(photo.cloudinary_public_id, true)
+      : privateImageUrl(photo.cloudinary_public_id);
+    const response = await fetch(url, {
       cache: "no-store",
       signal: AbortSignal.timeout(10000),
     });

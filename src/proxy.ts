@@ -113,6 +113,6 @@ export async function proxy(request: NextRequest) {
 }
 export const config = {
   matcher: [
-    "/((?!api/health|_next/static|_next/image|favicon.ico|icon.svg|sw.js|offline.html|manifest.webmanifest|icons/|robots.txt|sitemap.xml|opengraph-image).*)",
+    "/((?!api/health|_next/static|_next/image|favicon.ico|icon.svg|sw.js|offline.html|manifest.webmanifest|icons/|illustrations/|brand/|apple-icon.png|robots.txt|sitemap.xml|opengraph-image).*)",
   ],
 };

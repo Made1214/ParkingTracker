@@ -49,7 +49,20 @@ export async function uploadPrivateImage(
   });
 }
 
-export function privateImageUrl(publicId: string) {
+// Firma la entrega de la imagen o de una miniatura para el proxy privado.
+export function privateImageUrl(publicId: string, thumbnail = false) {
+  if (thumbnail) {
+    return client().url(publicId, {
+      type: "authenticated",
+      resource_type: "image",
+      sign_url: true,
+      secure: true,
+      format: "webp",
+      transformation: [
+        { width: 400, height: 400, crop: "limit", quality: "auto" },
+      ],
+    });
+  }
   return client().utils.private_download_url(publicId, "webp", {
     type: "authenticated",
     resource_type: "image",

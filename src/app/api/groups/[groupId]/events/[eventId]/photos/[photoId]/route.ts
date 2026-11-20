@@ -1,7 +1,8 @@
 import { photoResponse } from "@/features/gallery";
 
+// Entrega la foto completa o su miniatura mediante el proxy autenticado.
 export async function GET(
-  _: Request,
+  request: Request,
   {
     params,
   }: {
@@ -9,5 +10,6 @@ export async function GET(
   },
 ) {
   const { groupId, eventId, photoId } = await params;
-  return photoResponse(groupId, eventId, photoId);
+  const thumbnail = new URL(request.url).searchParams.get("size") === "thumb";
+  return photoResponse(groupId, eventId, photoId, thumbnail);
 }

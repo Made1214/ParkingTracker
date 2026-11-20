@@ -10,7 +10,7 @@ import {
 } from "@/features/proposals";
 import { TasksPanel, getTaskProgress } from "@/features/tasks";
 import { SchedulePanel } from "@/features/schedule";
-import { CommentsPanel, commentLimit } from "@/features/comments";
+import { CommentsPanel } from "@/features/comments";
 import { GalleryPanel } from "@/features/gallery";
 import {
   ExpensesPanel,
@@ -44,12 +44,14 @@ export async function EventScreen({
   eventId,
   section,
   comments,
+  photos,
 }: {
   groupId: string;
   eventId: string;
   section?: string | string[];
-  /** `?comentarios=`: cuántos hilos de comentarios mostrar. */
+  /** `?comentarios=`: cursor de los hilos anteriores. */
   comments?: string | string[];
+  photos?: string | string[];
 }) {
   const [{ event, groupName, organizer, user, canRespond, canManage }, live] =
     await Promise.all([
@@ -102,9 +104,9 @@ export async function EventScreen({
             </li>
           </ul>
           {canManage && (
-            <a href="#gestionar" className={styles.heroAction}>
+            <Link href={`${eventUrl}#gestionar`} className={styles.heroAction}>
               <PencilLine size={16} aria-hidden="true" /> Editar o cancelar
-            </a>
+            </Link>
           )}
         </div>
       </header>
@@ -253,7 +255,11 @@ export async function EventScreen({
       {active === "fotos" && (
         <PanelBoundary label="fotos">
           <Suspense fallback={<PanelSkeleton label="fotos" />}>
-            <GalleryPanel groupId={groupId} eventId={eventId} />
+            <GalleryPanel
+              groupId={groupId}
+              eventId={eventId}
+              cursor={Array.isArray(photos) ? photos[0] : photos}
+            />
           </Suspense>
         </PanelBoundary>
       )}
@@ -263,7 +269,7 @@ export async function EventScreen({
             <CommentsPanel
               groupId={groupId}
               eventId={eventId}
-              limit={commentLimit(comments)}
+              cursor={Array.isArray(comments) ? comments[0] : comments}
             />
           </Suspense>
         </PanelBoundary>
