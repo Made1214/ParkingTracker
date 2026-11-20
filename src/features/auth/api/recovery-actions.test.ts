@@ -13,6 +13,9 @@ vi.mock("@/shared/lib/env", () => ({
 vi.mock("./session", () => ({ requireUser: mocks.requireUser }));
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 import { requestPasswordReset, resetPassword } from "./recovery-actions";
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers({ "x-forwarded-for": "198.51.100.20" }),
+}));
 
 describe("password recovery", () => {
   beforeEach(() => {

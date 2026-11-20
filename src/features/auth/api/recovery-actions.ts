@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { z } from "zod";
 import {
   PASSWORD_HINT,
@@ -11,13 +12,25 @@ import { serverClient } from "@/shared/supabase/server";
 import { publicEnv } from "@/shared/lib/env";
 import { text, type ActionState } from "@/shared/lib/forms";
 import { requireUser } from "./session";
+import { clientIp } from "@/shared/lib/client-ip";
+import { hitRateLimit } from "@/shared/lib/rate-limit";
 
+// Limita las solicitudes de recuperación sin revelar si el correo existe.
 export async function requestPasswordReset(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
   const email = z.email().safeParse(text(form, "email"));
   if (!email.success) return { error: "Escribe un correo electrónico válido." };
+  const limit = await hitRateLimit(clientIp(await headers()), {
+    scope: "password-reset",
+    limit: 5,
+  });
+  if (!limit.allowed)
+    return {
+      error:
+        "Demasiadas solicitudes desde esta conexión. Inténtalo en un minuto.",
+    };
   const supabase = await serverClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email.data, {
     redirectTo: `${publicEnv().appUrl}/auth/callback?next=%2Freset-password`,

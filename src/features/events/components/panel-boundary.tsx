@@ -1,7 +1,9 @@
 "use client";
+import { useEffect } from "react";
 import { catchError, type ErrorInfo } from "next/error";
 import { RotateCw, TriangleAlert } from "lucide-react";
 import styles from "./event-screen.module.css";
+import { reportClientError } from "@/shared/lib/report-error";
 
 /**
  * Aísla el fallo de un panel de la salida (plan E4.F4.T2): si gastos no
@@ -10,8 +12,15 @@ import styles from "./event-screen.module.css";
  */
 function PanelError(
   { label, quiet }: { label: string; quiet?: boolean },
-  { retry }: ErrorInfo,
+  { error, retry }: ErrorInfo,
 ) {
+  useEffect(
+    () =>
+      reportClientError(
+        error instanceof Error ? error : new Error("Error al cargar un panel"),
+      ),
+    [error],
+  );
   if (quiet) return null;
   return (
     <div className={styles.panelError} role="alert">

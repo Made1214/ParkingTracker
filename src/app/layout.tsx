@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/next";
@@ -44,9 +45,14 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: dark)", color: "#121120" },
   ],
 };
-export default function RootLayout({
+// Pasa el nonce al script de tema cuando la CSP exige un valor por petición.
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const nonce =
+    process.env.CSP_MODE === "enforce"
+      ? ((await headers()).get("x-nonce") ?? undefined)
+      : undefined;
   return (
     <html
       lang="es"
@@ -54,7 +60,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          nonce={nonce}
+        >
           {children}
           <PwaRuntime />
         </ThemeProvider>

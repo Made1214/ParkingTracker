@@ -74,13 +74,21 @@ export default function PrivacyPage() {
           <strong>Google:</strong> solo si eliges entrar con tu cuenta de
           Google.
         </li>
+        <li>
+          <strong>Upstash:</strong> si está habilitado, conserva temporalmente
+          contadores e identificadores técnicos para limitar solicitudes.
+        </li>
+        <li>
+          <strong>jsDelivr:</strong> entrega el motor y los idiomas del lector
+          de facturas. La imagen se lee en tu dispositivo.
+        </li>
       </ul>
 
       <h2>Cookies</h2>
       <p>
-        Usamos cookies propias solo para mantener tu sesión iniciada. El tema
-        claro u oscuro se guarda en tu navegador. No usamos cookies de terceros
-        ni de publicidad.
+        Usamos cookies propias para mantener tu sesión iniciada. El tema claro u
+        oscuro y las preferencias de instalación se guardan en el almacenamiento
+        local de tu navegador. No usamos cookies de terceros ni de publicidad.
       </p>
 
       <h2>Cuánto tiempo guardamos los datos</h2>

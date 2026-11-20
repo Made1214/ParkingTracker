@@ -1,42 +1,11 @@
 import type { NextConfig } from "next";
 import { publicEnv } from "./src/shared/lib/env";
 
-const { url } = publicEnv();
-const supabaseUrl = new URL(url);
-const supabaseOrigin = supabaseUrl.origin;
-const supabaseWsOrigin = `${supabaseUrl.protocol === "https:" ? "wss:" : "ws:"}//${supabaseUrl.host}`;
-const isDev = process.env.NODE_ENV === "development";
-// Sentry (opcional): el navegador envía los errores al host del DSN.
-// Un DSN mal escrito no debe tumbar el build: se ignora en la CSP.
-function sentryCspOrigin(dsn?: string) {
-  if (!dsn?.trim()) return "";
-  try {
-    const { protocol, origin } = new URL(dsn.trim());
-    return protocol === "https:" ? ` ${origin}` : "";
-  } catch {
-    return "";
-  }
-}
-const sentryOrigin = sentryCspOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN);
-// Lector de facturas (Tesseract.js): el motor y el modelo de idioma se
-// descargan de jsDelivr y corren en un worker. La foto no sale del navegador.
-const ocrAssets = "https://cdn.jsdelivr.net";
-// En desarrollo, Vercel Analytics carga su script de depuración desde aquí.
-const vercelScripts = isDev ? " https://va.vercel-scripts.com" : "";
-
-const cspReportOnly = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' ${ocrAssets}${isDev ? " 'unsafe-eval'" : ""}${vercelScripts}`,
-  `worker-src 'self' blob: ${ocrAssets}`,
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' blob: data: https://res.cloudinary.com https://lh3.googleusercontent.com ${supabaseOrigin}`,
-  "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} https://api.cloudinary.com https://res.cloudinary.com ${ocrAssets}${sentryOrigin}`,
-  "object-src 'none'",
-  "base-uri 'self'",
-  `form-action 'self' ${supabaseOrigin} https://accounts.google.com`,
-  "frame-ancestors 'none'",
-].join("; ");
+import { withSentryConfig } from "@sentry/nextjs/config";
+import {
+  contentSecurityPolicy,
+  securityReportingEndpoint,
+} from "./src/shared/lib/content-security-policy";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -51,7 +20,18 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains; preload",
   },
   { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
-  { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
+  {
+    key: "Reporting-Endpoints",
+    value: securityReportingEndpoint(publicEnv().appUrl),
+  },
+  ...(process.env.CSP_MODE === "enforce"
+    ? []
+    : [
+        {
+          key: "Content-Security-Policy-Report-Only",
+          value: contentSecurityPolicy(),
+        },
+      ]),
 ];
 
 const config: NextConfig = {
@@ -82,4 +62,13 @@ const config: NextConfig = {
     ];
   },
 };
-export default config;
+const { SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT } = process.env;
+export default SENTRY_AUTH_TOKEN && SENTRY_ORG && SENTRY_PROJECT
+  ? withSentryConfig(config, {
+      authToken: SENTRY_AUTH_TOKEN,
+      org: SENTRY_ORG,
+      project: SENTRY_PROJECT,
+      silent: true,
+      telemetry: false,
+    })
+  : config;
