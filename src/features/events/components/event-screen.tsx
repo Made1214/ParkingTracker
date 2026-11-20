@@ -1,13 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import {
-  AlignLeft,
-  ArrowLeft,
-  Camera,
-  Clock3,
-  MapPin,
-  PencilLine,
-} from "lucide-react";
+import { AlignLeft, Camera, Clock3, MapPin, PencilLine } from "lucide-react";
 import { AttendancePanel } from "@/features/rsvp";
 import {
   PollComposer,
@@ -24,6 +17,7 @@ import {
   formatMoney,
   getExpenseSummary,
 } from "@/features/expenses";
+import { Breadcrumbs } from "@/shared/ui/breadcrumbs";
 import { Card } from "@/shared/ui/card";
 import { Motion } from "@/shared/ui/motion";
 import { panamaTime, shortDate } from "@/shared/lib/utils";
@@ -41,8 +35,10 @@ const sections = [
   { value: "gastos", label: "Gastos" },
   { value: "tareas", label: "Tareas" },
   { value: "fotos", label: "Fotos" },
+  { value: "comentarios", label: "Comentarios" },
 ] as const;
 
+// Compone el detalle de la salida y muestra el panel de la pestaña activa.
 export async function EventScreen({
   groupId,
   eventId,
@@ -55,7 +51,7 @@ export async function EventScreen({
   /** `?comentarios=`: cuántos hilos de comentarios mostrar. */
   comments?: string | string[];
 }) {
-  const [{ event, organizer, user, canRespond, canManage }, live] =
+  const [{ event, groupName, organizer, user, canRespond, canManage }, live] =
     await Promise.all([
       getEvent(groupId, eventId),
       getLivePoll(groupId, eventId),
@@ -77,9 +73,13 @@ export async function EventScreen({
         />
       )}
       <header className={styles.hero}>
-        <Link className={styles.back} href={`/groups/${groupId}`}>
-          <ArrowLeft size={16} aria-hidden="true" /> Volver al grupo
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: "Inicio", href: "/groups" },
+            { label: groupName, href: `/groups/${groupId}` },
+            { label: event.title },
+          ]}
+        />
         <p className={styles.eyebrow}>
           {open && <span className="status-beacon" aria-hidden="true" />}
           {statusLabels[event.status].toUpperCase()}
@@ -114,6 +114,8 @@ export async function EventScreen({
         active={active}
         eventUrl={eventUrl}
         pollCount={live.openCount}
+        eventId={eventId}
+        userId={user.id}
       />
 
       {event.status === "cancelled" && (
@@ -166,15 +168,6 @@ export async function EventScreen({
                   <p>{event.description}</p>
                 </Card>
               )}
-              <PanelBoundary label="comentarios">
-                <Suspense fallback={<PanelSkeleton label="comentarios" />}>
-                  <CommentsPanel
-                    groupId={groupId}
-                    eventId={eventId}
-                    limit={commentLimit(comments)}
-                  />
-                </Suspense>
-              </PanelBoundary>
               {canManage && (
                 <div id="gestionar" className={styles.manage}>
                   <ManageEvent event={event} />
@@ -261,6 +254,17 @@ export async function EventScreen({
         <PanelBoundary label="fotos">
           <Suspense fallback={<PanelSkeleton label="fotos" />}>
             <GalleryPanel groupId={groupId} eventId={eventId} />
+          </Suspense>
+        </PanelBoundary>
+      )}
+      {active === "comentarios" && (
+        <PanelBoundary label="comentarios">
+          <Suspense fallback={<PanelSkeleton label="comentarios" />}>
+            <CommentsPanel
+              groupId={groupId}
+              eventId={eventId}
+              limit={commentLimit(comments)}
+            />
           </Suspense>
         </PanelBoundary>
       )}

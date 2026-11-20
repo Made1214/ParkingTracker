@@ -54,6 +54,7 @@ for (const colorScheme of ["light", "dark"] as const) {
         "gastos",
         "tareas",
         "fotos",
+        "comentarios",
       ]) {
         await page.goto(`${event}?section=${section}`);
         await expectAccessible(page, `salida · ${section}`);

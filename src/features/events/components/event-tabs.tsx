@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
+import { useEventChannel } from "@/shared/supabase/use-event-channel";
 import styles from "./event-screen.module.css";
 
 type Section = { value: string; label: string };
@@ -11,26 +12,51 @@ type Section = { value: string; label: string };
  * Pestañas de la salida. Un indicador se desliza hasta la pestaña elegida
  * en vez de saltar; se mueve al pulsar, sin esperar a que cargue la sección.
  */
+// Navega entre paneles y cuenta los comentarios nuevos de otras personas.
 export function EventTabs({
   sections,
   active,
   eventUrl,
   pollCount,
+  eventId,
+  userId,
 }: {
   sections: readonly Section[];
   active: string;
   eventUrl: string;
   pollCount: number;
+  eventId: string;
+  /** Quien mira: sus propios comentarios no cuentan como no leídos. */
+  userId: string;
 }) {
   const nav = useRef<HTMLElement>(null);
   const indicator = useRef<HTMLSpanElement>(null);
   const placed = useRef(false);
   const [picked, setPicked] = useState(active);
   const [previous, setPrevious] = useState(active);
+  // Comentarios nuevos de otras personas desde la última vez que se abrió la
+  // pestaña. Vive en memoria mientras el detalle está montado (E7.F2.T2).
+  const [unread, setUnread] = useState(0);
+  const onComments = useRef(active === "comentarios");
   if (previous !== active) {
     setPrevious(active);
     setPicked(active);
+    if (active === "comentarios") setUnread(0);
   }
+  useEffect(() => {
+    onComments.current = active === "comentarios";
+  }, [active]);
+
+  useEventChannel({
+    channel: `comments-unread:${eventId}`,
+    table: "comments",
+    filter: `event_id=eq.${eventId}`,
+    onChange: (change) => {
+      if (change.eventType !== "INSERT" || onComments.current) return;
+      if (change.new.author_id === userId) return;
+      setUnread((count) => count + 1);
+    },
+  });
 
   function place(animate: boolean) {
     const link = nav.current?.querySelector<HTMLElement>("[data-active]");
@@ -166,13 +192,21 @@ export function EventTabs({
                 !event.ctrlKey &&
                 !event.shiftKey &&
                 !event.altKey
-              )
+              ) {
                 setPicked(value);
+                if (value === "comentarios") setUnread(0);
+              }
             }}
           >
             {label}
             {value === "votaciones" && pollCount > 0 && (
               <span className={styles.tabCount}>{pollCount}</span>
+            )}
+            {value === "comentarios" && unread > 0 && (
+              <span className={styles.tabCount}>
+                {unread > 9 ? "9+" : unread}
+                <span className="sr-only"> comentarios nuevos</span>
+              </span>
             )}
           </Link>
         ))}

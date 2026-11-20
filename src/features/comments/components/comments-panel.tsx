@@ -11,6 +11,7 @@ import styles from "./comments.module.css";
 type Thread = Awaited<ReturnType<typeof getComments>>["threads"][number];
 type Item = Omit<Thread, "replies"> & { replies?: Thread["replies"] };
 
+// Renderiza los comentarios y sus respuestas dentro de la salida.
 export async function CommentsPanel({
   groupId,
   eventId,
@@ -144,7 +145,7 @@ export async function CommentsPanel({
       {hasMore && (
         <Link
           className={styles.more}
-          href={`/groups/${groupId}/events/${eventId}?section=plan&comentarios=${(limit ?? COMMENT_PAGE_SIZE) + COMMENT_PAGE_SIZE}#comments-title`}
+          href={`/groups/${groupId}/events/${eventId}?section=comentarios&comentarios=${(limit ?? COMMENT_PAGE_SIZE) + COMMENT_PAGE_SIZE}#comments-title`}
           scroll={false}
           prefetch={false}
         >

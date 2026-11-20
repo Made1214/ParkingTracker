@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Settings2, TrendingUp } from "lucide-react";
+import { Settings2, TrendingUp } from "lucide-react";
 import {
   EventList,
   CreateEventForm,
@@ -9,6 +9,7 @@ import {
 } from "@/features/events";
 import { publicEnv } from "@/shared/lib/env";
 import { initials } from "@/shared/lib/utils";
+import { Breadcrumbs } from "@/shared/ui/breadcrumbs";
 import { Card } from "@/shared/ui/card";
 import { getGroup } from "../api/queries";
 import { InviteCode } from "./invite-code";
@@ -16,6 +17,7 @@ import { GroupImage } from "./group-image";
 import styles from "./group.module.css";
 import { Motion } from "@/shared/ui/motion";
 
+// Presenta las próximas salidas y el historial del grupo.
 export async function GroupScreen({
   groupId,
   tab,
@@ -68,9 +70,9 @@ export async function GroupScreen({
   return (
     <>
       <header className={styles.hero}>
-        <Link className={styles.back} href="/groups">
-          <ArrowLeft size={16} aria-hidden="true" /> Inicio
-        </Link>
+        <Breadcrumbs
+          items={[{ label: "Inicio", href: "/groups" }, { label: group.name }]}
+        />
         <div className={styles.heroBody}>
           <span className={styles.avatar}>
             {group.avatar_public_id ? (

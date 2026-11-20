@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { requireUser } from "@/features/auth";
+import {
+  PASSWORD_HINT,
+  PASSWORD_MAX,
+  PASSWORD_MIN,
+  requireUser,
+} from "@/features/auth";
 import { InstallCard } from "@/shared/pwa";
 import { Card } from "@/shared/ui/card";
 import { ThemeSelect } from "@/shared/ui/theme-select";
+import { ChangePasswordForm } from "./change-password-form";
 import { ProfileForm } from "./profile-form";
 import { suggestUsername } from "../api/username";
 
+// Carga el perfil y las opciones que permite su método de autenticación.
 export async function ProfileScreen({
   passwordUpdated = false,
 }: {
@@ -52,6 +59,14 @@ export async function ProfileScreen({
         </Card>
         <InstallCard />
       </ProfileForm>
+      {/* Las cuentas que entran solo con Google no tienen contraseña. */}
+      {user.identities?.some((identity) => identity.provider === "email") && (
+        <ChangePasswordForm
+          hint={PASSWORD_HINT}
+          min={PASSWORD_MIN}
+          max={PASSWORD_MAX}
+        />
+      )}
     </>
   );
 }
