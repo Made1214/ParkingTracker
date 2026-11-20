@@ -81,15 +81,15 @@ describe("private gallery photo delivery", () => {
     session({ id: "member" });
     mocks.fetch.mockResolvedValue(
       new Response("photo bytes", {
-        headers: { "Content-Type": "image/webp" },
+        headers: { "Content-Type": "image/png" },
       }),
     );
     const response = await photoResponse(group, event, photo);
     expect(response.status).toBe(200);
     expect(response.headers.get("Location")).toBeNull();
-    expect(response.headers.get("Cache-Control")).toBe("private, max-age=600");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
-    expect(response.headers.get("Content-Type")).toBe("image/webp");
+    expect(response.headers.get("Content-Type")).toBe("image/png");
     expect(await response.text()).toBe("photo bytes");
     expect(mocks.sign).toHaveBeenCalledWith(publicId);
     expect(mocks.fetch).toHaveBeenCalledWith(

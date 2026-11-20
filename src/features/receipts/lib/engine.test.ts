@@ -344,6 +344,19 @@ describe("computeReceipt", () => {
     expect(totals(confirmed)).toEqual({ ana: 1070, carlos: 1070 });
   });
 
+  it("bloquea un impuesto positivo aplicado a artículos sin base neta", () => {
+    const result = computeReceipt(
+      receipt({
+        items: [item("a", 1000, { taxId: "t", discountCents: 1000 })],
+        allocations: [to("a", "ana")],
+        taxes: [tax("t", 70)],
+        printedTotalCents: 70,
+      }),
+    );
+    expect(result.canFinalize).toBe(false);
+    expect(codes(result)).toContain("tax_without_base");
+  });
+
   it("13d. impuesto incluido en precios no se suma al total", () => {
     const r = computeReceipt(
       receipt({

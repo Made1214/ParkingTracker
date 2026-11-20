@@ -178,7 +178,8 @@
    - Completado en la rama. Se aplicó el parche de importe exacto, se protegieron los borrados y se validaron las migraciones con pgTAP local. La promoción está en P0.3.
    - Reemplazar `settle_event_debt` por una tabla de liquidaciones reales `event_settlements` (o, si se requiere parche inmediato mientras se diseña, deshabilitar la rama transitiva destructiva y validar monto exacto).
    - Añadir `current_member_delete_guard` a `receipts`, `event_guests` y `expense_guest_shares`; extender `receipts_guard` a `DELETE`; bloquear `UPDATE` en `expenses` con `receipt_id IS NOT NULL`; revocar `UPDATE` directo en `expense_splits`; corregir `reopen_receipt`; restringir `events_delete` a `draft` sin media; incluir `receipts.image_public_id` (y borrado ordenado respecto a `RESTRICT`) en `delete_group()` y `delete_my_account()`; endurecer `handle_new_user()`, revocar sesiones/identidades y bloquear `profiles_update` tras anonimización; cerrar `polls` abiertas en `finish_due_events()` y al cancelar eventos.
-2. [ ] **Parches de servidor y cliente de alto riesgo:**
+2. [x] **Parches de servidor y cliente de alto riesgo**
+   - Completado en la rama. Se verificaron el reparto sin base gravable, las cargas rechazadas antes de contactar a Cloudinary, la respuesta de fotos privadas y la sonda real de Postgres.
    - Corregir `engine.ts` (base gravable ≤ 0), `uploadReceiptImage` (validar permisos/draft/versión/`eventId` antes de subir) y `ReceiptFlow` (`Math.abs`, decimales, enteros, `.catch()` en cola).
    - Cambiar `photo-route.ts` a `Cache-Control: private, no-store` y `Content-Type` dinámico.
    - Corregir `GET /api/health` para sondear realmente la base de datos y evitar auto-pausas silenciosas.

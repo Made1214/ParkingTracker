@@ -19,6 +19,7 @@ function authorized(authHeader: string | null, secret: string) {
   );
 }
 
+// Comprueba que PostgREST puede ejecutar una consulta real en Postgres.
 export async function GET(request: Request) {
   const secret = healthCheckSecret();
   if (secret && !authorized(request.headers.get("authorization"), secret)) {
@@ -31,21 +32,20 @@ export async function GET(request: Request) {
   const time = new Date().toISOString();
   try {
     const supabase = await serverClient();
-    const { error } = await supabase.auth.getUser();
-    if (error && error.name !== "AuthSessionMissingError") {
+    const { data, error } = await supabase
+      .rpc("database_healthcheck")
+      .abortSignal(AbortSignal.timeout(5000));
+    if (!error && data === true) {
       return NextResponse.json(
-        { status: "error", db: "error", time },
-        { status: 503, headers },
+        { status: "ok", db: "ok", time },
+        { status: 200, headers },
       );
     }
-    return NextResponse.json(
-      { status: "ok", db: "ok", time },
-      { status: 200, headers },
-    );
   } catch {
-    return NextResponse.json(
-      { status: "error", db: "error", time },
-      { status: 503, headers },
-    );
+    // Los fallos de conexión y de inicialización comparten la respuesta 503.
   }
+  return NextResponse.json(
+    { status: "error", db: "error", time },
+    { status: 503, headers },
+  );
 }

@@ -5,9 +5,9 @@ import { apiError } from "@/shared/lib/api-errors";
 import { currentRequestId } from "@/shared/lib/request-id";
 import { mediaConfigured, privateImageUrl } from "@/shared/cloudinary/server";
 
-// Las fotos no cambian: caché solo en el navegador de quien ya pudo verlas.
+// Cada solicitud debe volver a comprobar la membresía.
 const headers = {
-  "Cache-Control": "private, max-age=600",
+  "Cache-Control": "private, no-store",
   "X-Content-Type-Options": "nosniff",
 };
 
@@ -43,13 +43,11 @@ export async function photoResponse(
       cache: "no-store",
       signal: AbortSignal.timeout(10000),
     });
-    if (
-      !response.ok ||
-      !response.headers.get("content-type")?.startsWith("image/")
-    )
+    const contentType = response.headers.get("content-type");
+    if (!response.ok || !contentType?.startsWith("image/"))
       return apiError("UPSTREAM_ERROR", { requestId, headers });
     return new Response(response.body, {
-      headers: { ...headers, "Content-Type": "image/webp" },
+      headers: { ...headers, "Content-Type": contentType },
     });
   } catch {
     return apiError("UPSTREAM_ERROR", { requestId, headers });

@@ -131,9 +131,19 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
     [],
   );
 
-  // Autoguardado: en serie (una petición a la vez) y con bloqueo por versión.
+  // Serializa las operaciones y deja disponible la cola tras un fallo.
+  const enqueue = useCallback(<T,>(operation: () => Promise<T>) => {
+    const result = queue.current.then(operation);
+    queue.current = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }, []);
+
+  // Guarda el último documento respetando su versión en el servidor.
   const flush = useCallback(() => {
-    queue.current = queue.current.then(async () => {
+    return enqueue(async () => {
       setSave("saving");
       const result = await saveReceiptDraft({
         ...ids,
@@ -143,14 +153,20 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
       if (result.ok) {
         version.current = result.version;
         setSave((s) => (s === "saving" ? "saved" : s));
+        setError(null);
       } else {
         setSave("error");
         setError(result.error);
       }
+      return result;
+    }).catch(() => {
+      const error = "No se pudo guardar el borrador. Inténtalo de nuevo.";
+      setSave("error");
+      setError(error);
+      return { ok: false as const, error };
     });
-    return queue.current;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [enqueue]);
 
   useEffect(() => {
     if (save !== "dirty" || !data.canEdit) return;
@@ -160,7 +176,7 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (save === "dirty" || save === "saving") event.preventDefault();
+      if (save !== "saved") event.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
@@ -254,8 +270,9 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
               ocr: parsed.ocr,
             }));
             setStep("review");
-            await flush();
-            queue.current = queue.current.then(async () => {
+            const saved = await flush();
+            if (!saved.ok) return;
+            await enqueue(async () => {
               const form = new FormData();
               form.set("group_id", data.groupId);
               form.set("event_id", data.eventId);
@@ -268,7 +285,9 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
                 setError(
                   `La lectura se guardó, pero la foto no: ${uploaded.error}`,
                 );
-            });
+            }).catch(() =>
+              setError("No se pudo subir la foto. Inténtalo de nuevo."),
+            );
           }}
         />
       )}
@@ -325,13 +344,19 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
             .map((i) => i.message)}
           paidCents={paidCents}
           onFinalize={async (confirmDuplicate) => {
-            await flush();
-            const response = await finalizeReceipt({
-              ...ids,
-              version: version.current,
-              document: latest.current,
-              confirmDuplicate,
-            });
+            const saved = await flush();
+            if (!saved.ok) return saved;
+            const response = await enqueue(() =>
+              finalizeReceipt({
+                ...ids,
+                version: version.current,
+                document: latest.current,
+                confirmDuplicate,
+              }),
+            ).catch(() => ({
+              ok: false as const,
+              error: "No se pudo finalizar la factura. Inténtalo de nuevo.",
+            }));
             if (response.ok) {
               router.refresh();
               return null;
@@ -540,6 +565,12 @@ function Confidence({ value, missing }: { value?: number; missing?: boolean }) {
   );
 }
 
+// Interpreta un separador final como parte de un decimal todavía en edición.
+function readMoneyField(text: string) {
+  return readMoney(text.replace(/^(-?\d+)[.,]$/, "$1"));
+}
+
+// Conserva el texto mientras se escribe un importe o porcentaje decimal.
 function MoneyField({
   label,
   value,
@@ -557,9 +588,9 @@ function MoneyField({
   const [previous, setPrevious] = useState(value);
   if (previous !== value) {
     setPrevious(value);
-    if (readMoney(text) !== value) setText(moneyInput(value));
+    if (readMoneyField(text) !== value) setText(moneyInput(value));
   }
-  const bad = Boolean(text.trim()) && readMoney(text) === null;
+  const bad = Boolean(text.trim()) && readMoneyField(text) === null;
   return (
     <label className={className ?? styles.field}>
       <span>{label}</span>
@@ -570,7 +601,7 @@ function MoneyField({
         placeholder="0.00"
         onChange={(e) => {
           setText(e.target.value);
-          onChange(readMoney(e.target.value));
+          onChange(readMoneyField(e.target.value));
         }}
       />
     </label>
@@ -755,7 +786,10 @@ function ReviewStep({
                         setItem(item.id, {
                           quantity: Math.max(
                             1,
-                            Math.min(999, Number(e.target.value) || 1),
+                            Math.min(
+                              999,
+                              Math.trunc(Number(e.target.value)) || 1,
+                            ),
                           ),
                         })
                       }
@@ -996,8 +1030,8 @@ function ReviewStep({
                 <MoneyField
                   label="Importe"
                   value={
-                    charge.amountCents === null
-                      ? null
+                    charge.amountCents === null || charge.kind === "adjustment"
+                      ? charge.amountCents
                       : Math.abs(charge.amountCents)
                   }
                   invalid={charge.amountCents === null}
@@ -1561,39 +1595,39 @@ function CustomSplit({
         <p className="small muted">Elige primero a las personas.</p>
       )}
       {mode !== "equal" &&
-        chosen.map((p) => (
-          <label key={p.id} className={styles.inlineField}>
-            <span>{p.name}</span>
-            {mode === "amount" ? (
-              <MoneyField
-                label=""
-                className={styles.compactField}
-                value={value(p.id)}
-                onChange={(cents) => setValue(p.id, Math.max(0, cents ?? 0))}
-              />
-            ) : (
+        chosen.map((p) =>
+          mode === "units" ? (
+            <label key={p.id} className={styles.inlineField}>
+              <span>{p.name}</span>
               <Input
-                inputMode="decimal"
-                value={
-                  mode === "percent"
-                    ? String(value(p.id) / 100)
-                    : String(value(p.id))
-                }
-                onChange={(e) => {
-                  const n = Number(e.target.value.replace(",", "."));
+                inputMode="numeric"
+                value={String(value(p.id))}
+                onChange={(e) =>
                   setValue(
                     p.id,
-                    Number.isFinite(n) && n >= 0
-                      ? mode === "percent"
-                        ? Math.round(n * 100)
-                        : Math.floor(n)
-                      : 0,
-                  );
-                }}
+                    Math.max(0, Math.trunc(Number(e.target.value)) || 0),
+                  )
+                }
               />
-            )}
-          </label>
-        ))}
+            </label>
+          ) : (
+            <MoneyField
+              key={`${mode}-${p.id}`}
+              label={p.name}
+              className={styles.inlineField}
+              value={value(p.id)}
+              onChange={(cents) =>
+                setValue(
+                  p.id,
+                  Math.min(
+                    mode === "percent" ? 10_000 : Number.MAX_SAFE_INTEGER,
+                    Math.max(0, cents ?? 0),
+                  ),
+                )
+              }
+            />
+          ),
+        )}
       {mode !== "equal" && (
         <p className="small" data-ok={sum === target || undefined}>
           {mode === "units"

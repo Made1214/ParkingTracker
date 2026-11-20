@@ -327,8 +327,17 @@ export function computeReceipt(input: ReceiptInput): ReceiptResult {
       );
       continue;
     }
+    // Un impuesto positivo requiere una base neta válida para repartirlo.
+    const baseNet = sum(baseItems.map((i) => itemNetCents(i) ?? 0));
+    if (tax.amountCents > 0 && baseNet <= 0) {
+      error(
+        "tax_without_base",
+        `«${tax.label}» necesita una base gravable mayor que cero.`,
+        tax.id,
+      );
+      continue;
+    }
     if (tax.rateBp) {
-      const baseNet = sum(baseItems.map((i) => itemNetCents(i) ?? 0));
       const expected = applyRate(baseNet, tax.rateBp);
       // Tolerancia: un centavo por línea (redondeo por línea en el comercio).
       if (Math.abs(expected - tax.amountCents) > Math.max(1, baseItems.length))

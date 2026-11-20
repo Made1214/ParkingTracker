@@ -1077,6 +1077,10 @@ export type Database = {
       }
     }
     Functions: {
+      database_healthcheck: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       cast_vote: {
         Args: { p_option_ids: string[]; p_poll_id: string }
         Returns: undefined
