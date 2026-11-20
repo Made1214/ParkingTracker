@@ -94,6 +94,17 @@ export async function getExpenses(groupId: string, eventId: string) {
       payer: name(e.paid_by),
       people: e.expense_splits.length + e.expense_guest_shares.length,
       receiptId: e.receipt_id,
+      canEdit:
+        event.data.status !== "cancelled" &&
+        !e.receipt_id &&
+        !e.expense_guest_shares.length &&
+        !e.expense_splits.some((s) => s.settled && s.user_id !== e.paid_by) &&
+        (isAdmin || e.created_by === user.id),
+      paidBy: e.paid_by,
+      shares: e.expense_splits.map((s) => ({
+        userId: s.user_id,
+        cents: cents(s.share_amount),
+      })),
       // Los gastos de una factura se corrigen desde la factura (la base de
       // datos tampoco deja borrarlos sueltos).
       canDelete: !e.receipt_id && (isAdmin || e.created_by === user.id),

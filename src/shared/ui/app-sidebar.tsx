@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AvatarImage } from "./avatar-image";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import {
@@ -37,10 +38,12 @@ const ROUTE =
 export function AppSidebar({
   groups,
   displayName,
+  avatarSrc,
   logout,
 }: {
   groups: ShellGroup[];
   displayName: string;
+  avatarSrc?: string | null;
   logout: () => Promise<void>;
 }) {
   const pathname = usePathname();
@@ -201,7 +204,7 @@ export function AppSidebar({
       <div className={styles.foot}>
         <Link href="/profile" className={styles.user}>
           <span className={styles.avatar} aria-hidden="true">
-            {initials(displayName)}
+            <AvatarImage src={avatarSrc} fallback={initials(displayName)} />
           </span>
           <span>
             <strong>{displayName || "Tu perfil"}</strong>

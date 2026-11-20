@@ -227,15 +227,32 @@ export async function ExpensesPanel({
                           >
                             <EllipsisVertical size={18} aria-hidden="true" />
                           </summary>
-                          <ActionForm
-                            action={deleteExpense}
-                            label="Eliminar gasto"
-                            tone="danger"
+                          <div
                             className={styles.removeForm}
+                            data-editable={expense.canEdit || undefined}
                           >
-                            {hidden}
-                            <input type="hidden" name="id" value={expense.id} />
-                          </ActionForm>
+                            {expense.canEdit && (
+                              <ExpenseForm
+                                groupId={groupId}
+                                eventId={eventId}
+                                userId={data.userId}
+                                members={data.members}
+                                expense={expense}
+                              />
+                            )}
+                            <ActionForm
+                              action={deleteExpense}
+                              label="Eliminar gasto"
+                              tone="danger"
+                            >
+                              {hidden}
+                              <input
+                                type="hidden"
+                                name="id"
+                                value={expense.id}
+                              />
+                            </ActionForm>
+                          </div>
                         </details>
                       )}
                     </li>

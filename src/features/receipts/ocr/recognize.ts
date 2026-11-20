@@ -1,4 +1,5 @@
 import type { OcrLine } from "../lib/ocr-parse";
+import type { Worker } from "tesseract.js";
 
 /**
  * OCR en el navegador con Tesseract.js (Apache-2.0, gratis). La imagen de la
@@ -114,20 +115,72 @@ function enhance(px: Uint8ClampedArray) {
   }
 }
 
+type Progress = (progress: number, status: string) => void;
+type Reader = {
+  worker: Promise<Worker>;
+  progress?: Progress;
+  expiry?: ReturnType<typeof setTimeout>;
+  busy: boolean;
+};
+let cachedReader: Reader | undefined;
+
+/** Inicializa un lector reutilizable con el motor y los modelos del navegador. */
+function createReader(): Reader {
+  const reader: Reader = {
+    busy: false,
+    worker: import("tesseract.js").then(async ({ createWorker, PSM }) => {
+      const worker = await createWorker("spa+eng", 1, {
+        logger: (m) => reader.progress?.(m.progress ?? 0, m.status ?? ""),
+      });
+      try {
+        await worker.setParameters({
+          tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+          preserve_interword_spaces: "1",
+        });
+        return worker;
+      } catch (error) {
+        await worker.terminate();
+        throw error;
+      }
+    }),
+  };
+  return reader;
+}
+
+/** Libera el motor incluso si todavía se están descargando sus modelos. */
+function releaseReader(reader: Reader) {
+  if (cachedReader === reader) cachedReader = undefined;
+  clearTimeout(reader.expiry);
+  void reader.worker
+    .then((worker) => worker.terminate())
+    .catch(() => undefined);
+}
+
+/** Ejecuta la lectura local y permite interrumpirla durante la preparación o el OCR. */
 export async function recognizeReceipt(
   canvas: HTMLCanvasElement,
-  onProgress?: (progress: number, status: string) => void,
+  onProgress?: Progress,
+  signal?: AbortSignal,
 ): Promise<{ lines: OcrLine[]; confidence: number }> {
-  const { createWorker, PSM } = await import("tesseract.js");
-  const worker = await createWorker("spa+eng", 1, {
-    logger: (m) => onProgress?.(m.progress ?? 0, m.status ?? ""),
+  signal?.throwIfAborted();
+  const reader =
+    cachedReader && !cachedReader.busy ? cachedReader : createReader();
+  cachedReader = reader;
+  clearTimeout(reader.expiry);
+  reader.busy = true;
+  reader.progress = onProgress;
+  let abort: (() => void) | undefined;
+  let completed = false;
+  const cancellation = new Promise<never>((_, reject) => {
+    abort = () => reject(signal?.reason);
+    signal?.addEventListener("abort", abort, { once: true });
   });
   try {
-    await worker.setParameters({
-      tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
-      preserve_interword_spaces: "1",
-    });
-    const { data } = await worker.recognize(canvas, {}, { blocks: true });
+    const worker = await Promise.race([reader.worker, cancellation]);
+    const { data } = await Promise.race([
+      worker.recognize(canvas, {}, { blocks: true }),
+      cancellation,
+    ]);
     const { width, height } = canvas;
     const lines: OcrLine[] = (data.blocks ?? []).flatMap((block) =>
       block.paragraphs.flatMap((paragraph) =>
@@ -143,12 +196,18 @@ export async function recognizeReceipt(
         })),
       ),
     );
+    completed = true;
     return {
       lines,
       confidence: Math.max(0, Math.min(1, data.confidence / 100)),
     };
   } finally {
-    await worker.terminate();
+    if (abort) signal?.removeEventListener("abort", abort);
+    reader.busy = false;
+    reader.progress = undefined;
+    if (completed && cachedReader === reader)
+      reader.expiry = setTimeout(() => releaseReader(reader), 45_000);
+    else releaseReader(reader);
   }
 }
 

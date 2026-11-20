@@ -106,7 +106,7 @@ export async function getEventReceipts(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(
     `/groups/${groupId}/events/${eventId}`,
   );
-  const [receipts, shares, members] = await Promise.all([
+  const [receipts, shares, members, guests] = await Promise.all([
     supabase
       .from("receipts")
       .select(
@@ -127,8 +127,14 @@ export async function getEventReceipts(groupId: string, eventId: string) {
       .from("group_members")
       .select("user_id, role, profiles(display_name)")
       .eq("group_id", groupId),
+    supabase
+      .from("event_guests")
+      .select("id, display_name, created_by")
+      .eq("group_id", groupId)
+      .eq("event_id", eventId)
+      .order("display_name"),
   ]);
-  if (receipts.error || shares.error || members.error)
+  if (receipts.error || shares.error || members.error || guests.error)
     throw new Error("No se pudieron cargar las facturas.");
   const names = new Map(
     members.data.map((m) => [
@@ -167,6 +173,11 @@ export async function getEventReceipts(groupId: string, eventId: string) {
   }
 
   return {
+    guests: guests.data.map((guest) => ({
+      id: guest.id,
+      name: guest.display_name,
+      canManage: isAdmin || guest.created_by === user.id,
+    })),
     receipts: receipts.data.map((r) => {
       const doc = readDocument(r.document);
       return {

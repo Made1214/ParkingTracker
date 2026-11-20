@@ -47,7 +47,7 @@ const AMOUNT_TAIL =
 const GARBLED_TAIL = /\s[\dOIl?$B/.,()-]*\d[\dOIl?$B/.,()-]*$/;
 
 const SKIP =
-  /\b(RUC|D\.?V\.?|CAJERO|CAJA|MESA|MESERO|SALONERO|TEL|TELEFONO|CLIENTE|CEDULA|VISA|MASTERCARD|AMEX|TARJETA|EFECTIVO|CAMBIO|VUELTO|YAPPY|AUTORIZACION|AUT|REF|GRACIAS|CANT|DESCRIPCION|ARTICULOS|ITEMS|HORA|ORDEN|TICKET|CUFE|PROTOCOLO|SERIE|NUMERO DE)\b/;
+  /^(?:RUC|D\.?V\.?|CAJERO|CAJA|MESA|MESERO|SALONERO|TEL|TELEFONO|CLIENTE|CEDULA|VISA|MASTERCARD|AMEX|TARJETA|EFECTIVO|CAMBIO|VUELTO|YAPPY|AUTORIZACION|AUT|REF|GRACIAS|CANT|DESCRIPCION|ARTICULOS|ITEMS|HORA|TICKET|CUFE|PROTOCOLO|SERIE|NUMERO DE)\b|^ORDEN\s*(?:N[O°.#]*\s*)?[:#]?\s*\d+$/;
 const TOTAL =
   /^(TOTAL|TOTAL A PAGAR|TOTAL GENERAL|GRAN TOTAL|IMPORTE TOTAL|TOTAL B\/?\.?)\b(?!.*\b(ITBMS|IMPUESTO|DESC|ARTICULOS|ITEMS)\b)/;
 const SUBTOTAL = /^SUB[\s-]?TOTAL\b/;
@@ -56,13 +56,14 @@ const TAX_BASE = /\b(GRAVADO|BASE|EXENTO|EXENTA|NO GRAVADO)\b/;
 const TIP = /\b(PROPINA|TIP|GRATUITY)\b/;
 const SERVICE = /\b(CARGO POR SERVICIO|SERVICIO|SERVICE)\b/;
 const SUGGESTED = /\b(SUGERIDA|SUGERIDO|SUGGESTED|OPCIONAL|VOLUNTARIA)\b/;
-const DISCOUNT = /\b(DESC|DESCUENTO|DCTO|DSCTO|PROMO|PROMOCION|CORTESIA)\b/;
+const DISCOUNT = /^(DESC|DESCUENTO|DCTO|DSCTO|CORTESIA)\b/;
+const PROMO = /^PROMO(?:CION)?\b/;
 const RETURN = /\b(DEVOLUCION|ANULACION|ANULADO|VOID)\b/;
 
 const ALCOHOL =
-  /\b(CERVEZA|BEER|VINO|WINE|BOTELLA|WHISKY|WHISKEY|RON|SECO|VODKA|TEQUILA|GIN|MOJITO|MICHELADA|SANGRIA|COCTEL|COCKTAIL|TRAGO|SHOT|BALBOA|ATLAS|PANAMA LIGHT|SOBERANA|HEINEKEN|CORONA|BUCKET|CUBETAZO|PINTA|CHAMPAGNE|ESPUMANTE)\b/;
+  /\b(CERVEZA|BEER|VINO|WINE|WHISKY|WHISKEY|RON|HERRERANO|VODKA|TEQUILA|GIN|MOJITO|MICHELADA|SANGRIA|COCTEL|COCKTAIL|TRAGO|SHOT|BALBOA|ATLAS|PANAMA LIGHT|SOBERANA|HEINEKEN|CORONA|BUCKET|CUBETAZO|PINTA|CHAMPAGNE|ESPUMANTE)\b|^SECO\b/;
 const SOFT_DRINK =
-  /\b(SODA|COCA|PEPSI|JUGO|AGUA|CAFE|TE|LIMONADA|REFRESCO|BATIDO|CHICHA|MALTA|TEA|COFFEE|JUICE)\b/;
+  /\b(SODA|COCA|PEPSI|7\s?UP|JUGO|AGUA|CAFE|TE|LIMONADA|REFRESCO|BATIDO|CHICHA|MALTA|TEA|COFFEE|JUICE)\b/;
 
 function tailAmount(text: string) {
   const match = AMOUNT_TAIL.exec(text);
@@ -91,6 +92,7 @@ function parseDate(text: string): string | null {
   return date.toISOString().slice(0, 10);
 }
 
+// Reconoce bebidas por sus nombres y marcas habituales.
 export function guessCategory(name: string): DocumentItem["category"] {
   const text = normalize(name);
   if (ALCOHOL.test(text)) return "alcoholic_beverage";
@@ -100,6 +102,7 @@ export function guessCategory(name: string): DocumentItem["category"] {
 
 const round = (n: number) => Math.round(n * 100) / 100;
 
+// Separa productos, subtotales, impuestos y pagos sin inventar importes.
 export function parseReceiptLines(lines: OcrLine[]): ParsedReceipt {
   const result: ParsedReceipt = {
     merchant: null,
@@ -151,7 +154,13 @@ export function parseReceiptLines(lines: OcrLine[]): ParsedReceipt {
     }
     if (TOTAL.test(text)) {
       inTotals = true;
-      // La última línea TOTAL manda (algunas facturas repiten el total).
+      // Los pagos y los totales ilegibles no desplazan un total ya leído.
+      if (
+        result.printedTotalCents !== null &&
+        (!amount ||
+          /^TOTAL\s+(?:PAGADO|RECIBIDO|EFECTIVO|TARJETA)\b/.test(text))
+      )
+        return;
       result.printedTotalCents = amount ? Math.abs(amount.cents) : null;
       result.printedTotalConfidence = amount ? lowConf() : 0;
       return;
@@ -162,17 +171,15 @@ export function parseReceiptLines(lines: OcrLine[]): ParsedReceipt {
       // "ITBMS 7%" o, si el OCR perdió el "%", "ITBMS 7" (nunca un importe).
       const label = normalize(amount ? amount.rest : raw);
       const rate =
-        /(\d{1,2})(?:[.,]\d+)?\s*%/.exec(label) ??
+        /(\d{1,2}(?:[.,]\d{1,2})?)\s*%/.exec(label) ??
         /\b(?:ITBMS|IMPUESTO|IVA|TAX)\s+(\d{1,2})$/.exec(label);
+      const percent = Number(rate?.[1].replace(",", "."));
       result.taxes.push({
         id: nextId("tax"),
         label: raw.replace(AMOUNT_TAIL, "").trim() || "Impuesto",
         amountCents: amount ? Math.abs(amount.cents) : null,
-        rateBp:
-          rate && Number(rate[1]) > 0 && Number(rate[1]) <= 25
-            ? Number(rate[1]) * 100
-            : null,
-        included: false,
+        rateBp: percent > 0 && percent <= 25 ? Math.round(percent * 100) : null,
+        included: /\bINCLUID[OA]\b/.test(label),
         base: "items",
         confidence: lowConf(),
         bbox,
@@ -195,7 +202,13 @@ export function parseReceiptLines(lines: OcrLine[]): ParsedReceipt {
       });
       return;
     }
-    if (DISCOUNT.test(text) && amount) {
+    if (
+      amount &&
+      (DISCOUNT.test(text) ||
+        (PROMO.test(text) &&
+          (amount.cents < 0 ||
+            /^PROMO(?:CION)?$/.test(normalize(amount.rest)))))
+    ) {
       const value = Math.abs(amount.cents);
       const previous = result.items[result.items.length - 1];
       if (!inTotals && previous && previous.lineTotalCents !== null) {
@@ -254,7 +267,9 @@ export function parseReceiptLines(lines: OcrLine[]): ParsedReceipt {
       unitPriceCents = Math.abs(unit.cents);
       rest = unit.rest.replace(/\s*[@xX×]\s*$/, "");
     }
-    const qty = /^(\d{1,3})\s*(?:[xX×]\s*)?(?=[A-Za-zÁÉÍÓÚÑáéíóúñ])/.exec(rest);
+    const qty = /^(\d{1,3})(?:\s*[xX×]\s*|\s+)(?=[\dA-Za-zÁÉÍÓÚÑáéíóúñ])/.exec(
+      rest,
+    );
     if (qty) {
       quantity = Math.max(1, Number(qty[1]));
       rest = rest.slice(qty[0].length);
@@ -325,7 +340,8 @@ function assignTaxBases(result: ParsedReceipt) {
       if (
         tax.amountCents !== null &&
         tax.rateBp &&
-        Math.abs(applyRate(base, tax.rateBp) - tax.amountCents) > 2
+        Math.abs(applyRate(base, tax.rateBp, tax.included) - tax.amountCents) >
+          2
       )
         tax.confidence = Math.min(tax.confidence ?? 1, 0.4);
     }

@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarX2, ImagePlus, PencilLine } from "lucide-react";
+import { CalendarX2, ImagePlus, PencilLine, Trash2 } from "lucide-react";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Disclosure } from "@/shared/ui/disclosure";
 import { Input } from "@/shared/ui/input";
-import { updateEvent, cancelEvent, publishEvent } from "../api/actions";
+import {
+  updateEvent,
+  cancelEvent,
+  publishEvent,
+  deleteEventDraft,
+} from "../api/actions";
 import { updateEventCover } from "../api/cover-actions";
 
 function panamaDate(value: string) {
@@ -13,6 +18,7 @@ function panamaDate(value: string) {
   return date.toISOString().slice(0, 16);
 }
 
+// Expone las acciones disponibles para el estado actual de la salida.
 export function ManageEvent({
   event,
 }: {
@@ -180,6 +186,22 @@ export function ManageEvent({
               />
               <span className="small muted">Lo verá todo el grupo.</span>
             </label>
+          </ActionForm>
+        </Disclosure>
+      )}
+      {event.status === "draft" && (
+        <Disclosure
+          icon={<Trash2 size={19} />}
+          title="Eliminar borrador"
+          tone="danger"
+        >
+          <ActionForm
+            action={deleteEventDraft}
+            label="Confirmar eliminación"
+            tone="danger"
+          >
+            <input type="hidden" name="event_id" value={event.id} />
+            <input type="hidden" name="group_id" value={event.group_id} />
           </ActionForm>
         </Disclosure>
       )}

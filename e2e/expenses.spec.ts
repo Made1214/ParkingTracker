@@ -16,6 +16,10 @@ test("registra dos gastos seguidos y permite retirarlos", async ({ page }) => {
     await expect(expense).toBeVisible();
     await expect(expense).toContainText("19.00");
     await expense.getByLabel(`Opciones de ${name}`).click();
+    const updated = `${name} editado`;
+    await expense.getByLabel("Descripción", { exact: true }).fill(updated);
+    await expense.getByRole("button", { name: "Guardar cambios" }).click();
+    await expect(expense.getByText(updated, { exact: true })).toBeVisible();
     await expense.getByRole("button", { name: "Eliminar gasto" }).click();
     await expect(expense).toHaveCount(0);
   }

@@ -107,6 +107,11 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
       ? `/api/groups/${data.groupId}/events/${data.eventId}/receipts/${data.receiptId}/image?v=${data.version}`
       : null,
   );
+  useEffect(() => {
+    return () => {
+      if (imageSrc?.startsWith("blob:")) URL.revokeObjectURL(imageSrc);
+    };
+  }, [imageSrc]);
   const [save, setSave] = useState<SaveState>("saved");
   const [error, setError] = useState<string | null>(null);
   const [focusItem, setFocusItem] = useState<string | null>(null);
@@ -435,6 +440,7 @@ function TotalsBar({
   );
 }
 
+// Prepara y lee una imagen en el dispositivo, con cancelación disponible.
 function ScanStep({
   imageSrc,
   onScanned,
@@ -454,15 +460,29 @@ function ScanStep({
   const [failure, setFailure] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(imageSrc);
   const [file, setFile] = useState<File | null>(null);
+  const activeRead = useRef<AbortController | null>(null);
+  useEffect(() => () => activeRead.current?.abort(), []);
+  useEffect(() => {
+    return () => {
+      if (preview !== imageSrc && preview?.startsWith("blob:"))
+        URL.revokeObjectURL(preview);
+    };
+  }, [preview, imageSrc]);
 
+  // Libera la imagen temporal cuando la lectura no pasa al paso de revisión.
   async function read() {
-    if (!file) return;
+    if (!file || activeRead.current) return;
+    const controller = new AbortController();
+    activeRead.current = controller;
+    let temporaryUrl: string | undefined;
     setFailure(null);
     try {
       setBusy("Preparando la imagen…");
       const { prepareImage, recognizeReceipt } =
         await import("../ocr/recognize");
       const { image, ocrCanvas } = await prepareImage(file);
+      temporaryUrl = image.url;
+      controller.signal.throwIfAborted();
       setBusy("Leyendo la factura en tu dispositivo…");
       const { lines, confidence } = await recognizeReceipt(
         ocrCanvas,
@@ -472,11 +492,14 @@ function ScanStep({
               ? `Leyendo la factura… ${Math.round(p * 100)} %`
               : "Preparando el lector (solo la primera vez)…",
           ),
+        controller.signal,
       );
+      controller.signal.throwIfAborted();
       const parsed = parseReceiptLines(lines);
       const upload = new File([image.blob], "factura.jpg", {
         type: "image/jpeg",
       });
+      temporaryUrl = undefined;
       await onScanned(
         {
           ...parsed,
@@ -491,12 +514,15 @@ function ScanStep({
         upload,
       );
     } catch (e) {
+      if (controller.signal.aborted) return;
       setFailure(
         e instanceof Error
           ? e.message
           : "No se pudo leer la factura. Puedes escribirla a mano.",
       );
     } finally {
+      if (temporaryUrl) URL.revokeObjectURL(temporaryUrl);
+      activeRead.current = null;
       setBusy(null);
     }
   }
@@ -517,10 +543,10 @@ function ScanStep({
           accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           capture="environment"
           className="sr-only"
+          disabled={Boolean(busy)}
           onChange={(e) => {
             const next = e.target.files?.[0] ?? null;
             setFile(next);
-            if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
             setPreview(next ? URL.createObjectURL(next) : imageSrc);
           }}
         />
@@ -542,6 +568,15 @@ function ScanStep({
         <Button type="button" disabled={!file || Boolean(busy)} onClick={read}>
           <ScanLine size={16} aria-hidden="true" /> Leer factura
         </Button>
+        {busy && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => activeRead.current?.abort()}
+          >
+            Cancelar lectura
+          </Button>
+        )}
         <Button type="button" variant="outline" onClick={onManual}>
           Escribirla a mano
         </Button>

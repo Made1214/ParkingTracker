@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/features/auth", () => ({ requireUser: mocks.session }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
+vi.mock("@/shared/cloudinary/server", () => ({ mediaConfigured: () => false }));
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 import { cancelEvent, createEvent, publishEvent, updateEvent } from "./actions";
 

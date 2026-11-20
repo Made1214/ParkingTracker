@@ -196,6 +196,6 @@
 
 ### Fase 2 — Madurez de producto, OCR, observabilidad y QA (P2)
 
-1. [ ] **Completitud funcional:** eliminar borradores de salidas, edición de gastos manuales, gestión de `event_guests`, borrado/edición/autoasignación de tareas, fechas en cronograma multi-día, avatares visibles fuera de `/profile` y endurecimiento del parser OCR panameño + rendimiento móvil.
+1. [x] **Completitud funcional:** eliminar borradores de salidas, edición de gastos manuales, gestión de `event_guests`, borrado/edición/autoasignación de tareas, fechas en cronograma multi-día, avatares visibles fuera de `/profile` y endurecimiento del parser OCR panameño + rendimiento móvil.
 2. [ ] **Seguridad operativa y observabilidad:** `withSentryConfig` + source maps, `global-error.tsx`, telemetría en `PanelBoundary`, CSP con reporte y migración a enforced (validando origen de `tesseract.js`), rate limit específico en `register`/`forgot-password`/`join`, pinning de Actions por SHA y actualización de `/privacy`.
 3. [ ] **Blindaje de pruebas:** tests pgTAP por catálogo (`FORCE RLS`, `current_member_delete_guard`, `SECURITY DEFINER`), unit tests para `groups/api`, `receipts/api` y `auth/api`, y E2E de flujos core + WebKit/desktop + auditoría Lighthouse.

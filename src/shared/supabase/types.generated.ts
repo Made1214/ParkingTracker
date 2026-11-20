@@ -1077,6 +1077,26 @@ export type Database = {
       }
     }
     Functions: {
+      claim_task: {
+        Args: { p_group_id: string; p_event_id: string; p_task_id: string }
+        Returns: boolean
+      }
+      delete_event_draft: {
+        Args: { p_group_id: string; p_event_id: string }
+        Returns: string[]
+      }
+      update_manual_expense: {
+        Args: {
+          p_expense_id: string
+          p_event_id: string
+          p_description: string
+          p_amount: number
+          p_paid_by: string
+          p_category: string
+          p_shares: Json
+        }
+        Returns: undefined
+      }
       get_event_poll_results: {
         Args: { p_event_id: string }
         Returns: { poll_id: string; option_id: string; label: string; votes: number; is_winner: boolean }[]
