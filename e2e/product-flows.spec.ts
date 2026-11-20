@@ -6,9 +6,11 @@ test("crea y elimina un borrador desde el detalle", async ({ page }) => {
   await page.goto(`${groupUrl}#nueva-salida`);
   const title = `Borrador ${Date.now()}`;
   const date = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
-  await page.getByLabel("¿Qué van a hacer?").fill(title);
   await page.getByLabel("Inicio · hora de Panamá").fill(`${date}T09:00`);
   await page.getByLabel("Fin · hora de Panamá").fill(`${date}T11:00`);
+  const titleInput = page.getByLabel("¿Qué van a hacer?");
+  await titleInput.fill(title);
+  await expect(titleInput).toHaveValue(title);
   await page.getByRole("button", { name: "Guardar borrador" }).click();
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
   await page.getByText("Eliminar borrador", { exact: true }).click();
@@ -40,4 +42,32 @@ test("gestiona invitados sin abrir el lector de facturas", async ({ page }) => {
   await expect(page.getByText(`${name} editado`, { exact: true })).toHaveCount(
     0,
   );
+});
+
+test("crea y reclama una tarea, y permite editarla y eliminarla", async ({
+  page,
+}) => {
+  await login(page, seed.admin.email);
+  await page.goto(`${await upcomingEventPath(page)}?section=tareas`);
+  const title = `Tarea ${Date.now()}`;
+  await page.getByRole("button", { name: "Añadir tarea" }).click();
+  const form = page.getByRole("form", { name: "Añadir tarea" });
+  await form.getByLabel("¿Qué hace falta?").fill(title);
+  await form.getByRole("button", { name: "Añadir tarea" }).click();
+  const row = page
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("heading", { name: title, exact: true }) });
+  await row.getByRole("button", { name: "Asignarme" }).click();
+  await expect(row.getByRole("button", { name: "Asignarme" })).toHaveCount(0);
+  await row.getByRole("button", { name: `Editar: ${title}` }).click();
+  await row.getByLabel("Título", { exact: true }).fill(`${title} editada`);
+  await row.getByRole("button", { name: "Guardar cambios" }).click();
+  await expect(
+    page.getByRole("heading", { name: `${title} editada` }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: `Editar: ${title} editada` }).click();
+  await page.getByRole("button", { name: "Eliminar tarea" }).click();
+  await expect(
+    page.getByRole("heading", { name: `${title} editada` }),
+  ).toHaveCount(0);
 });

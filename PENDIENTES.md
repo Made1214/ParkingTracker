@@ -184,7 +184,8 @@
    - Cambiar `photo-route.ts` a `Cache-Control: private, no-store` y `Content-Type` dinámico.
    - Corregir `GET /api/health` para sondear realmente la base de datos y evitar auto-pausas silenciosas.
 3. [ ] **Verificación de entorno y reactivación de Producción:**
-   - Instalar dependencias localmente o correr CI completo (`vitest`, `eslint`, `prettier`, `typecheck`, 34+ pgTAP, Playwright), verificar migraciones en Staging y promover a Producción (tras despausar) con validación de `get_advisors` (seguridad y rendimiento).
+   - **Verificado localmente en esta rama:** `pnpm test:coverage` (57 suites, 424 pruebas, 82.33 % líneas), `pnpm lint` (0 errores/avisos), `pnpm format:check`, `pnpm typecheck`, `pnpm db:test` (36 suites pgTAP, 294 pruebas), `pnpm build` (incluyendo `CSP_MODE=enforce`) y Playwright E2E en Chromium y WebKit.
+   - **Pendiente externo (paneles Supabase / Vercel / GitHub):** promover y validar migraciones en Staging, despausar Producción y aplicar migraciones > `026`, ejecutar `get_advisors` (seguridad y rendimiento) en remoto, configurar secretos faltantes (Upstash/Sentry) y correr auditoría Lighthouse contra el despliegue real.
 
 ### Fase 1 — Correcciones funcionales, precisión y rendimiento (P1)
 
@@ -198,4 +199,4 @@
 
 1. [x] **Completitud funcional:** eliminar borradores de salidas, edición de gastos manuales, gestión de `event_guests`, borrado/edición/autoasignación de tareas, fechas en cronograma multi-día, avatares visibles fuera de `/profile` y endurecimiento del parser OCR panameño + rendimiento móvil.
 2. [x] **Seguridad operativa y observabilidad:** `withSentryConfig` + source maps (`@sentry/nextjs/config`), `global-error.tsx`, telemetría en `PanelBoundary`, CSP con reporte (`/api/csp-report`) y soporte `CSP_MODE=enforce` con nonce por petición (validando origen `cdn.jsdelivr.net` de `tesseract.js`), rate limit específico en `register`/`forgot-password`/`join`, pinning de Actions por SHA y actualización de `/privacy`. Validado con unit tests, build `CSP_MODE=enforce` y E2E (`security-headers.spec.ts`).
-3. [ ] **Blindaje de pruebas:** tests pgTAP por catálogo (`FORCE RLS`, `current_member_delete_guard`, `SECURITY DEFINER`), unit tests para `groups/api`, `receipts/api` y `auth/api`, y E2E de flujos core + WebKit/desktop + auditoría Lighthouse.
+3. [x] **Blindaje de pruebas:** tests pgTAP por catálogo (`036_schema_guards.sql`: `FORCE RLS`, `current_member_delete_guard`, `SECURITY DEFINER`, `search_path=""`, sin `EXECUTE` para `anon`; detectó y cerró `EXECUTE` heredado de `PUBLIC` en `private.enforce_photo_quota` y `private.release_photo_quota`), unit tests para `groups/api`, `receipts/api` y `auth/api` (subiendo la cobertura global a 82.33 % de líneas), y E2E de flujos core + WebKit/desktop (`playwright.config.ts` multi-navegador y `product-flows.spec.ts` validado en Chromium y WebKit). La auditoría Lighthouse sobre despliegue real queda en P0.3.

@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 // Para usar un Chromium ya instalado en lugar del que descarga Playwright.
 const executablePath = process.env.E2E_CHROMIUM_PATH;
+const chromiumLaunch = executablePath ? { executablePath } : undefined;
 
 /**
  * Pruebas E2E contra la app ya compilada (`pnpm build`) y una base con el seed
@@ -22,9 +23,20 @@ export default defineConfig({
     baseURL,
     locale: "es-PA",
     trace: "retain-on-failure",
-    launchOptions: executablePath ? { executablePath } : {},
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"], launchOptions: chromiumLaunch },
+    },
+    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+    { name: "webkit", use: { ...devices["Desktop Safari"] } },
+    {
+      name: "android",
+      use: { ...devices["Pixel 7"], launchOptions: chromiumLaunch },
+    },
+    { name: "ios", use: { ...devices["iPhone 13"] } },
+  ],
   webServer: {
     command: "pnpm start",
     url: `${baseURL}/login`,
