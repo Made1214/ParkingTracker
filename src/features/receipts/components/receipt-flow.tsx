@@ -964,7 +964,7 @@ function ReviewStep({
             ))}
           </ul>
           <div className={styles.actions}>
-            {panamaTaxProfile.rates.slice(0, 2).map((rate) => (
+            {panamaTaxProfile.rates.map((rate) => (
               <Button
                 key={rate.id}
                 type="button"
@@ -982,10 +982,17 @@ function ReviewStep({
                     return {
                       ...d,
                       taxes: [...d.taxes, tax],
-                      items:
-                        d.taxes.length === 0
-                          ? d.items.map((i) => ({ ...i, taxId: tax.id }))
-                          : d.items,
+                      items: d.items.map((item) => {
+                        const suggestion = panamaTaxProfile.suggest(
+                          d.establishment,
+                          item.category ?? "food",
+                        );
+                        return !item.taxId &&
+                          suggestion.rateId === rate.id &&
+                          !suggestion.needsConfirmation
+                          ? { ...item, taxId: tax.id }
+                          : item;
+                      }),
                     };
                   })
                 }

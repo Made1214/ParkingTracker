@@ -30,6 +30,7 @@ const categoryIcons: Record<string, LucideIcon> = {
   otro: Receipt,
 };
 
+// Muestra el resumen, las deudas y los gastos de la salida activa.
 export async function ExpensesPanel({
   groupId,
   eventId,
@@ -67,8 +68,7 @@ export async function ExpensesPanel({
           <span className="eyebrow">GASTO TOTAL</span>
           <strong>{formatMoney(data.totalCents)}</strong>
           <span className="small muted">
-            {data.expenses.length}{" "}
-            {data.expenses.length === 1 ? "gasto" : "gastos"}
+            {data.count} {data.count === 1 ? "gasto" : "gastos"}
           </span>
         </div>
         <div className={styles.kpi}>

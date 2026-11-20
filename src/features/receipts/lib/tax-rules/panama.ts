@@ -27,6 +27,7 @@ const TOBACCO = { id: "pa_itbms_15", label: "ITBMS 15 %", rateBp: 1500 };
 const exempt = (ruleId: string, note: string, needsConfirmation = false) =>
   ({ rateId: null, rateBp: 0, ruleId, needsConfirmation, note }) as const;
 
+/** Sugiere una tarifa según el producto y el tipo de establecimiento. */
 function suggest(
   establishment: EstablishmentType,
   category: ItemTaxCategory,
@@ -40,7 +41,10 @@ function suggest(
       note: "Productos de tabaco: tarifa especial. Confirma con la factura.",
     };
 
-  if (establishment === "restaurant_without_alcohol" && category !== "service")
+  if (
+    establishment === "restaurant_without_alcohol" &&
+    (category === "food" || category === "non_alcoholic_beverage")
+  )
     return exempt(
       "pa.food_service_no_alcohol",
       "Expendio de alimentos en local sin venta ni consumo de alcohol: exento. Confirma que la factura no cobra ITBMS.",

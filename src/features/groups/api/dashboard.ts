@@ -10,117 +10,93 @@ export async function getDashboard() {
   const { supabase, user } = await requireUser("/groups");
   const now = new Date().toISOString();
 
-  const [groupsRes, profileRes, eventsRes, splitsRes] = await Promise.all([
-    supabase
-      .from("groups")
-      .select("id, name")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("profiles")
-      .select("display_name")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("events")
-      .select(
-        "id, group_id, title, starts_at, ends_at, location, created_by, groups(name)",
-      )
-      .eq("status", "published")
-      .gt("starts_at", now)
-      .order("starts_at")
-      .limit(7),
-    supabase
-      .from("expense_splits")
-      .select("expenses!inner(event_id, paid_by, events(title, group_id))")
-      .eq("user_id", user.id)
-      .eq("settled", false)
-      .limit(50),
-  ]);
-  if (groupsRes.error || profileRes.error || eventsRes.error || splitsRes.error)
+  const [groupsRes, profileRes, eventsRes, balanceRes, debtsRes] =
+    await Promise.all([
+      supabase
+        .from("groups")
+        .select("id, name")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("events")
+        .select(
+          "id, group_id, title, starts_at, ends_at, location, created_by, groups(name)",
+        )
+        .eq("status", "published")
+        .gt("ends_at", now)
+        .order("starts_at")
+        .limit(7),
+      supabase.rpc("get_dashboard_balance"),
+      supabase.rpc("get_dashboard_debts"),
+    ]);
+  if (
+    groupsRes.error ||
+    profileRes.error ||
+    eventsRes.error ||
+    balanceRes.error ||
+    debtsRes.error
+  )
     throw new Error("No se pudo cargar tu inicio.");
 
   const events = eventsRes.data;
   const eventIds = events.map((event) => event.id);
   const groups = groupsRes.data;
+  const organizerIds = [
+    ...new Set(
+      events.flatMap((event) => (event.created_by ? [event.created_by] : [])),
+    ),
+  ];
 
-  const [attendanceRes, pollsRes, tasksRes, organizersRes, balances] =
-    await Promise.all([
-      eventIds.length
-        ? supabase
-            .from("event_attendance")
-            .select("event_id, user_id, status, profiles(display_name)")
-            .in("event_id", eventIds)
-        : Promise.resolve({ data: [], error: null }),
-      eventIds.length
-        ? supabase
-            .from("polls")
-            .select("id, event_id, group_id, question, poll_votes(user_id)")
-            .eq("status", "open")
-            .in("event_id", eventIds)
-        : Promise.resolve({ data: [], error: null }),
-      eventIds.length
-        ? supabase
-            .from("tasks")
-            .select("id, title, event_id, group_id, status")
-            .eq("assignee_id", user.id)
-            .neq("status", "done")
-            .in("event_id", eventIds)
-        : Promise.resolve({ data: [], error: null }),
-      supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", [
-          ...new Set(events.map((e) => e.created_by).filter(Boolean)),
-        ] as string[]),
-      Promise.all(
-        groups
-          .slice(0, 8)
-          .map((group) =>
-            supabase.rpc("get_group_balances", { p_group_id: group.id }),
-          ),
-      ),
-    ]);
+  const [attendanceRes, pollsRes, tasksRes, organizersRes] = await Promise.all([
+    eventIds.length
+      ? supabase
+          .from("event_attendance")
+          .select("event_id, user_id, status, profiles(display_name)")
+          .in("event_id", eventIds)
+      : Promise.resolve({ data: [], error: null }),
+    eventIds.length
+      ? supabase
+          .from("polls")
+          .select("id, event_id, group_id, question, poll_votes(user_id)")
+          .eq("status", "open")
+          .in("event_id", eventIds)
+      : Promise.resolve({ data: [], error: null }),
+    eventIds.length
+      ? supabase
+          .from("tasks")
+          .select("id, title, event_id, group_id, status")
+          .eq("assignee_id", user.id)
+          .neq("status", "done")
+          .in("event_id", eventIds)
+      : Promise.resolve({ data: [], error: null }),
+    organizerIds.length
+      ? supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", organizerIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
   if (
     attendanceRes.error ||
     pollsRes.error ||
     tasksRes.error ||
-    organizersRes.error ||
-    balances.some((result) => result.error)
+    organizersRes.error
   )
     throw new Error("No se pudo cargar tu inicio.");
 
-  // Deudas propias: solo en las salidas donde tienes partes sin saldar.
-  const debtEvents = new Map<string, { title: string; groupId: string }>();
-  for (const split of splitsRes.data) {
-    const expense = split.expenses;
-    if (expense.paid_by === user.id || !expense.events) continue;
-    debtEvents.set(expense.event_id, {
-      title: expense.events.title,
-      groupId: expense.events.group_id,
-    });
-  }
-  const debtEntries = [...debtEvents.entries()].slice(0, 4);
-  const debtResults = await Promise.all(
-    debtEntries.map(([eventId]) =>
-      supabase.rpc("get_event_debts", { p_event_id: eventId }),
-    ),
-  );
-  const creditorIds = new Set<string>();
-  const debts = debtEntries.flatMap(([eventId, info], index) => {
-    const mine = (debtResults[index].data ?? []).filter(
-      (debt) => debt.debtor === user.id,
-    );
-    if (!mine.length) return [];
-    mine.forEach((debt) => creditorIds.add(debt.creditor));
-    return [
-      {
-        eventId,
-        ...info,
-        cents: mine.reduce((sum, debt) => sum + cents(debt.amount), 0),
-        creditors: mine.map((debt) => debt.creditor),
-      },
-    ];
-  });
+  // La base entrega las deudas netas después de compensar los pagos de cada salida.
+  const debts = debtsRes.data.map((row) => ({
+    eventId: row.event_id,
+    groupId: row.group_id,
+    title: row.title,
+    cents: cents(row.amount),
+    creditors: row.creditors,
+  }));
+  const creditorIds = new Set(debts.flatMap((debt) => debt.creditors));
   const creditorNames = creditorIds.size
     ? ((
         await supabase
@@ -191,22 +167,17 @@ export async function getDashboard() {
     })),
   ];
 
-  const balanceCents = balances.reduce(
-    (sum, result) =>
-      sum +
-      cents(result.data?.find((row) => row.user_id === user.id)?.net_amount),
-    0,
-  );
-
   const nowMs = Date.parse(now);
   return {
     now,
-    nextInMs: upcoming[0] ? Date.parse(upcoming[0].startsAt) - nowMs : null,
+    nextInMs: upcoming[0]
+      ? Math.max(0, Date.parse(upcoming[0].startsAt) - nowMs)
+      : null,
     displayName: profileRes.data?.display_name ?? "",
     groups,
     upcoming,
     todo,
-    balanceCents,
+    balanceCents: cents(balanceRes.data),
   };
 }
 

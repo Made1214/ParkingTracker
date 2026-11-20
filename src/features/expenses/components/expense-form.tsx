@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import type { ActionState } from "@/shared/lib/forms";
 import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
 import { createExpense } from "../api/actions";
@@ -13,6 +14,7 @@ import {
 import { initials } from "@/shared/lib/utils";
 import styles from "./expenses.module.css";
 
+// Prepara el reparto y conserva la clave de cada intento de guardado.
 export function ExpenseForm({
   groupId,
   eventId,
@@ -29,9 +31,18 @@ export function ExpenseForm({
   const [selected, setSelected] = useState(() => members.map((m) => m.id));
   const [payer, setPayer] = useState(userId);
   const [custom, setCustom] = useState<Record<string, string>>({});
-  const [idempotencyKey, setIdempotencyKey] = useState(() =>
-    crypto.randomUUID(),
-  );
+  const attempt = useRef<{ payload: string; key: string } | null>(null);
+
+  // Genera la clave al enviar y la reutiliza si se reintenta el mismo gasto.
+  async function submit(state: ActionState, form: FormData) {
+    const payload = JSON.stringify([...form.entries()]);
+    if (attempt.current?.payload !== payload)
+      attempt.current = { payload, key: crypto.randomUUID() };
+    form.set("idempotency_key", attempt.current.key);
+    const result = await createExpense(state, form);
+    if (result.success) attempt.current = null;
+    return result;
+  }
 
   const total = toCents(amount) ?? 0;
   const preview = new Map(
@@ -45,10 +56,9 @@ export function ExpenseForm({
   );
 
   return (
-    <ActionForm action={createExpense} label="Guardar gasto">
+    <ActionForm action={submit} label="Guardar gasto">
       <input type="hidden" name="group_id" value={groupId} />
       <input type="hidden" name="event_id" value={eventId} />
-      <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <input type="hidden" name="split" value={mode} />
       <div className={styles.row}>
         <label className={styles.grow}>
@@ -58,7 +68,6 @@ export function ExpenseForm({
             required
             maxLength={200}
             placeholder="Ej. Hielo y carbón"
-            onChange={() => setIdempotencyKey(crypto.randomUUID())}
           />
         </label>
         <label className={styles.amount}>
@@ -69,10 +78,7 @@ export function ExpenseForm({
             inputMode="decimal"
             placeholder="0.00"
             value={amount}
-            onChange={(event) => {
-              setAmount(event.target.value);
-              setIdempotencyKey(crypto.randomUUID());
-            }}
+            onChange={(event) => setAmount(event.target.value)}
           />
         </label>
       </div>

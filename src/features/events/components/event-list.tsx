@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { ArrowUpRight, MapPin, CalendarDays, Clock } from "lucide-react";
 import { dateLabel } from "@/shared/lib/utils";
-import type { listEvents } from "../api/queries";
+import type { listEventPage } from "../api/queries";
 export const statusLabels = {
   draft: "Borrador",
   published: "Se viene",
   cancelled: "Cancelado",
   finished: "Finalizado",
 };
-type EventSummary = Awaited<ReturnType<typeof listEvents>>[number];
+type EventSummary = Awaited<ReturnType<typeof listEventPage>>["events"][number];
 
 /** Una página de salidas, ya ordenada por la consulta. */
 export function EventList({

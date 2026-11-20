@@ -1,5 +1,5 @@
 begin;
-select plan(27);
+select plan(29);
 
 -- Luis (2) organiza; Sofía (3) y Darío (4) son miembros. Externo (ff) no.
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000ff', 'externo@example.com');
@@ -81,6 +81,12 @@ select results_eq($$select user_id::text, net_amount from public.get_event_balan
   'member balances come out of the receipt expenses (guest debt is tracked apart)');
 select is((select sum(share_amount) from public.expense_guest_shares where guest_id = 'a0000000-0000-0000-0000-000000000001'),
   15.00, 'the guest owes their share to the payer');
+select is((select participant_count from public.event_expense_summary
+  where event_id = '90000000-0000-0000-0000-000000000341'), 4::bigint,
+  'the event summary includes the guest and counts a repeated member only once');
+select is((select total_amount from public.event_expense_summary
+  where event_id = '90000000-0000-0000-0000-000000000341'), 90::numeric,
+  'guest and member shares do not inflate the original expense amount');
 
 -- Inmutabilidad -------------------------------------------------------------
 select throws_ok($$update public.receipts set merchant = 'Otro', version = 4

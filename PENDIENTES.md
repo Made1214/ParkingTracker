@@ -191,7 +191,7 @@
 1. [x] **Resolver ramas pendientes en Git y alinear documentación**
    - Integré los cambios de ambas ramas en la rama de auditoría. Playwright verificó comentarios en vivo, insignia de nuevos, cambio de contraseña y el formulario de comentarios sin conexión.
    - Actualicé las guías del repositorio y retiré el PRD duplicado y los tipos Supabase obsoletos.
-2. [ ] **Alineación financiera y analítica:** corregir descuentos globales / `tax.included` / `panamaTaxProfile` en recibos; incluir invitados en `perPersonCents` y `event_expense_summary`; arreglar `idempotencyKey` en `ExpenseForm`; migrar `Stats`, KPIs de `GroupScreen` y saldos/eventos en curso del `Dashboard` a consultas SQL agregadas sin truncamiento ni errores 500 por UUID.
+2. [x] **Alineación financiera y analítica:** corregir descuentos globales / `tax.included` / `panamaTaxProfile` en recibos; incluir invitados en `perPersonCents` y `event_expense_summary`; arreglar `idempotencyKey` en `ExpenseForm`; migrar `Stats`, KPIs de `GroupScreen` y saldos/eventos en curso del `Dashboard` a consultas SQL agregadas sin truncamiento ni errores 500 por UUID.
 3. [ ] **Estabilizar Realtime, Galería y UX transversal:** corregir `getLivePoll`/`getPolls.canSchedule` + N+1 RPCs; unificar canales Realtime y evitar pérdida de borradores en comentarios + cursor real (> 200 hilos); alinear límite de fotos a 10 MB con pre-check de cuota y miniaturas; corregir `#gestionar`, `ThemeSelect`, `InstallPrompt`/`FeedbackToast` en móvil, matcher de `proxy.ts`, error de deadline RSVP y mapeo de `P0002`.
 
 ### Fase 2 — Madurez de producto, OCR, observabilidad y QA (P2)

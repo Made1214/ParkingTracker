@@ -1077,6 +1077,28 @@ export type Database = {
       }
     }
     Functions: {
+      get_dashboard_balance: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_dashboard_debts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amount: number
+          creditors: string[]
+          event_id: string
+          group_id: string
+          title: string
+        }[]
+      }
+      get_group_event_counts: {
+        Args: { p_group_id: string }
+        Returns: { finished: number; upcoming: number; drafts: number; cancelled: number }[]
+      }
+      get_group_stats: {
+        Args: { p_group_id: string }
+        Returns: Json
+      }
       database_healthcheck: {
         Args: Record<PropertyKey, never>
         Returns: boolean

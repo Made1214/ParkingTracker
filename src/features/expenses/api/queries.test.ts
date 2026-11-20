@@ -45,6 +45,9 @@ function db(user: string, overrides: Partial<Record<string, object>> = {}) {
   const tables: Record<string, object> = {
     group_members: { data: members },
     expenses: { data: expenses },
+    event_expense_summary: {
+      data: { total_amount: 42.5, participant_count: 4, expense_count: 2 },
+    },
     "rpc:get_event_balances": {
       data: [
         { user_id: ids.ana, net_amount: -15 },
@@ -73,7 +76,7 @@ describe("getExpenses", () => {
     db(ids.ana);
     const result = await getExpenses(ids.group, ids.event);
     expect(result.totalCents).toBe(4250);
-    expect(result.perPersonCents).toBe(1417);
+    expect(result.perPersonCents).toBe(1063);
     expect(result.myBalanceCents).toBe(-1500);
     expect(result.open).toBe(true);
     expect(result.members.map((m) => m.name)).toEqual(["Tú", "Luis", "Sofía"]);
@@ -155,7 +158,10 @@ describe("getExpenses", () => {
   });
 
   it("sin gastos el promedio es cero", async () => {
-    db(ids.ana, { expenses: { data: [] } });
+    db(ids.ana, {
+      expenses: { data: [] },
+      event_expense_summary: { data: null },
+    });
     const result = await getExpenses(ids.group, ids.event);
     expect(result.totalCents).toBe(0);
     expect(result.perPersonCents).toBe(0);
@@ -174,19 +180,19 @@ describe("getExpenseSummary", () => {
     db(ids.ana);
     expect(await getExpenseSummary(ids.group, ids.event)).toEqual({
       totalCents: 4250,
-      perPersonCents: 1417,
+      perPersonCents: 1063,
       count: 2,
     });
   });
 
   it("sin gastos devuelve ceros y falla con error de la base", async () => {
-    db(ids.ana, { expenses: { data: [] } });
+    db(ids.ana, { event_expense_summary: { data: null } });
     expect(await getExpenseSummary(ids.group, ids.event)).toEqual({
       totalCents: 0,
       perPersonCents: 0,
       count: 0,
     });
-    db(ids.ana, { expenses: { error: { code: "XX000" } } });
+    db(ids.ana, { event_expense_summary: { error: { code: "XX000" } } });
     await expect(getExpenseSummary(ids.group, ids.event)).rejects.toThrow();
   });
 });
