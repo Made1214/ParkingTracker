@@ -14,6 +14,7 @@ import {
 
 const ids = z.object({ group_id: z.guid(), event_id: z.guid() });
 
+// Comprueba el acceso, el archivo y la cuota antes de subir una foto.
 export async function uploadPhoto(
   _: ActionState,
   form: FormData,
@@ -42,8 +43,17 @@ export async function uploadPhoto(
     };
   const file = form.get("photo");
   if (!(file instanceof File)) return { error: "Selecciona una imagen." };
-  const validationError = await imageValidationError(file);
+  const validationError = await imageValidationError(file, MAX_PHOTO_BYTES);
   if (validationError) return { error: validationError };
+  const { data: usage, error: quotaError } = await supabase
+    .from("group_storage_usage")
+    .select("bytes_used, bytes_quota")
+    .eq("group_id", group_id)
+    .maybeSingle();
+  if (quotaError)
+    return { error: "No se pudo comprobar el espacio del grupo." };
+  if (usage && usage.bytes_used + file.size > usage.bytes_quota)
+    return { error: "El grupo llegó a su límite de almacenamiento de fotos." };
 
   const publicId = `photos/${group_id}/${event_id}/${randomUUID()}`;
   try {

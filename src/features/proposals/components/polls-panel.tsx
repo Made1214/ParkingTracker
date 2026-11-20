@@ -9,6 +9,7 @@ import { getPolls } from "../api/queries";
 import { PollRealtime } from "./poll-realtime";
 import styles from "./decisions.module.css";
 
+// Presenta los resultados y actualiza las votaciones mientras la salida siga abierta.
 export async function PollsPanel({
   groupId,
   eventId,
@@ -25,6 +26,7 @@ export async function PollsPanel({
     canSchedule,
     eventStartsAt,
     eventEndsAt,
+    eventEndsTime,
     now,
   } = await getPolls(groupId, eventId);
   return (
@@ -32,18 +34,19 @@ export async function PollsPanel({
       <PollRealtime
         groupId={groupId}
         eventId={eventId}
+        open={open}
         pollIds={polls
           .map((poll) => poll.id)
           .sort()
           .join(",")}
-        refreshAt={polls.reduce<number | undefined>((next, poll) => {
+        refreshAt={polls.reduce((next, poll) => {
           const deadline = poll.closes_at ? Date.parse(poll.closes_at) : 0;
           return poll.status === "open" &&
             deadline > now &&
             (!next || deadline < next)
             ? deadline
             : next;
-        }, undefined)}
+        }, eventEndsTime)}
       />
       <div className={styles.heading}>
         <div>

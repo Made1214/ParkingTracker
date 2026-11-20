@@ -27,12 +27,12 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 **Spec**: `project-foundation` — Working Scaffold; Environment and Config Handling
 **Size estimate**: ~350 changed lines
 
-- [ ] Scaffold Next.js App Router project with TypeScript, ESLint, Tailwind (`create-next-app` or manual init)
-- [ ] Install and configure shadcn/ui; add baseline primitives (Button, Card, Input)
-- [ ] Add `.env.example` listing every required variable (Supabase URL/anon key, Google OAuth) with no real values
-- [ ] Add fail-fast env validation at startup (missing required var → clear startup error, not a silent fallback)
-- [ ] Configure lint/format baseline (ESLint + Prettier) and a `package.json` single-command install/dev/build
-- [ ] Add minimal CI workflow stub: lint, typecheck, build jobs (green on clean clone)
+- [x] Scaffold Next.js App Router project with TypeScript, ESLint, Tailwind (`create-next-app` or manual init)
+- [x] Add baseline primitives (Button, Card, Input) in `src/shared/ui`, backed by Radix where applicable
+- [x] Add `.env.example` listing every required variable (Supabase URL/anon key, Google OAuth) with no real values
+- [x] Add fail-fast env validation at startup (missing required var → clear startup error, not a silent fallback)
+- [x] Configure lint/format baseline (ESLint + Prettier) and a `package.json` single-command install/dev/build
+- [x] Add minimal CI workflow stub: lint, typecheck, build jobs (green on clean clone)
 - [ ] **Verify**: fresh clone → install → dev boots with no manual post-clone steps (spec scenario: "Clean clone boots")
 
 ### WU-2 — Supabase CLI + pgTAP harness bootstrap
@@ -40,23 +40,23 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 **Spec**: `testing-foundation` — Dedicated RLS Policy Test Category (harness only; first real test lands in WU-4)
 **Size estimate**: ~120 changed lines
 
-- [ ] `supabase init`; commit `supabase/config.toml` and `supabase/migrations/` (empty, ready for WU-4)
-- [ ] Add `supabase/tests/` directory for pgTAP files
-- [ ] Add CI job that runs `supabase test db` as its own step, distinguishable from unit/E2E jobs in CI output
-- [ ] Document local pgTAP run command in README
+- [x] `supabase init`; commit `supabase/config.toml` and `supabase/migrations/`
+- [x] Add `supabase/tests/` directory for pgTAP files
+- [x] Add CI job that runs `supabase test db` as its own step, distinguishable from unit/E2E jobs in CI output
+- [x] Document local pgTAP run command in README
 
 ### WU-3 — Supabase client conventions
 **Depends on**: WU-1
 **Spec**: `data-access-authorization` — User-Scoped Client by Default
 **Size estimate**: ~150 changed lines
 
-- [ ] `shared/supabase/client.ts` — browser client (`createBrowserClient`, anon key)
-- [ ] `shared/supabase/server.ts` — server-from-cookies client (`createServerClient`, anon key + user JWT)
-- [ ] `middleware.ts` — session cookie refresh only (no data-gating logic)
-- [ ] **VERIFY AT IMPLEMENTATION**: confirm current `@supabase/supabase-js` / `@supabase/ssr` cookie-handling API
-  surface before wiring `server.ts`/`middleware.ts` — the API has changed across majors (design §"Items Requiring
+- [x] `shared/supabase/client.ts` — browser client (`createBrowserClient`, anon key)
+- [x] `shared/supabase/server.ts` — server-from-cookies client (`createServerClient`, anon key + user JWT)
+- [x] `src/proxy.ts` — session refresh, route protection and mutation rate limits
+- [x] **VERIFY AT IMPLEMENTATION**: confirm current `@supabase/supabase-js` / `@supabase/ssr` cookie-handling API
+  surface before wiring `server.ts`/`proxy.ts` — the API has changed across majors (design §"Items Requiring
   Verification")
-- [ ] Confirm no `SUPABASE_SERVICE_ROLE_KEY` reference anywhere under `src/` (manual check, backstopped by WU-13's CI grep)
+- [x] Confirm no `SUPABASE_SERVICE_ROLE_KEY` reference anywhere under `src/` (manual check, backstopped by WU-13's CI grep)
 
 ### WU-4 — Membership schema, RLS, `is_group_member`/`is_group_admin`, first pgTAP test
 **FIRST-LANDING WORK UNIT** — every other slice inherits this shape (design §"Migration/Rollout")
@@ -64,18 +64,18 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 **Spec**: `data-access-authorization` — RLS Is the Sole Authorization Authority; RLS Policy Coverage Testable in CI
 **Size estimate**: ~250 changed lines
 
-- [ ] Migration: `groups` table (id, name, invite_code, timestamps)
-- [ ] Migration: `group_members` table (group_id, user_id, role) with `group_id` index
-- [ ] `alter table ... enable row level security` in the **same migration** as table creation (both tables)
-- [ ] `is_group_member(p_group_id uuid)` — `SECURITY DEFINER`, `set search_path = ''`, per design §3 exact shape
-- [ ] `is_group_admin(p_group_id uuid)` — identical shape, adds `role = 'admin'`
-- [ ] Four policies (select/insert/update/delete, `to authenticated`) on `group_members` — note: `group_members` has
+- [x] Migration: `groups` table (id, name, invite_code, timestamps)
+- [x] Migration: `group_members` table (group_id, user_id, role) with `group_id` index
+- [x] `alter table ... enable row level security` in the **same migration** as table creation (both tables)
+- [x] `is_group_member(p_group_id uuid)` — `SECURITY DEFINER`, `set search_path = ''`, per design §3 exact shape
+- [x] `is_group_admin(p_group_id uuid)` — identical shape, adds `role = 'admin'`
+- [x] Three policies (select/update/delete, `to authenticated`) on `group_members` — `group_members` has
   **no client-facing INSERT policy**; only `join_group_by_invite` (WU-6) may insert
-- [ ] `revoke execute ... from public, anon; grant execute ... to authenticated;` on both helper functions
-- [ ] pgTAP test: non-member of group A querying `group_members`/`groups` for group B sees **zero rows**
-- [ ] **VERIFY AT IMPLEMENTATION**: exact `set local role authenticated; set local request.jwt.claims = ...` syntax
+- [x] `revoke execute ... from public, anon; grant execute ... to authenticated;` on both helper functions
+- [x] pgTAP test: non-member of group A querying `group_members`/`groups` for group B sees **zero rows**
+- [x] **VERIFY AT IMPLEMENTATION**: exact `set local role authenticated; set local request.jwt.claims = ...` syntax
   for the installed Supabase CLI version (design §8)
-- [ ] Start `supabase/SECURITY_DEFINER.md` with `is_group_member` and `is_group_admin` entries and justification
+- [x] Start `supabase/SECURITY_DEFINER.md` with `is_group_member` and `is_group_admin` entries and justification
 
 ### WU-5a — Shared skeleton, slice import boundary, module ownership
 **Depends on**: WU-1
@@ -83,7 +83,7 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 **Size estimate**: ~80 changed lines
 
 - [ ] Create `src/shared/{ui,supabase,query,media,pwa,lib}/` directories (empty/placeholder where not yet built)
-- [ ] ESLint `no-restricted-imports` rule: block deep imports into `features/*/!(index)` (design O1)
+- [x] ESLint `no-restricted-imports` rule: block deep imports into `features/*/!(index)` (design O1)
 - [ ] Write module ownership document — one named owner (or pair) per each of the 12 module directories, reviewable
   by all 8 developers; encode the design's dependency-aware assignment order (O5)
 
@@ -107,12 +107,12 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 - [ ] `join_group_by_invite(p_code text) returns uuid` — `SECURITY DEFINER`, `set search_path = ''`
 - [ ] Body: validate code (exists, active, not expired) → insert `group_members` with `on conflict do nothing`
   (idempotent) → record redemption → return `group_id`
-- [ ] First statements are explicit authorization/validation checks (design §4 rule 2)
-- [ ] `revoke execute ... from public, anon; grant execute ... to authenticated;`
-- [ ] pgTAP: valid code creates exactly one membership row, atomically
+- [x] First statements are explicit authorization/validation checks (design §4 rule 2)
+- [x] `revoke execute ... from public, anon; grant execute ... to authenticated;`
+- [x] pgTAP: valid code creates exactly one membership row, atomically
 - [ ] pgTAP: invalid/expired code creates no membership row and the caller receives a rejection
-- [ ] pgTAP: double-submitting the same valid code does not create a second membership row (idempotency)
-- [ ] Add `join_group_by_invite` entry to `supabase/SECURITY_DEFINER.md` (whitelist now complete: 3 functions)
+- [x] pgTAP: double-submitting the same valid code does not create a second membership row (idempotency)
+- [x] Add `join_group_by_invite` entry to `supabase/SECURITY_DEFINER.md` (whitelist now complete: 3 functions)
 
 ### WU-7 — PWA shell
 **Depends on**: WU-1
@@ -125,7 +125,7 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
   check current maintenance status before committing to one
 - [ ] **VERIFY AT IMPLEMENTATION**: choose service worker tooling (`@serwist/next`, Workbox, hand-rolled SW,
   `next-pwa`) — check maintenance status and Next.js version compatibility before committing to one
-- [ ] `public/sw.js` + `public/offline.html`: cache-first for `/_next/static/*`; network-first + offline fallback for
+- [x] `public/sw.js` + `public/offline.html`: cache-first for `/_next/static/*`; network-first + offline fallback for
   navigations; **network-only, never cached** for `**/rest/v1`, `**/auth/v1`, realtime, and Cloudinary delivery URLs
   (C1 — never cache a response carrying an `Authorization` header/session cookie, and never cache a short-lived
   signed URL past its own expiry)
@@ -134,7 +134,7 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
   and show manual "Add to Home Screen" instructional sheet; trigger after first high-value action (group join or
   first RSVP), never on first load; dismissal persisted with a cooldown, max 2 prompts ever
 - [ ] Record install state via `display-mode: standalone` media query
-- [ ] Do **not** request notification permission (out of scope — foundation only)
+- [x] Do **not** request notification permission (out of scope — foundation only)
 - [ ] Document/verify the iOS 16.4+ home-screen-install prerequisite for future Web Push is met by this flow
   (no push implemented) — satisfies "Foundation for Future Web Push"
 
@@ -159,7 +159,7 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 - [ ] `BEFORE INSERT` trigger on `photos` rejects a row that would exceed group quota; usage recomputed on insert
   and delete
 - [ ] ESLint rule: no `next/image` import inside `features/gallery` or `features/history`
-- [ ] pgTAP: oversized `photos` insert rejected by the `CHECK` constraint even when the client check is bypassed
+- [x] pgTAP: oversized `photos` insert rejected by the `CHECK` constraint even when the client check is bypassed
 - [ ] pgTAP: `photos` insert at/over group quota is rejected; insert under quota succeeds and usage increases
 - [ ] pgTAP/integration: a non-member requesting a delivery URL is refused, even when supplying a valid
   `cloudinary_public_id` for another group's photo
@@ -169,29 +169,29 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 **Spec**: `testing-foundation` — Unit and Component Test Runner Available
 **Size estimate**: ~120 changed lines
 
-- [ ] Install and configure Vitest + React Testing Library (jsdom environment)
-- [ ] Colocated `*.test.ts(x)` convention documented
-- [ ] At least one passing example test (e.g., a currency/date formatting util) proving runner + config + CI wiring
+- [x] Use Vitest for Node-side unit tests and Playwright for component flows and axe accessibility checks
+- [x] Colocated `*.test.ts(x)` convention documented
+- [x] At least one passing example test (e.g., a currency/date formatting util) proving runner + config + CI wiring
   work end-to-end
-- [ ] Wire `pnpm test` into CI as its own job
+- [x] Wire `pnpm test` into CI as its own job
 
 ### WU-10 — E2E test runner
 **Depends on**: WU-1, WU-4
 **Spec**: `testing-foundation` — End-to-End Test Runner Available
 **Size estimate**: ~150 changed lines
 
-- [ ] Install and configure Playwright, running against a built instance of the app in CI
-- [ ] Seed helper for two test users in two different groups (uses WU-4's schema)
-- [ ] At least one passing example E2E test: a member of group A cannot reach group B's event by direct URL
+- [x] Install and configure Playwright, running against a built instance of the app in CI
+- [x] Seed helper for two test users in two different groups (uses WU-4's schema)
+- [x] At least one passing example E2E test: a member of group A cannot reach group B's event by direct URL
   (two-context test per design §8)
-- [ ] Wire Playwright into CI as its own job
+- [x] Wire Playwright into CI as its own job
 
 ### WU-11 — Full CI gate + strict_tdd decision
 **Depends on**: WU-2, WU-9, WU-10
 **Spec**: `testing-foundation` — CI Test Gate on Merge; Strict TDD Mode Re-Evaluation Recorded
 **Size estimate**: ~180 changed lines
 
-- [ ] Combine lint, typecheck, build, unit (Vitest), E2E (Playwright), and RLS/pgTAP jobs in one CI workflow, each a
+- [x] Combine lint, typecheck, build, unit (Vitest), E2E (Playwright), and RLS/pgTAP jobs in one CI workflow, each a
   distinguishable step/job
 - [ ] All jobs block merge on failure (branch protection or required-status-check configuration)
 - [ ] Record the `strict_tdd` decision (enabled or not, with reasoning) now that all three runners are installed and
@@ -202,20 +202,20 @@ tables and the RPC convention established here (§4 SECURITY DEFINER rules, §3 
 **Spec**: none directly (design §9 resolved item; supports proposal risk "auto-pause after 7 days")
 **Size estimate**: ~60 changed lines
 
-- [ ] `GET /api/health` route: one trivial DB read, returns `{ "ok": true }`, no auth required, exposes no data
-- [ ] `vercel.json` cron config calling the endpoint daily (or the platform minimum, whichever is more frequent)
+- [x] `GET /api/health` route: calls the invoker RPC `database_healthcheck()` and returns `{ status, db, time }`. The endpoint accepts optional cron authentication and exposes no application data
+- [x] `vercel.json` cron config calling the endpoint daily (or the platform minimum, whichever is more frequent)
 - [ ] **VERIFY AT IMPLEMENTATION**: current Vercel Hobby minimum cron frequency — confirm daily is achievable; if the
   limit is coarser, document the actual configured frequency and confirm it still beats the 7-day pause window
-- [ ] Document the auto-pause mitigation and its boundary (not an uptime SLA) in the README
+- [x] Document the auto-pause mitigation and its boundary (not an uptime SLA) in the README
 
 ### WU-13 — `service_role` CI guard + forbidden-patterns doc
 **Depends on**: WU-3
 **Spec**: `data-access-authorization` — User-Scoped Client by Default (client bundle inspection scenario)
 **Size estimate**: ~50 changed lines
 
-- [ ] CI grep step: fail the build if `service_role` (or `SUPABASE_SERVICE_ROLE_KEY`) appears anywhere under `src/`
-- [ ] Document the "Forbidden — application code MUST NOT" table (design §2) in a slice-visible README section
-- [ ] Confirm no Supabase secret is prefixed `NEXT_PUBLIC_` except URL and anon key
+- [x] CI grep step: fail the build if `service_role` (or `SUPABASE_SERVICE_ROLE_KEY`) appears anywhere under `src/`
+- [x] Document the "Forbidden — application code MUST NOT" table (design §2) in a slice-visible README section
+- [x] Confirm no Supabase secret is prefixed `NEXT_PUBLIC_` except URL and anon key
 
 ---
 

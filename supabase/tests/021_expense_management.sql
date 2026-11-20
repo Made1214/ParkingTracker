@@ -1,5 +1,5 @@
 begin;
-select plan(13);
+select plan(14);
 
 -- Luis (2) organiza; Sofía (3), Darío (4) y Valentina (5) son miembros.
 insert into public.events (id, group_id, title, starts_at, ends_at, status, created_by)
@@ -57,6 +57,9 @@ select throws_ok($$select public.settle_event_debt('90000000-0000-0000-0000-0000
   '42501', null, 'a third member cannot settle someone else''s debt');
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
+select throws_ok($$select public.settle_event_debt('90000000-0000-0000-0000-000000000031',
+  '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002', 30)$$,
+  '22023', 'settlement amount does not match direct debt', 'a stale amount cannot settle the pair');
 select is(public.settle_event_debt('90000000-0000-0000-0000-000000000031',
   '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002'), 2,
   'the creditor settles both directions of the pair');

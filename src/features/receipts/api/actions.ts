@@ -155,15 +155,44 @@ export async function uploadReceiptImage(
       error:
         "La subida de imágenes aún no está disponible. Puedes seguir sin foto.",
     };
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   const { groupId, eventId, receiptId, version } = ids.data;
   const { data: current, error: readError } = await supabase
     .from("receipts")
-    .select("image_public_id")
+    .select("image_public_id, created_by, version, status")
     .eq("id", receiptId)
     .eq("group_id", groupId)
+    .eq("event_id", eventId)
     .maybeSingle();
   if (readError || !current) return { ok: false, error: receiptError("42501") };
+
+  // Verifica los permisos y el estado antes de transferir el archivo.
+  if (current.created_by !== user.id) {
+    const { data: admin } = await supabase
+      .from("group_members")
+      .select("user_id")
+      .eq("group_id", groupId)
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!admin) return { ok: false, error: receiptError("42501") };
+  }
+  if (current.status !== "draft")
+    return {
+      ok: false,
+      error: receiptError(undefined, "receipt is finalized"),
+    };
+  if (current.version !== version)
+    return { ok: false, error: receiptError("40001") };
+  const { data: event } = await supabase
+    .from("events")
+    .select("status")
+    .eq("id", eventId)
+    .eq("group_id", groupId)
+    .maybeSingle();
+  if (!event) return { ok: false, error: receiptError("42501") };
+  if (event.status === "cancelled")
+    return { ok: false, error: receiptError(undefined, "event is cancelled") };
 
   const publicId = `receipts/${groupId}/${eventId}/${randomUUID()}`;
   try {
@@ -179,6 +208,7 @@ export async function uploadReceiptImage(
     .update({ image_public_id: publicId, version: version + 1 })
     .eq("id", receiptId)
     .eq("group_id", groupId)
+    .eq("event_id", eventId)
     .eq("version", version)
     .eq("status", "draft")
     .select("version")
@@ -243,6 +273,50 @@ export async function addEventGuest(input: {
   if (error)
     return { ok: false, error: receiptError(error.code, error.message) };
   return { ok: true, guest: { id: data.id, name: data.display_name } };
+}
+
+// Gestiona los invitados desde Gastos y conserva los que ya tienen cuotas.
+export async function manageEventGuest(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ids = z.object({ groupId: z.guid(), eventId: z.guid() }).safeParse({
+    groupId: text(form, "group_id"),
+    eventId: text(form, "event_id"),
+  });
+  if (!ids.success) return { error: "La salida no es válida." };
+  const { groupId, eventId } = ids.data;
+  const name = text(form, "name");
+  const operation = text(form, "operation");
+  if (operation === "add") {
+    const result = await addEventGuest({ groupId, eventId, name });
+    if (!result.ok) return result;
+  } else {
+    const id = z.guid().safeParse(text(form, "guest_id"));
+    if (!id.success || !["rename", "delete"].includes(operation))
+      return { error: "El invitado no es válido." };
+    if (operation === "rename" && (!name || name.length > 60))
+      return { error: "Escribe un nombre de hasta 60 caracteres." };
+    const { supabase } = await requireUser();
+    const table = supabase.from("event_guests");
+    const query =
+      operation === "delete"
+        ? table.delete()
+        : table.update({ display_name: name });
+    const { data, error } = await query
+      .eq("id", id.data)
+      .eq("event_id", eventId)
+      .eq("group_id", groupId)
+      .select("id")
+      .maybeSingle();
+    if (error?.code === "23503")
+      return { error: "El invitado ya tiene gastos registrados." };
+    if (error?.code === "23505")
+      return { error: "Ya hay un invitado con ese nombre." };
+    if (error || !data) return { error: "No se pudo cambiar el invitado." };
+  }
+  revalidatePath(eventPath(groupId, eventId));
+  return { success: "Invitados actualizados." };
 }
 
 /**

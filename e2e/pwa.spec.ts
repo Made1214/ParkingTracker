@@ -30,7 +30,7 @@ test("sin conexión se avisa, no se pierde lo escrito y hay pantalla propia", as
   context,
 }) => {
   await login(page, seed.member.email);
-  await page.goto(await upcomingEventPath(page));
+  await page.goto(`${await upcomingEventPath(page)}?section=comentarios`);
   await page.evaluate(() => navigator.serviceWorker.ready);
   // La segunda carga ya pasa por el service worker.
   await page.reload();

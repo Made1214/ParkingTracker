@@ -5,6 +5,7 @@ import type {
   RealtimePostgresChangesPayload,
   RealtimeChannel,
 } from "@supabase/supabase-js";
+import { reportClientError } from "@/shared/lib/report-error";
 import { browserClient } from "./client";
 
 type Change = RealtimePostgresChangesPayload<Record<string, unknown>>;
@@ -29,12 +30,16 @@ export function useEventChannel({
   filter,
   onChange,
   onReconnect,
+  enabled = true,
+  withDeletes = false,
 }: {
   channel: string;
   table: string;
   filter: string;
   onChange: (change: Change) => void;
   onReconnect?: () => void;
+  enabled?: boolean;
+  withDeletes?: boolean;
 }) {
   // En refs para que un callback nuevo no obligue a reabrir el canal.
   const change = useRef(onChange);
@@ -45,36 +50,50 @@ export function useEventChannel({
   });
 
   useEffect(() => {
+    if (!enabled) return;
     const client = browserClient();
     let cancelled = false;
     let channel: RealtimeChannel | undefined;
     let subscribedBefore = false;
-    void client.realtime
-      .setAuth()
-      .catch(() => undefined)
-      .then(() => {
-        if (cancelled) return;
-        channel = client
-          .channel(name)
-          .on(
+    // Intenta autenticar el canal antes de suscribirse; vuelve a probar al reconectar.
+    const subscribe = async () => {
+      if (cancelled || channel) return;
+      try {
+        await client.realtime.setAuth();
+        if (cancelled || channel) return;
+        channel = client.channel(name);
+        for (const event of ["INSERT", "UPDATE"] as const)
+          channel.on(
             "postgres_changes",
-            { event: "*", schema: "public", table, filter },
+            { event, schema: "public", table, filter },
             (payload) => change.current(payload),
-          )
-          .on(
+          );
+        if (withDeletes)
+          channel.on(
             "postgres_changes",
             { event: "DELETE", schema: "public", table },
             (payload) => change.current(payload),
-          )
-          .subscribe((status) => {
-            if (status !== "SUBSCRIBED") return;
-            if (subscribedBefore) reconnect.current?.();
-            subscribedBefore = true;
-          });
-      });
+          );
+        channel.subscribe((status) => {
+          if (status !== "SUBSCRIBED") return;
+          if (subscribedBefore) reconnect.current?.();
+          subscribedBefore = true;
+        });
+      } catch (error) {
+        if (!cancelled)
+          reportClientError(
+            error instanceof Error
+              ? error
+              : new Error("No se pudo autenticar Realtime"),
+          );
+      }
+    };
+    void subscribe();
+    window.addEventListener("online", subscribe);
     return () => {
       cancelled = true;
+      window.removeEventListener("online", subscribe);
       if (channel) void client.removeChannel(channel);
     };
-  }, [name, table, filter]);
+  }, [name, table, filter, enabled, withDeletes]);
 }

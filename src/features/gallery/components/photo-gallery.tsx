@@ -21,32 +21,52 @@ type Photo = {
 type Action = (state: ActionState, form: FormData) => Promise<ActionState>;
 
 const MAX_SIDE = 1600;
+const MAX_REQUEST_IMAGE = 4 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-/** Reduce la imagen en el navegador antes de subirla (RF-904). */
+/** Reduce la foto para la subida y conserva la transparencia en WebP o PNG. */
 async function compress(file: File) {
+  const url = URL.createObjectURL(file);
   try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const image = new Image();
+    image.src = url;
+    await image.decode();
     const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    canvas
-      .getContext("2d")
-      ?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.85),
-    );
-    if (!blob) return file;
-    return new File([blob], file.name.replace(/\.\w+$/, ".jpg"), {
-      type: "image/jpeg",
-    });
+    const context = canvas.getContext("2d");
+    if (context) {
+      for (const side of [MAX_SIDE, 1200, 800]) {
+        const scale = Math.min(
+          1,
+          side / Math.max(image.naturalWidth, image.naturalHeight),
+        );
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, "image/webp", 0.85),
+        );
+        if (blob && blob.size && blob.size <= MAX_REQUEST_IMAGE)
+          return new File(
+            [blob],
+            file.name.replace(
+              /\.\w+$/,
+              blob.type === "image/png" ? ".png" : ".webp",
+            ),
+            {
+              type: blob.type,
+            },
+          );
+      }
+    }
   } catch {
-    return file;
+    // Si el navegador no pudo decodificarla, conserva un original pequeño.
+  } finally {
+    URL.revokeObjectURL(url);
   }
+  return file.size <= MAX_REQUEST_IMAGE ? file : null;
 }
 
+// Muestra miniaturas privadas y abre el archivo completo en el visor.
 export function PhotoGallery({
   groupId,
   eventId,
@@ -186,10 +206,18 @@ export function PhotoGallery({
           const data = new FormData();
           data.set("group_id", groupId);
           data.set("event_id", eventId);
-          data.set("photo", await compress(original));
           try {
-            const result = await uploadAction({}, data);
-            if (result.error) failed.push(`${original.name}: ${result.error}`);
+            const file = await compress(original);
+            if (!file) {
+              failed.push(
+                `${original.name}: no se pudo reducir para la subida.`,
+              );
+            } else {
+              data.set("photo", file);
+              const result = await uploadAction({}, data);
+              if (result.error)
+                failed.push(`${original.name}: ${result.error}`);
+            }
           } catch {
             failed.push(`${original.name}: no se pudo subir.`);
           }
@@ -285,7 +313,7 @@ export function PhotoGallery({
                 {/* Activos privados: se sirven por la ruta que verifica membresía. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={src(photo.id)}
+                  src={`${src(photo.id)}?size=thumb`}
                   alt=""
                   loading="lazy"
                   decoding="async"

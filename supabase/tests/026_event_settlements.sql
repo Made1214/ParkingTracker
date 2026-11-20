@@ -1,5 +1,5 @@
 begin;
-select plan(10);
+select plan(11);
 
 -- Setup: Create event for settlement & idempotency testing
 insert into public.events (id, group_id, title, starts_at, ends_at, status, created_by)
@@ -66,6 +66,16 @@ select results_eq(
   $$values ('00000000-0000-0000-0000-000000000003'::uuid, '00000000-0000-0000-0000-000000000001'::uuid, 15.00::numeric)$$,
   'C pays A directly 15.00 to settle the 3-person chain'
 );
+
+-- La transferencia sugerida de C a A no corresponde a cuotas mutuas.
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+select throws_ok($$select public.settle_event_debt(
+  '90000000-0000-0000-0000-000000000041',
+  '00000000-0000-0000-0000-000000000003',
+  '00000000-0000-0000-0000-000000000001', 15)$$,
+  '22023', 'settlement amount does not match direct debt',
+  'a transitive settlement cannot change other members'' expense splits');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
 
 -- Test 2: API §6 Idempotency key on create_expense
 create temporary table exp_first as

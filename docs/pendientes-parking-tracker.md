@@ -2,13 +2,11 @@
 
 Actualización del análisis del 10 de noviembre de 2026. Contrasta el código de `main` con la documentación del repositorio (PRD, SRS, Arquitectura, API, UI/UX) y con lo que solo está en ClickUp: el documento **08 · Planificación** (criterios por tarea de los 6 sprints), los **91 tareas** del espacio _Parking Tracker_ y la lista **define-stack: Foundation**.
 
-Fecha: 12 de noviembre de 2026.
+Revisado el 20 de noviembre de 2026. Los avances de la rama de auditoría se registran en [PENDIENTES.md](../PENDIENTES.md).
 
 ## Estado general
 
-- Todos los requisitos "Must" del PRD y del SRS tienen pantalla y lógica, salvo **Legal y SEO** (E10.F3.T2), que no existe.
-- Del análisis anterior solo quedan abiertos Producción, contraseñas filtradas, Lighthouse, la matriz de navegadores y el largo de Plan en móvil; el resto se cerró en los PR #24 a #36.
-- **El PR #37 está pendiente de fusionar.** #33 (observabilidad) y #35 (cobertura, axe y votos en vivo) se fusionaron en sus ramas base, no en `main`; #37 los trae.
+- Legal, SEO y el PR #37 están integrados en main. La verificación de Producción sigue pendiente.
 - ClickUp no refleja el avance: 86 de 91 tareas siguen en _backlog_ aunque la mayoría están hechas (ver §9).
 
 ---
@@ -40,37 +38,37 @@ Fecha: 12 de noviembre de 2026.
 
 | # | Pendiente | Qué hacer | Tarea ClickUp |
 | --- | --- | --- | --- |
-| 1.1 | Fusionar #37 | Revisar su CI: es la primera vez que corren axe en las pantallas con sesión y la prueba de votos en vivo. | E1.F3.T3, E10.F2.T3 |
+| 1.1 | Completado | #37 incorporó observabilidad, cobertura, axe y votos en vivo. | E1.F3.T3, E10.F2.T3 |
 | 1.2 | **Producción pausada y sin migraciones posteriores a la 026** | Reactivarla, comparar su historial con `supabase/migrations/` y aplicar la misma secuencia que Staging; `get_advisors` después. | E10.F3.T1 |
 | 1.3 | Protección de contraseñas filtradas desactivada | Supabase → Auth → Passwords, en Staging y en Producción. | E10.F2.T2 |
 | 1.4 | Verificación en Producción | Correo de confirmación, Google OAuth, subida real a Cloudinary, cron de cierre de salidas, `/api/health` desde Vercel. | E10.F3.T3 |
-| 1.5 | Configuración fuera del repo | GitHub: secretos `SUPABASE_ACCESS_TOKEN`, `STAGING_DB_PASSWORD`; variables `STAGING_PROJECT_REF`, `STAGING_AUTO_APPLY`. Staging: `supabase migration repair --status applied 020 022 023` una vez. Vercel: Upstash (opcional), `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN`, activar Analytics y Speed Insights, `CRON_SECRET`. | E1.F3.T2, E1.F3.T3 |
-| 1.6 | **Legal y SEO** (no existe nada) | Páginas de privacidad y términos, metadatos Open Graph, `robots.ts` y `sitemap.ts` (solo rutas públicas). | E10.F3.T2 |
+| 1.5 | Configuración fuera del repo | GitHub: secretos `SUPABASE_ACCESS_TOKEN`, `STAGING_DB_PASSWORD`; variables `STAGING_PROJECT_REF`, `STAGING_AUTO_APPLY`. Staging ya registra las migraciones `020`, `022` y `023`. Vercel: Upstash (opcional), `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN`, activar Analytics y Speed Insights, `CRON_SECRET`. | E1.F3.T2, E1.F3.T3 |
+| 1.6 | Completado | Privacidad, términos, Open Graph, robots y sitemap para rutas públicas. | E10.F3.T2 |
 | 1.7 | Protección de la rama `main` | Exigir los 3 jobs del CI (app, pgTAP, E2E) antes de fusionar. Se configura en GitHub, no en el repo. | E1.F3.T1, define-stack PR 11 |
 | 1.8 | Checklist de go-live | Pruebas de humo en Producción, monitoreo 48 h, primeros grupos. | E10.F3.T3 |
 
 ---
 
-## 2. Funcionalidad que pide ClickUp y no está
+## 2. Estado de los criterios de ClickUp
 
-Criterios del documento 08 que no aparecen en el código. Ordenados por prioridad de la tarea.
+Criterios del documento 08 y su estado en el repositorio.
 
 | Tarea | Prioridad | Qué falta |
 | --- | --- | --- |
-| E8.F1 criterio de aceptación | Must | En la división igual, **los centavos sobrantes van al pagador**. Hoy van a los primeros participantes de la lista (`equalShares`). |
-| E4.F1.T4 Cancelación | High | **Motivo opcional** al cancelar una salida (columna y campo). |
-| E4.F2.T1 Home del grupo | Urgent | Pestañas **Próximas / Pasadas** y paginación por cursor. Hoy es una sola lista: próximas primero y luego el historial completo. |
-| E4.F4.T2 Responsive y estados | High | **Error boundary por pestaña**: hoy un error en una pestaña tira la página entera (`src/app/error.tsx`). |
-| E8.F3.T2 UI checklist | High | **Tareas vencidas destacadas** (la fecha se muestra igual aunque haya pasado). |
-| E3.F2.T1 Unirse por enlace | Urgent | **Vista previa del grupo** (nombre, imagen, miembros) en `/join/[code]` antes de aceptar. Hoy solo se ve el código. |
-| E2.F3.T2 Username único | High | Aviso **en vivo** de disponibilidad y sugerencia desde el correo. Hoy el error aparece al guardar. |
-| E5.F1.T1 Cronograma | Urgent | **Aviso de solape** entre actividades (advertencia, no bloqueo). |
-| E5.F1.T2 Timeline | High | **Actividad en curso destacada** el día de la salida. |
-| E9.F2.T1 Lightbox | High | **Deslizar con el dedo** entre fotos (hoy solo flechas de teclado y botones). |
-| ~~E1.F4.T2 AppShell~~ | High | Hecho el 16 nov: el selector de grupo ya estaba en `AppSidebar` y se añadieron las migas de pan (`shared/ui/breadcrumbs`). |
+| E8.F1 criterio de aceptación | Must | Completado. La división igual asigna los centavos sobrantes al pagador. |
+| E4.F1.T4 Cancelación | High | Completado. Motivo opcional de cancelación. |
+| E4.F2.T1 Home del grupo | Urgent | Completado. Próximas y Pasadas con paginación por cursor. Los KPI tienen una mejora de rendimiento pendiente. |
+| E4.F4.T2 Responsive y estados | High | Completado. PanelBoundary aísla los errores de los paneles. |
+| E8.F3.T2 UI checklist | High | Completado. Se destacan las tareas vencidas. |
+| E3.F2.T1 Unirse por enlace | Urgent | Parcial. La vista previa muestra nombre, descripción y miembros. La imagen privada se representa con una inicial. |
+| E2.F3.T2 Username único | High | Completado. Disponibilidad en vivo y sugerencia desde el correo. |
+| E5.F1.T1 Cronograma | Urgent | Completado. Advertencia de solape en el cronograma. |
+| E5.F1.T2 Timeline | High | Completado. Se destaca la actividad en curso. |
+| E9.F2.T1 Lightbox | High | Completado. El visor admite gestos táctiles. |
+| ~~E1.F4.T2 AppShell~~ | High | Integrado en la rama de auditoría: selector de grupo en `AppSidebar` y migas de pan (`shared/ui/breadcrumbs`). |
 | ~~E4.F3.T3 Asistencia en vivo~~ | Normal | Hecho el 16 nov: `event_attendance` en Realtime (migración `20261116210234`, aplicada en Staging) y `AttendanceRealtime`. |
-| ~~E7.F2.T2 Comentarios en vivo~~ | Normal | Hecho el 16 nov: insignia de no leídos en la pestaña Comentarios (en memoria, como pide la tarea). |
-| ~~E1.F4 criterio de aceptación~~ | — | Hecho el 16 nov: `/dev/ui` con los componentes en claro y oscuro (solo fuera de producción). |
+| ~~E7.F2.T2 Comentarios en vivo~~ | Normal | Integrado en la rama de auditoría: insignia de no leídos en la pestaña Comentarios (en memoria, como pide la tarea). |
+| ~~E1.F4 criterio de aceptación~~ | — | Integrado en la rama de auditoría: `/dev/ui` con los componentes en claro y oscuro (solo fuera de producción). |
 
 Fuera del MVP según la arquitectura: API REST `/api/v1`.
 
@@ -78,7 +76,7 @@ Fuera del MVP según la arquitectura: API REST `/api/v1`.
 
 ## 3. Móvil y experiencia de uso
 
-- ~~Plan largo en móvil~~: resuelto el 16 nov moviendo Comentarios a su propia pestaña (6 pestañas; el plan de ClickUp pedía 7 porque separaba Info y Cronograma).
+- ~~Plan largo en móvil~~: resuelto en la rama de auditoría al mover Comentarios a su propia pestaña (6 pestañas; el plan de ClickUp pedía 7 porque separaba Info y Cronograma).
 
 ---
 
@@ -94,9 +92,9 @@ Fuera del MVP según la arquitectura: API REST `/api/v1`.
 | Pendiente | Tarea ClickUp |
 | --- | --- |
 | E2E solo en Chromium. El plan pide matriz Chrome / Safari / Firefox + iOS / Android: añadir proyectos `webkit` y `firefox` a Playwright y una pasada manual en teléfonos. | E10.F2.T1 |
-| **Husky + lint-staged** en pre-commit (hoy el formato solo se comprueba en el CI). | E1.F1.T2 |
-| Regla ESLint `no-restricted-imports` que impida importar `features/*/…` sin pasar por su `index.ts` (hoy se respeta, pero nada lo obliga). | define-stack PR 4 |
-| Regla ESLint que prohíba `next/image` en galería e historial (CLAUDE.md lo exige). | define-stack PR 8 |
+| Completado. Husky y lint-staged en pre-commit. | E1.F1.T2 |
+| Regla ESLint `no-restricted-imports` que impida importar `features/*/…` sin pasar por su `index.ts` (configurada). | define-stack PR 4 |
+| Regla ESLint que prohíba `next/image` en galería e historial (configurada). | define-stack PR 8 |
 | Registrar la decisión `strict_tdd` en `openspec`. | define-stack PR 11 |
 | Sentry sin _source maps_ (trazas minificadas). Requiere `withSentryConfig` y `SENTRY_AUTH_TOKEN` en Vercel. | E1.F3.T3 |
 
@@ -106,8 +104,8 @@ Fuera del MVP según la arquitectura: API REST `/api/v1`.
 
 | Pendiente | Tarea ClickUp |
 | --- | --- |
-| `CONTRIBUTING.md` y plantillas de _issues_ (la de PR ya existe). | E1.F1.T3 |
-| Script `gen:types` y regenerar `types.generated.ts` desde Staging; hoy se edita a mano. | E1.F2.T4 |
+| Completado. `CONTRIBUTING.md` y plantillas de issues y PR. | E1.F1.T3 |
+| Completado. Scripts para generar `types.generated.ts` desde local o Staging. | E1.F2.T4 |
 | Documento de responsables por módulo (uno por cada uno de los 12). | define-stack PR 4 |
 
 ---

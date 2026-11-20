@@ -52,13 +52,20 @@ export async function getShellData() {
     supabase.from("groups").select("id, name").order("name"),
     supabase
       .from("profiles")
-      .select("display_name")
+      .select("display_name, avatar_public_id, avatar_url, updated_at")
       .eq("id", user.id)
       .maybeSingle(),
   ]);
   return {
     groups: groups.data ?? [],
     displayName: profile.data?.display_name ?? "",
+    avatarSrc: profile.data?.avatar_public_id
+      ? `/api/profiles/${user.id}/avatar?v=${encodeURIComponent(profile.data.updated_at)}`
+      : /^https:\/\/lh3\.googleusercontent\.com\//.test(
+            profile.data?.avatar_url ?? "",
+          )
+        ? profile.data?.avatar_url
+        : null,
   };
 }
 

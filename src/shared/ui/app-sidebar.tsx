@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AvatarImage } from "./avatar-image";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import {
@@ -11,6 +12,7 @@ import {
   Images,
   ListChecks,
   LogOut,
+  MessageCircle,
   Plus,
   Settings2,
   TrendingUp,
@@ -32,13 +34,16 @@ const ROUTE =
  * navegación inferior en móvil. El grupo activo sale de la URL; si no hay
  * ninguno, se usa el primero para "Nueva salida".
  */
+// Presenta la navegación de la cuenta y del grupo activo.
 export function AppSidebar({
   groups,
   displayName,
+  avatarSrc,
   logout,
 }: {
   groups: ShellGroup[];
   displayName: string;
+  avatarSrc?: string | null;
   logout: () => Promise<void>;
 }) {
   const pathname = usePathname();
@@ -166,6 +171,13 @@ export function AppSidebar({
               section === "fotos",
               true,
             )}
+            {item(
+              `${eventUrl}?section=comentarios`,
+              "Comentarios",
+              <MessageCircle size={16} aria-hidden="true" />,
+              section === "comentarios",
+              true,
+            )}
           </div>
         )}
         {target &&
@@ -192,7 +204,7 @@ export function AppSidebar({
       <div className={styles.foot}>
         <Link href="/profile" className={styles.user}>
           <span className={styles.avatar} aria-hidden="true">
-            {initials(displayName)}
+            <AvatarImage src={avatarSrc} fallback={initials(displayName)} />
           </span>
           <span>
             <strong>{displayName || "Tu perfil"}</strong>

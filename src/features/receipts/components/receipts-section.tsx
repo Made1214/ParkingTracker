@@ -1,9 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, ScanLine } from "lucide-react";
+import { ArrowRight, ScanLine, UsersRound } from "lucide-react";
 import { Card } from "@/shared/ui/card";
 import { ActionForm } from "@/shared/ui/action-form";
+import { Disclosure } from "@/shared/ui/disclosure";
+import { Input } from "@/shared/ui/input";
 import { initials } from "@/shared/lib/utils";
-import { settleGuestDebt, startReceipt } from "../api/actions";
+import {
+  manageEventGuest,
+  settleGuestDebt,
+  startReceipt,
+} from "../api/actions";
 import { getEventReceipts } from "../api/queries";
 import { money } from "./helpers";
 import styles from "./receipts.module.css";
@@ -69,6 +75,64 @@ export async function ReceiptsSection({
           </ul>
         )}
       </Card>
+
+      {(open || data.guests.length > 0) && (
+        <Disclosure
+          icon={<UsersRound size={18} />}
+          title="Invitados de la salida"
+        >
+          {open && (
+            <ActionForm action={manageEventGuest} label="Añadir invitado">
+              {hidden}
+              <input type="hidden" name="operation" value="add" />
+              <label>
+                Nombre <Input name="name" required maxLength={60} />
+              </label>
+            </ActionForm>
+          )}
+          {data.guests.length > 0 && (
+            <ul>
+              {data.guests.map((guest) => (
+                <li key={guest.id}>
+                  {open && guest.canManage ? (
+                    <details>
+                      <summary>{guest.name}</summary>
+                      <ActionForm
+                        action={manageEventGuest}
+                        label="Guardar nombre"
+                      >
+                        {hidden}
+                        <input type="hidden" name="guest_id" value={guest.id} />
+                        <input type="hidden" name="operation" value="rename" />
+                        <label>
+                          Nombre{" "}
+                          <Input
+                            name="name"
+                            defaultValue={guest.name}
+                            required
+                            maxLength={60}
+                          />
+                        </label>
+                      </ActionForm>
+                      <ActionForm
+                        action={manageEventGuest}
+                        label="Eliminar invitado"
+                        tone="danger"
+                      >
+                        {hidden}
+                        <input type="hidden" name="guest_id" value={guest.id} />
+                        <input type="hidden" name="operation" value="delete" />
+                      </ActionForm>
+                    </details>
+                  ) : (
+                    guest.name
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Disclosure>
+      )}
 
       {data.guestDebts.length > 0 && (
         <Card>

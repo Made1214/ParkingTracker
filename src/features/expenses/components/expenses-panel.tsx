@@ -30,6 +30,7 @@ const categoryIcons: Record<string, LucideIcon> = {
   otro: Receipt,
 };
 
+// Muestra el resumen, las deudas y los gastos de la salida activa.
 export async function ExpensesPanel({
   groupId,
   eventId,
@@ -67,8 +68,7 @@ export async function ExpensesPanel({
           <span className="eyebrow">GASTO TOTAL</span>
           <strong>{formatMoney(data.totalCents)}</strong>
           <span className="small muted">
-            {data.expenses.length}{" "}
-            {data.expenses.length === 1 ? "gasto" : "gastos"}
+            {data.count} {data.count === 1 ? "gasto" : "gastos"}
           </span>
         </div>
         <div className={styles.kpi}>
@@ -120,6 +120,7 @@ export async function ExpensesPanel({
                         className={styles.settle}
                       >
                         {hidden}
+                        <input type="hidden" name="cents" value={debt.cents} />
                         <input
                           type="hidden"
                           name="debtor"
@@ -226,15 +227,32 @@ export async function ExpensesPanel({
                           >
                             <EllipsisVertical size={18} aria-hidden="true" />
                           </summary>
-                          <ActionForm
-                            action={deleteExpense}
-                            label="Eliminar gasto"
-                            tone="danger"
+                          <div
                             className={styles.removeForm}
+                            data-editable={expense.canEdit || undefined}
                           >
-                            {hidden}
-                            <input type="hidden" name="id" value={expense.id} />
-                          </ActionForm>
+                            {expense.canEdit && (
+                              <ExpenseForm
+                                groupId={groupId}
+                                eventId={eventId}
+                                userId={data.userId}
+                                members={data.members}
+                                expense={expense}
+                              />
+                            )}
+                            <ActionForm
+                              action={deleteExpense}
+                              label="Eliminar gasto"
+                              tone="danger"
+                            >
+                              {hidden}
+                              <input
+                                type="hidden"
+                                name="id"
+                                value={expense.id}
+                              />
+                            </ActionForm>
+                          </div>
                         </details>
                       )}
                     </li>

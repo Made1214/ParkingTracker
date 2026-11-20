@@ -12,6 +12,34 @@ const lines = (text: string, confidence = 0.95): OcrLine[] =>
       bbox: { x: 0.05, y: i / 40, w: 0.9, h: 0.02 },
     }));
 
+it("distingue productos, número de orden y pago en una factura panameña", () => {
+  const result = parseReceiptLines(
+    lines(`
+    FONDA DEL BARRIO
+    ORDEN # 12
+    ORDEN DE PATACONES 3.00
+    PROMO HAMBURGUESA 5.00
+    7UP 1.50
+    POLLO SECO 4.00
+    PROMO -0.50
+    ITBMS INCLUIDO 7,5 % 0.91
+    TOTAL A PAGAR 13.00
+    TOTAL PAGADO 20.00
+  `),
+  );
+  expect(
+    result.items.map((item) => [item.name, item.quantity, item.category]),
+  ).toEqual([
+    ["ORDEN DE PATACONES", 1, "food"],
+    ["PROMO HAMBURGUESA", 1, "food"],
+    ["7UP", 1, "non_alcoholic_beverage"],
+    ["POLLO SECO", 1, "food"],
+  ]);
+  expect(result.items.at(-1)?.discountCents).toBe(50);
+  expect(result.taxes[0]).toMatchObject({ rateBp: 750, included: true });
+  expect(result.printedTotalCents).toBe(1300);
+});
+
 const restaurant = `
 RESTAURANTE LA FONDA
 RUC 155-555-55 DV 12

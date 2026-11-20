@@ -1,6 +1,7 @@
 import { getAttendance } from "../api/queries";
 import { AttendanceRealtime } from "./attendance-realtime";
 import { AttendanceView } from "./attendance-view";
+// Muestra la asistencia y escucha cambios mientras se pueden enviar respuestas.
 export async function AttendancePanel({
   groupId,
   eventId,
@@ -15,7 +16,7 @@ export async function AttendancePanel({
   const attendance = await getAttendance(groupId, eventId);
   return (
     <>
-      <AttendanceRealtime eventId={eventId} />
+      {open && <AttendanceRealtime eventId={eventId} />}
       <AttendanceView
         groupId={groupId}
         eventId={eventId}

@@ -2,32 +2,35 @@ import "server-only";
 import { requireUser } from "@/features/auth";
 import { amountToCents as cents } from "./expense-form";
 
+// Combina el resumen de Postgres, los saldos y los gastos de la salida.
 export async function getExpenses(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(
     `/groups/${groupId}/events/${eventId}`,
   );
-  const [members, expenses, balances, debts, event] = await Promise.all([
-    supabase
-      .from("group_members")
-      .select("user_id, role, profiles(display_name)")
-      .eq("group_id", groupId),
-    supabase
-      .from("expenses")
-      .select(
-        "id, description, amount, category, paid_by, created_by, created_at, receipt_id, expense_splits(user_id, share_amount, settled), expense_guest_shares(guest_id)",
-      )
-      .eq("group_id", groupId)
-      .eq("event_id", eventId)
-      .order("created_at", { ascending: false }),
-    supabase.rpc("get_event_balances", { p_event_id: eventId }),
-    supabase.rpc("get_event_debts", { p_event_id: eventId }),
-    supabase
-      .from("events")
-      .select("status")
-      .eq("group_id", groupId)
-      .eq("id", eventId)
-      .single(),
-  ]);
+  const [members, expenses, balances, debts, event, summary] =
+    await Promise.all([
+      supabase
+        .from("group_members")
+        .select("user_id, role, profiles(display_name)")
+        .eq("group_id", groupId),
+      supabase
+        .from("expenses")
+        .select(
+          "id, description, amount, category, paid_by, created_by, created_at, receipt_id, expense_splits(user_id, share_amount, settled), expense_guest_shares(guest_id)",
+        )
+        .eq("group_id", groupId)
+        .eq("event_id", eventId)
+        .order("created_at", { ascending: false }),
+      supabase.rpc("get_event_balances", { p_event_id: eventId }),
+      supabase.rpc("get_event_debts", { p_event_id: eventId }),
+      supabase
+        .from("events")
+        .select("status")
+        .eq("group_id", groupId)
+        .eq("id", eventId)
+        .single(),
+      getExpenseSummary(groupId, eventId),
+    ]);
   if (
     members.error ||
     expenses.error ||
@@ -47,10 +50,6 @@ export async function getExpenses(groupId: string, eventId: string) {
   const isAdmin = members.data.some(
     (m) => m.user_id === user.id && m.role === "admin",
   );
-  const totalCents = expenses.data.reduce((sum, e) => sum + cents(e.amount), 0);
-  const participants = new Set(
-    expenses.data.flatMap((e) => e.expense_splits.map((s) => s.user_id)),
-  );
   const myBalance =
     balances.data.find((b) => b.user_id === user.id)?.net_amount ?? 0;
 
@@ -66,10 +65,9 @@ export async function getExpenses(groupId: string, eventId: string) {
             ? 1
             : a.name.localeCompare(b.name),
       ),
-    totalCents,
-    perPersonCents: participants.size
-      ? Math.round(totalCents / participants.size)
-      : 0,
+    totalCents: summary.totalCents,
+    perPersonCents: summary.perPersonCents,
+    count: summary.count,
     myBalanceCents: cents(myBalance),
     balances: balances.data
       .map((b) => ({
@@ -96,6 +94,17 @@ export async function getExpenses(groupId: string, eventId: string) {
       payer: name(e.paid_by),
       people: e.expense_splits.length + e.expense_guest_shares.length,
       receiptId: e.receipt_id,
+      canEdit:
+        event.data.status !== "cancelled" &&
+        !e.receipt_id &&
+        !e.expense_guest_shares.length &&
+        !e.expense_splits.some((s) => s.settled && s.user_id !== e.paid_by) &&
+        (isAdmin || e.created_by === user.id),
+      paidBy: e.paid_by,
+      shares: e.expense_splits.map((s) => ({
+        userId: s.user_id,
+        cents: cents(s.share_amount),
+      })),
       // Los gastos de una factura se corrigen desde la factura (la base de
       // datos tampoco deja borrarlos sueltos).
       canDelete: !e.receipt_id && (isAdmin || e.created_by === user.id),
@@ -109,18 +118,17 @@ export async function getExpenseSummary(groupId: string, eventId: string) {
     `/groups/${groupId}/events/${eventId}`,
   );
   const { data, error } = await supabase
-    .from("expenses")
-    .select("amount, expense_splits(user_id)")
+    .from("event_expense_summary")
+    .select("total_amount, participant_count, expense_count")
     .eq("group_id", groupId)
-    .eq("event_id", eventId);
+    .eq("event_id", eventId)
+    .maybeSingle();
   if (error) throw new Error("No se pudieron cargar los gastos.");
-  const totalCents = data.reduce((sum, e) => sum + cents(e.amount), 0);
-  const people = new Set(
-    data.flatMap((e) => e.expense_splits.map((s) => s.user_id)),
-  ).size;
+  const totalCents = cents(data?.total_amount ?? 0);
+  const people = data?.participant_count ?? 0;
   return {
     totalCents,
     perPersonCents: people ? Math.round(totalCents / people) : 0,
-    count: data.length,
+    count: data?.expense_count ?? 0,
   };
 }

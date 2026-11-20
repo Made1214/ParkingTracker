@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/features/auth";
 import { text, databaseError, type ActionState } from "@/shared/lib/forms";
+import {
+  deletePrivateImage,
+  mediaConfigured,
+} from "@/shared/cloudinary/server";
 export async function createEvent(
   _: ActionState,
   form: FormData,
@@ -47,6 +51,33 @@ export async function createEvent(
   if (error) return { error: databaseError(error.code) };
   revalidatePath(`/groups/${parsed.data.group_id}`);
   redirect(`/groups/${parsed.data.group_id}/events/${data.id}`);
+}
+
+// Elimina el borrador y limpia sus imágenes después de confirmar el borrado.
+export async function deleteEventDraft(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ids = z.object({ group: z.guid(), event: z.guid() }).safeParse({
+    group: text(form, "group_id"),
+    event: text(form, "event_id"),
+  });
+  if (!ids.success) return { error: "No se pudo identificar el borrador." };
+  const { supabase } = await requireUser();
+  const { group, event } = ids.data;
+  const { data, error } = await supabase.rpc("delete_event_draft", {
+    p_group_id: group,
+    p_event_id: event,
+  });
+  if (error?.code === "22023")
+    return { error: "Elimina primero los gastos del borrador." };
+  if (error) return { error: databaseError(error.code) };
+  if (mediaConfigured())
+    await Promise.allSettled(
+      data.map((publicId) => deletePrivateImage(publicId)),
+    );
+  revalidatePath(`/groups/${group}`);
+  redirect(`/groups/${group}`);
 }
 
 export async function updateEvent(

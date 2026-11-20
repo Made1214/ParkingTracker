@@ -107,6 +107,11 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
       ? `/api/groups/${data.groupId}/events/${data.eventId}/receipts/${data.receiptId}/image?v=${data.version}`
       : null,
   );
+  useEffect(() => {
+    return () => {
+      if (imageSrc?.startsWith("blob:")) URL.revokeObjectURL(imageSrc);
+    };
+  }, [imageSrc]);
   const [save, setSave] = useState<SaveState>("saved");
   const [error, setError] = useState<string | null>(null);
   const [focusItem, setFocusItem] = useState<string | null>(null);
@@ -131,9 +136,19 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
     [],
   );
 
-  // Autoguardado: en serie (una petición a la vez) y con bloqueo por versión.
+  // Serializa las operaciones y deja disponible la cola tras un fallo.
+  const enqueue = useCallback(<T,>(operation: () => Promise<T>) => {
+    const result = queue.current.then(operation);
+    queue.current = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }, []);
+
+  // Guarda el último documento respetando su versión en el servidor.
   const flush = useCallback(() => {
-    queue.current = queue.current.then(async () => {
+    return enqueue(async () => {
       setSave("saving");
       const result = await saveReceiptDraft({
         ...ids,
@@ -143,14 +158,20 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
       if (result.ok) {
         version.current = result.version;
         setSave((s) => (s === "saving" ? "saved" : s));
+        setError(null);
       } else {
         setSave("error");
         setError(result.error);
       }
+      return result;
+    }).catch(() => {
+      const error = "No se pudo guardar el borrador. Inténtalo de nuevo.";
+      setSave("error");
+      setError(error);
+      return { ok: false as const, error };
     });
-    return queue.current;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [enqueue]);
 
   useEffect(() => {
     if (save !== "dirty" || !data.canEdit) return;
@@ -160,7 +181,7 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (save === "dirty" || save === "saving") event.preventDefault();
+      if (save !== "saved") event.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
@@ -254,8 +275,9 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
               ocr: parsed.ocr,
             }));
             setStep("review");
-            await flush();
-            queue.current = queue.current.then(async () => {
+            const saved = await flush();
+            if (!saved.ok) return;
+            await enqueue(async () => {
               const form = new FormData();
               form.set("group_id", data.groupId);
               form.set("event_id", data.eventId);
@@ -268,7 +290,9 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
                 setError(
                   `La lectura se guardó, pero la foto no: ${uploaded.error}`,
                 );
-            });
+            }).catch(() =>
+              setError("No se pudo subir la foto. Inténtalo de nuevo."),
+            );
           }}
         />
       )}
@@ -325,13 +349,19 @@ export function ReceiptFlow({ data }: { data: ReceiptPageData }) {
             .map((i) => i.message)}
           paidCents={paidCents}
           onFinalize={async (confirmDuplicate) => {
-            await flush();
-            const response = await finalizeReceipt({
-              ...ids,
-              version: version.current,
-              document: latest.current,
-              confirmDuplicate,
-            });
+            const saved = await flush();
+            if (!saved.ok) return saved;
+            const response = await enqueue(() =>
+              finalizeReceipt({
+                ...ids,
+                version: version.current,
+                document: latest.current,
+                confirmDuplicate,
+              }),
+            ).catch(() => ({
+              ok: false as const,
+              error: "No se pudo finalizar la factura. Inténtalo de nuevo.",
+            }));
             if (response.ok) {
               router.refresh();
               return null;
@@ -410,6 +440,7 @@ function TotalsBar({
   );
 }
 
+// Prepara y lee una imagen en el dispositivo, con cancelación disponible.
 function ScanStep({
   imageSrc,
   onScanned,
@@ -429,15 +460,29 @@ function ScanStep({
   const [failure, setFailure] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(imageSrc);
   const [file, setFile] = useState<File | null>(null);
+  const activeRead = useRef<AbortController | null>(null);
+  useEffect(() => () => activeRead.current?.abort(), []);
+  useEffect(() => {
+    return () => {
+      if (preview !== imageSrc && preview?.startsWith("blob:"))
+        URL.revokeObjectURL(preview);
+    };
+  }, [preview, imageSrc]);
 
+  // Libera la imagen temporal cuando la lectura no pasa al paso de revisión.
   async function read() {
-    if (!file) return;
+    if (!file || activeRead.current) return;
+    const controller = new AbortController();
+    activeRead.current = controller;
+    let temporaryUrl: string | undefined;
     setFailure(null);
     try {
       setBusy("Preparando la imagen…");
       const { prepareImage, recognizeReceipt } =
         await import("../ocr/recognize");
       const { image, ocrCanvas } = await prepareImage(file);
+      temporaryUrl = image.url;
+      controller.signal.throwIfAborted();
       setBusy("Leyendo la factura en tu dispositivo…");
       const { lines, confidence } = await recognizeReceipt(
         ocrCanvas,
@@ -447,11 +492,14 @@ function ScanStep({
               ? `Leyendo la factura… ${Math.round(p * 100)} %`
               : "Preparando el lector (solo la primera vez)…",
           ),
+        controller.signal,
       );
+      controller.signal.throwIfAborted();
       const parsed = parseReceiptLines(lines);
       const upload = new File([image.blob], "factura.jpg", {
         type: "image/jpeg",
       });
+      temporaryUrl = undefined;
       await onScanned(
         {
           ...parsed,
@@ -466,12 +514,15 @@ function ScanStep({
         upload,
       );
     } catch (e) {
+      if (controller.signal.aborted) return;
       setFailure(
         e instanceof Error
           ? e.message
           : "No se pudo leer la factura. Puedes escribirla a mano.",
       );
     } finally {
+      if (temporaryUrl) URL.revokeObjectURL(temporaryUrl);
+      activeRead.current = null;
       setBusy(null);
     }
   }
@@ -492,10 +543,10 @@ function ScanStep({
           accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           capture="environment"
           className="sr-only"
+          disabled={Boolean(busy)}
           onChange={(e) => {
             const next = e.target.files?.[0] ?? null;
             setFile(next);
-            if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
             setPreview(next ? URL.createObjectURL(next) : imageSrc);
           }}
         />
@@ -517,6 +568,15 @@ function ScanStep({
         <Button type="button" disabled={!file || Boolean(busy)} onClick={read}>
           <ScanLine size={16} aria-hidden="true" /> Leer factura
         </Button>
+        {busy && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => activeRead.current?.abort()}
+          >
+            Cancelar lectura
+          </Button>
+        )}
         <Button type="button" variant="outline" onClick={onManual}>
           Escribirla a mano
         </Button>
@@ -540,6 +600,12 @@ function Confidence({ value, missing }: { value?: number; missing?: boolean }) {
   );
 }
 
+// Interpreta un separador final como parte de un decimal todavía en edición.
+function readMoneyField(text: string) {
+  return readMoney(text.replace(/^(-?\d+)[.,]$/, "$1"));
+}
+
+// Conserva el texto mientras se escribe un importe o porcentaje decimal.
 function MoneyField({
   label,
   value,
@@ -557,9 +623,9 @@ function MoneyField({
   const [previous, setPrevious] = useState(value);
   if (previous !== value) {
     setPrevious(value);
-    if (readMoney(text) !== value) setText(moneyInput(value));
+    if (readMoneyField(text) !== value) setText(moneyInput(value));
   }
-  const bad = Boolean(text.trim()) && readMoney(text) === null;
+  const bad = Boolean(text.trim()) && readMoneyField(text) === null;
   return (
     <label className={className ?? styles.field}>
       <span>{label}</span>
@@ -570,7 +636,7 @@ function MoneyField({
         placeholder="0.00"
         onChange={(e) => {
           setText(e.target.value);
-          onChange(readMoney(e.target.value));
+          onChange(readMoneyField(e.target.value));
         }}
       />
     </label>
@@ -755,7 +821,10 @@ function ReviewStep({
                         setItem(item.id, {
                           quantity: Math.max(
                             1,
-                            Math.min(999, Number(e.target.value) || 1),
+                            Math.min(
+                              999,
+                              Math.trunc(Number(e.target.value)) || 1,
+                            ),
                           ),
                         })
                       }
@@ -930,7 +999,7 @@ function ReviewStep({
             ))}
           </ul>
           <div className={styles.actions}>
-            {panamaTaxProfile.rates.slice(0, 2).map((rate) => (
+            {panamaTaxProfile.rates.map((rate) => (
               <Button
                 key={rate.id}
                 type="button"
@@ -948,10 +1017,17 @@ function ReviewStep({
                     return {
                       ...d,
                       taxes: [...d.taxes, tax],
-                      items:
-                        d.taxes.length === 0
-                          ? d.items.map((i) => ({ ...i, taxId: tax.id }))
-                          : d.items,
+                      items: d.items.map((item) => {
+                        const suggestion = panamaTaxProfile.suggest(
+                          d.establishment,
+                          item.category ?? "food",
+                        );
+                        return !item.taxId &&
+                          suggestion.rateId === rate.id &&
+                          !suggestion.needsConfirmation
+                          ? { ...item, taxId: tax.id }
+                          : item;
+                      }),
                     };
                   })
                 }
@@ -996,8 +1072,8 @@ function ReviewStep({
                 <MoneyField
                   label="Importe"
                   value={
-                    charge.amountCents === null
-                      ? null
+                    charge.amountCents === null || charge.kind === "adjustment"
+                      ? charge.amountCents
                       : Math.abs(charge.amountCents)
                   }
                   invalid={charge.amountCents === null}
@@ -1561,39 +1637,39 @@ function CustomSplit({
         <p className="small muted">Elige primero a las personas.</p>
       )}
       {mode !== "equal" &&
-        chosen.map((p) => (
-          <label key={p.id} className={styles.inlineField}>
-            <span>{p.name}</span>
-            {mode === "amount" ? (
-              <MoneyField
-                label=""
-                className={styles.compactField}
-                value={value(p.id)}
-                onChange={(cents) => setValue(p.id, Math.max(0, cents ?? 0))}
-              />
-            ) : (
+        chosen.map((p) =>
+          mode === "units" ? (
+            <label key={p.id} className={styles.inlineField}>
+              <span>{p.name}</span>
               <Input
-                inputMode="decimal"
-                value={
-                  mode === "percent"
-                    ? String(value(p.id) / 100)
-                    : String(value(p.id))
-                }
-                onChange={(e) => {
-                  const n = Number(e.target.value.replace(",", "."));
+                inputMode="numeric"
+                value={String(value(p.id))}
+                onChange={(e) =>
                   setValue(
                     p.id,
-                    Number.isFinite(n) && n >= 0
-                      ? mode === "percent"
-                        ? Math.round(n * 100)
-                        : Math.floor(n)
-                      : 0,
-                  );
-                }}
+                    Math.max(0, Math.trunc(Number(e.target.value)) || 0),
+                  )
+                }
               />
-            )}
-          </label>
-        ))}
+            </label>
+          ) : (
+            <MoneyField
+              key={`${mode}-${p.id}`}
+              label={p.name}
+              className={styles.inlineField}
+              value={value(p.id)}
+              onChange={(cents) =>
+                setValue(
+                  p.id,
+                  Math.min(
+                    mode === "percent" ? 10_000 : Number.MAX_SAFE_INTEGER,
+                    Math.max(0, cents ?? 0),
+                  ),
+                )
+              }
+            />
+          ),
+        )}
       {mode !== "equal" && (
         <p className="small" data-ok={sum === target || undefined}>
           {mode === "units"

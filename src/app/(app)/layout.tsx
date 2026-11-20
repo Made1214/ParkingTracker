@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Prepara la navegación de la cuenta y el contenido privado de cada página.
 export default async function AppLayout({
   children,
 }: {
@@ -24,6 +25,7 @@ export default async function AppLayout({
           <AppSidebar
             groups={shell.groups}
             displayName={shell.displayName}
+            avatarSrc={shell.avatarSrc}
             logout={logout}
           />
         </Suspense>

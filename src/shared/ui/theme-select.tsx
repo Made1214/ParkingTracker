@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useId, useSyncExternalStore } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import styles from "./theme-select.module.css";
@@ -12,7 +12,9 @@ const choices = [
   { value: "dark", label: "Oscuro", Icon: Moon },
 ] as const;
 
+// Mantiene los radios independientes cuando hay dos selectores en pantalla.
 export function ThemeSelect() {
+  const name = useId();
   const mounted = useSyncExternalStore(
     subscribe,
     () => true,
@@ -27,7 +29,7 @@ export function ThemeSelect() {
         <label key={value} className={styles.option} title={label}>
           <input
             type="radio"
-            name="appearance-theme"
+            name={name}
             value={value}
             checked={(mounted ? (theme ?? "system") : "system") === value}
             onChange={() => setTheme(value)}

@@ -2,6 +2,7 @@ import "server-only";
 import { requireUser } from "@/features/auth";
 import { annotateTimeline } from "./timeline";
 
+// Carga el cronograma y calcula qué actividad está en curso.
 export async function getSchedule(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(
     `/groups/${groupId}/events/${eventId}`,
@@ -39,7 +40,10 @@ export async function getSchedule(groupId: string, eventId: string) {
   const scheduled = new Set(items.data.map((item) => item.proposal_id));
   return {
     // Hora del servidor: misma marca en servidor y cliente al hidratar.
-    items: annotateTimeline(items.data, Date.now()),
+    items: annotateTimeline(
+      items.data,
+      event.data.status === "published" ? Date.now() : Number.NaN,
+    ),
     event: event.data,
     // Mismas reglas que private.can_manage_schedule en la base de datos.
     canEdit:

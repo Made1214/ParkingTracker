@@ -315,7 +315,15 @@ export function computeReceipt(input: ReceiptInput): ReceiptResult {
 
     const baseKey = tax.base === "all_items" ? "*" : tax.id;
     const base = itemsByTax.get(baseKey);
-    const pids = ids().filter((pid) => (base?.get(pid) ?? 0) > 0);
+    // Aplica a cada base la parte del descuento global que corresponde a ella.
+    const bases = ids().map((pid) => {
+      const taxable = Math.max(0, base?.get(pid) ?? 0);
+      if (taxable === 0) return { pid, weight: 0, discount: 0 };
+      const person = people.get(pid)!;
+      const other = Math.max(0, person.itemsCents - taxable);
+      const [discount] = allocate(person.discountsCents, [taxable, other]);
+      return { pid, weight: Math.max(0, taxable + discount), discount };
+    });
     const baseItems = input.items.filter((item) =>
       tax.base === "all_items" ? true : item.taxId === tax.id,
     );
@@ -327,9 +335,20 @@ export function computeReceipt(input: ReceiptInput): ReceiptResult {
       );
       continue;
     }
+    // Un impuesto positivo requiere una base neta válida para repartirlo.
+    const baseNet =
+      sum(baseItems.map((i) => itemNetCents(i) ?? 0)) +
+      sum(bases.map(({ discount }) => discount));
+    if (tax.amountCents !== 0 && baseNet <= 0) {
+      error(
+        "tax_without_base",
+        `«${tax.label}» necesita una base gravable mayor que cero.`,
+        tax.id,
+      );
+      continue;
+    }
     if (tax.rateBp) {
-      const baseNet = sum(baseItems.map((i) => itemNetCents(i) ?? 0));
-      const expected = applyRate(baseNet, tax.rateBp);
+      const expected = applyRate(baseNet, tax.rateBp, tax.included);
       // Tolerancia: un centavo por línea (redondeo por línea en el comercio).
       if (Math.abs(expected - tax.amountCents) > Math.max(1, baseItems.length))
         warn(
@@ -339,12 +358,13 @@ export function computeReceipt(input: ReceiptInput): ReceiptResult {
         );
     }
     if (tax.amountCents === 0) continue;
-    if (pids.length === 0) continue; // base sin asignar: ya hay error de artículo
+    const shares = bases.filter(({ weight }) => weight > 0);
+    if (shares.length === 0) continue; // base sin asignar: ya hay error de artículo
     const parts = allocate(
       tax.amountCents,
-      pids.map((pid) => base!.get(pid)!),
+      shares.map(({ weight }) => weight),
     );
-    pids.forEach((pid, i) => {
+    shares.forEach(({ pid }, i) => {
       const person = people.get(pid)!;
       person.taxes.push({ taxId: tax.id, cents: parts[i] });
       if (tax.included) person.includedTaxCents += parts[i];
@@ -507,7 +527,9 @@ export function computeReceipt(input: ReceiptInput): ReceiptResult {
             participantId,
             weight: Math.max(
               0,
-              itemShare(participantId) + (withTax ? p.taxCents : 0),
+              itemShare(participantId) +
+                (charge.kind === "discount" ? 0 : p.discountsCents) +
+                (withTax ? p.taxCents : 0),
             ),
           };
         })

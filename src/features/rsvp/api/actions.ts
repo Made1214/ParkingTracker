@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/features/auth";
 import { text, databaseError, type ActionState } from "@/shared/lib/forms";
+// Guarda la respuesta y distingue un plazo cerrado de un acceso denegado.
 export async function respond(
   _: ActionState,
   form: FormData,
@@ -28,6 +29,20 @@ export async function respond(
     },
     { onConflict: "event_id,user_id" },
   );
+  if (error?.code === "42501") {
+    const { data: event } = await supabase
+      .from("events")
+      .select("starts_at, status")
+      .eq("id", parsed.data.event_id)
+      .eq("group_id", parsed.data.group_id)
+      .maybeSingle();
+    if (
+      event &&
+      (event.status !== "published" ||
+        Date.parse(event.starts_at) <= Date.now())
+    )
+      return { error: "El plazo para responder ya cerró." };
+  }
   if (error) return { error: databaseError(error.code) };
   revalidatePath(
     `/groups/${parsed.data.group_id}/events/${parsed.data.event_id}`,

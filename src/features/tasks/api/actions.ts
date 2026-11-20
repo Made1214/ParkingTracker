@@ -90,6 +90,7 @@ export async function createTask(
   return { success: "Tarea creada." };
 }
 
+// Guarda los cambios enviados de estado, responsable, título y fecha.
 export async function updateTask(
   _: ActionState,
   form: FormData,
@@ -109,11 +110,18 @@ export async function updateTask(
   const payload: {
     status: "pending" | "in_progress" | "done";
     assignee_id: string | null;
+    title?: string;
     due_at?: string | null;
   } = {
     status: nextStatus.data,
     assignee_id: assignee || null,
   };
+  if (form.has("title")) {
+    const title = z.string().min(1).max(120).safeParse(text(form, "title"));
+    if (!title.success)
+      return { error: "Escribe un título de hasta 120 caracteres." };
+    payload.title = title.data;
+  }
 
   if (form.has("due_at")) {
     const rawDueAt = text(form, "due_at");
@@ -150,4 +158,41 @@ export async function updateTask(
     };
   revalidatePath(`/groups/${ctx.group_id}/events/${ctx.event_id}`);
   return { success: "Tarea actualizada." };
+}
+
+// Reclama una tarea libre o elimina una tarea que el usuario administra.
+export async function manageTask(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await context(form);
+  const id = z.guid().safeParse(text(form, "task_id"));
+  if (!ctx || !id.success) return { error: "La tarea ya no se puede cambiar." };
+  const operation = text(form, "operation");
+  if (operation === "claim") {
+    const { data, error } = await ctx.supabase.rpc("claim_task", {
+      p_group_id: ctx.group_id,
+      p_event_id: ctx.event_id,
+      p_task_id: id.data,
+    });
+    if (error) return { error: databaseError(error.code) };
+    if (!data) return { error: "La tarea ya no está libre." };
+  } else if (operation === "delete") {
+    const { data, error } = await ctx.supabase
+      .from("tasks")
+      .delete()
+      .eq("group_id", ctx.group_id)
+      .eq("event_id", ctx.event_id)
+      .eq("id", id.data)
+      .select("id")
+      .maybeSingle();
+    if (error || !data)
+      return { error: "No tienes permiso para eliminar esta tarea." };
+  } else {
+    return { error: "La acción no es válida." };
+  }
+  revalidatePath(`/groups/${ctx.group_id}/events/${ctx.event_id}`);
+  return {
+    success: operation === "claim" ? "Tarea asignada." : "Tarea eliminada.",
+  };
 }

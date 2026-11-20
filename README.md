@@ -64,7 +64,7 @@ letters and digits**. The rule lives in
 `src/features/auth/api/password-policy.ts` and must match Supabase Auth:
 
 - Local stack and CI: `supabase/config.toml` (`minimum_password_length = 10`,
-  `password_requirements = "letters_digits"`).
+  `password_requirements = "letters_digits"`). The profile flow checks the current password before updating it, and the local stack enables `secure_password_change`.
 - Staging and Production: Authentication → Sign In / Providers → Email, same
   two values. Leaked password protection needs the Pro plan.
 
@@ -111,27 +111,18 @@ Supabase client (`@supabase/supabase-js` + `@supabase/ssr`), always
 user-scoped (anon key + session JWT) — `service_role` is never used by
 the app.
 
-- **Schema**: 15 domain tables (Doc 04) + `group_storage_usage`, 6 native
+- **Schema**: 19 public tables, including `group_storage_usage`, receipts and guest shares, 6 native
   enums, `SECURITY DEFINER` helper functions (`is_group_member`,
   `is_group_admin`), composite foreign keys that prove tenant coherence
-  (not just row existence — see `supabase/migrations/`), and two RPCs
+  (not just row existence — see `supabase/migrations/`), and the group membership RPCs
   (`create_group`, `join_group_by_invite`) that are the only doors into
   group membership.
 - **Migrations**: versioned, numbered files in
   [supabase/migrations/](supabase/migrations/), one schema change per
   file, applied in order and never edited once applied.
 - **Environments**:
-  - **Parking Tracker Prod** — canonical schema. Fully migrated
-    (24 migrations applied), RLS forced on every table,
-    `security_invoker` views, 0 security advisor findings.
-  - **Parking Tracker Staging** — mirrors Prod's schema (applied
-    Cloudinary-shaped from the start, so `020_storage_policies.sql`,
-    `022_photos_cloudinary.sql` and `023_drop_supabase_storage_policies.sql`
-    were skipped here — they only exist in Prod's history to correct an
-    earlier decision). RLS forced on every table, 0 security advisor
-    findings. Development, testing, and seed data happen here — `supabase/seed.sql`
-    is loaded and verified against it (6 users, 1 group, 4 events across
-    every status, fully populated finished event).
+  - **Parking Tracker Prod** — inactive on 20 Nov 2026. Verify its migration history after resuming it and before promotion.
+  - **Parking Tracker Staging** — active, with migrations through `20261117003047_receipts_and_guests` on 20 Nov 2026. Its migration history already includes `020`, `022` and `023`. New audit migrations still need staging validation.
   - **Local (Docker)** — `supabase start` runs every migration in
     `supabase/migrations/` + seed from a clean database; used to run the pgTAP suite below with
     correctly scoped roles (the Supabase-hosted MCP connection used for
@@ -163,7 +154,7 @@ contracts) is documented inline in the migration files themselves.
 
 ## RLS test suite
 
-[supabase/tests/](supabase/tests/) is a pgTAP suite (32 files, also run in
+[supabase/tests/](supabase/tests/) is a pgTAP suite (34 files, also run in
 CI on every pull request) proving the isolation model actually holds — not just that
 policies exist, but that a non-member gets zero rows, that the
 composite-FK tenant-integrity mechanism rejects a cross-group write RLS
@@ -229,6 +220,6 @@ and [openspec/changes/define-stack/design.md](openspec/changes/define-stack/desi
 
 Supabase's free tier pauses projects after 7 days of inactivity ([design.md §9](openspec/changes/define-stack/design.md)). To prevent idle auto-pause:
 
-- [`src/app/api/health/route.ts`](src/app/api/health/route.ts) performs a lightweight, data-free round-trip to Supabase using the standard anon client (`Cache-Control: no-store`, `dynamic = "force-dynamic"`) and returns `{ status: "ok", db: "ok", time }` (`200`) or `{ status: "error", db: "error", time }` (`503`).
+- [`src/app/api/health/route.ts`](src/app/api/health/route.ts) calls `database_healthcheck()` through PostgREST. The invoker function executes a constant query in Postgres without reading tables (`Cache-Control: no-store`, `dynamic = "force-dynamic"`) and returns `{ status: "ok", db: "ok", time }` (`200`) or `{ status: "error", db: "error", time }` (`503`).
 - [`vercel.json`](vercel.json) schedules a daily Vercel Cron (`0 8 * * *`) against `/api/health`.
 - **Optional auth**: if `HEALTH_CHECK_SECRET` or `CRON_SECRET` is set in the environment, `GET /api/health` requires `Authorization: Bearer <secret>` (Vercel Cron automatically sends `CRON_SECRET` as a Bearer token when configured in Vercel). Leave both unset to keep the endpoint publicly reachable.

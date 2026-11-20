@@ -8,7 +8,7 @@ import { Disclosure } from "@/shared/ui/disclosure";
 import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { ActionForm } from "@/shared/ui/action-form";
-import { panamaInput, panamaTime } from "@/shared/lib/utils";
+import { panamaInput, panamaTime, shortDate } from "@/shared/lib/utils";
 import {
   createScheduleItem,
   deleteScheduleItem,
@@ -81,6 +81,7 @@ function ItemFields({
   );
 }
 
+// Añade la fecha a cada actividad cuando el plan abarca más de un día.
 export async function SchedulePanel({
   groupId,
   eventId,
@@ -94,6 +95,7 @@ export async function SchedulePanel({
   );
   const min = panamaInput(event.starts_at);
   const max = panamaInput(event.ends_at);
+  const multiDay = min.slice(0, 10) !== max.slice(0, 10);
   const hidden = (
     <>
       <input type="hidden" name="group_id" value={groupId} />
@@ -121,9 +123,18 @@ export async function SchedulePanel({
               aria-current={item.current ? "time" : undefined}
             >
               <span className={styles.time}>
+                {multiDay && (
+                  <span className={styles.until}>
+                    {shortDate(item.starts_at)}
+                  </span>
+                )}
                 {panamaTime(item.starts_at)}
                 {item.ends_at && (
                   <span className={styles.until}>
+                    {panamaInput(item.starts_at).slice(0, 10) !==
+                    panamaInput(item.ends_at).slice(0, 10)
+                      ? `${shortDate(item.ends_at)} · `
+                      : ""}
                     {panamaTime(item.ends_at)}
                   </span>
                 )}

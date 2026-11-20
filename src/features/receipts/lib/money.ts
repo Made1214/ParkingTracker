@@ -165,10 +165,15 @@ export function formatBalboas(cents: Cents) {
   return `${sign}B/.${whole}.${String(abs % 100).padStart(2, "0")}`;
 }
 
-/** Tasa en puntos básicos (700 = 7 %) aplicada a una base, redondeo half-up. */
-export function applyRate(base: Cents, rateBp: number): Cents {
+/** Aplica la tasa a una base neta o extrae el impuesto de un importe bruto. */
+export function applyRate(
+  base: Cents,
+  rateBp: number,
+  included = false,
+): Cents {
   assertCents(base, "base");
   const numerator = BigInt(Math.abs(base)) * BigInt(rateBp);
-  const value = Number((numerator + BigInt(5_000)) / BigInt(10_000));
+  const denominator = BigInt(10_000 + (included ? rateBp : 0));
+  const value = Number((numerator + denominator / BigInt(2)) / denominator);
   return base < 0 ? -value : value;
 }

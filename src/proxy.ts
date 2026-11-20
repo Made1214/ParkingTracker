@@ -9,6 +9,10 @@ import {
 import { clientIp } from "@/shared/lib/client-ip";
 import { RATE_LIMIT, hitRateLimit, isMutation } from "@/shared/lib/rate-limit";
 import { safeNext } from "@/shared/lib/utils";
+import {
+  contentSecurityPolicy,
+  securityReportingEndpoint,
+} from "@/shared/lib/content-security-policy";
 
 // Pantallas que no tienen sentido con sesión iniciada.
 const AUTH_PAGES = ["/login", "/register"];
@@ -21,13 +25,25 @@ function under(pathname: string, prefixes: string[]) {
   );
 }
 
+// Refresca sesión, limita peticiones y prepara el nonce de la página.
 export async function proxy(request: NextRequest) {
   // Correlaciona la respuesta, los logs y Sentry (docs/05-API §5).
   const requestId = newRequestId();
+  const { pathname, search, searchParams, origin } = request.nextUrl;
+  const navigation = request.method === "GET" || request.method === "HEAD";
+  const nonce =
+    process.env.CSP_MODE === "enforce" && !pathname.startsWith("/api/")
+      ? Buffer.from(crypto.randomUUID()).toString("base64")
+      : undefined;
+  const policy = nonce ? contentSecurityPolicy(nonce) : undefined;
   // Se rehace tras cada cambio de cookies para reenviar también el id.
   const forward = () => {
     const headers = new Headers(request.headers);
     headers.set(REQUEST_ID_HEADER, requestId);
+    if (nonce && policy) {
+      headers.set("x-nonce", nonce);
+      headers.set("Content-Security-Policy", policy);
+    }
     return NextResponse.next({ request: { headers } });
   };
   let response = forward();
@@ -49,8 +65,6 @@ export async function proxy(request: NextRequest) {
   });
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
-  const { pathname, search, searchParams } = request.nextUrl;
-  const navigation = request.method === "GET" || request.method === "HEAD";
 
   // Redirección que conserva las cookies de sesión recién refrescadas.
   const redirectTo = (path: string) => {
@@ -85,6 +99,21 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  if (navigation && signedIn && under(pathname, ["/join"])) {
+    const limit = await hitRateLimit(`user:${data?.claims?.sub}`, {
+      scope: "invite-preview",
+      limit: 30,
+    });
+    if (!limit.allowed)
+      return apiError("RATE_LIMITED", {
+        requestId,
+        headers: {
+          "Retry-After": String(limit.retryAfter),
+          "Cache-Control": "private, no-store",
+        },
+      });
+  }
+
   if (isMutation(request.method)) {
     // Por usuario; sin sesión (login, registro), por IP.
     const userId = data?.claims?.sub;
@@ -109,10 +138,17 @@ export async function proxy(request: NextRequest) {
 
   response.headers.set("Cache-Control", "private, no-store");
   response.headers.set("X-Request-Id", requestId);
+  if (policy) {
+    response.headers.set("Content-Security-Policy", policy);
+    response.headers.set(
+      "Reporting-Endpoints",
+      securityReportingEndpoint(origin),
+    );
+  }
   return response;
 }
 export const config = {
   matcher: [
-    "/((?!api/health|_next/static|_next/image|favicon.ico|icon.svg|sw.js|offline.html|manifest.webmanifest|icons/|robots.txt|sitemap.xml|opengraph-image).*)",
+    "/((?!api/health|api/csp-report|_next/static|_next/image|favicon.ico|icon.svg|sw.js|offline.html|manifest.webmanifest|icons/|illustrations/|brand/|apple-icon.png|robots.txt|sitemap.xml|opengraph-image).*)",
   ],
 };

@@ -59,6 +59,7 @@ export async function login(
   }
   redirect(safeNext(form.get("next")));
 }
+// Valida y limita las solicitudes de registro antes de crear una cuenta.
 export async function register(
   _: ActionState,
   form: FormData,
@@ -73,6 +74,15 @@ export async function register(
   if (!parsed.success) return { error: "Revisa tu nombre y tu correo." };
   const problem = passwordProblem(parsed.data.password);
   if (problem) return { error: problem };
+  const limit = await hitRateLimit(clientIp(await headers()), {
+    scope: "signup",
+    limit: 10,
+  });
+  if (!limit.allowed)
+    return {
+      error:
+        "Demasiados registros desde esta conexión. Inténtalo en un minuto.",
+    };
   const supabase = await serverClient();
   const next = safeNext(form.get("next"));
   const { data, error } = await supabase.auth.signUp({

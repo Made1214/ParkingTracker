@@ -4,29 +4,26 @@ import { Card } from "@/shared/ui/card";
 import { ActionForm } from "@/shared/ui/action-form";
 import { initials, timeAgo } from "@/shared/lib/utils";
 import { createComment, deleteComment, updateComment } from "../api/actions";
-import { COMMENT_PAGE_SIZE, getComments } from "../api/queries";
+import { getComments } from "../api/queries";
 import { CommentsRealtime } from "./comments-realtime";
 import styles from "./comments.module.css";
 
 type Thread = Awaited<ReturnType<typeof getComments>>["threads"][number];
 type Item = Omit<Thread, "replies"> & { replies?: Thread["replies"] };
 
+// Renderiza los comentarios y sus respuestas dentro de la salida.
 export async function CommentsPanel({
   groupId,
   eventId,
-  limit,
+  cursor,
 }: {
   groupId: string;
   eventId: string;
-  /** Hilos a mostrar (`?comentarios=`); por defecto, una página. */
-  limit?: number;
+  cursor?: string;
 }) {
-  const { threads, total, now, canComment, hasMore } = await getComments(
-    groupId,
-    eventId,
-    limit,
-  );
-  const shown = threads.reduce((n, thread) => n + 1 + thread.replies.length, 0);
+  const { threads, total, now, canComment, pastPage, nextCursor } =
+    await getComments(groupId, eventId, cursor);
+  const commentsUrl = `/groups/${groupId}/events/${eventId}?section=comentarios`;
   const hidden = (
     <>
       <input type="hidden" name="group_id" value={groupId} />
@@ -57,7 +54,7 @@ export async function CommentsPanel({
         <p className={styles.body}>{item.body}</p>
         <div className={styles.actions}>
           {canComment && !isReply && (
-            <details key={`reply-${item.replies?.length ?? 0}`}>
+            <details>
               <summary>Responder</summary>
               <ActionForm
                 action={createComment}
@@ -79,7 +76,7 @@ export async function CommentsPanel({
             </details>
           )}
           {item.canEdit && (
-            <details key={`edit-${item.body}`}>
+            <details>
               <summary>Editar</summary>
               <ActionForm
                 action={updateComment}
@@ -141,15 +138,14 @@ export async function CommentsPanel({
         <h2 id="comments-title">Comentarios</h2>
         <span className="count">{total}</span>
       </div>
-      {hasMore && (
+      {nextCursor && (
         <Link
           className={styles.more}
-          href={`/groups/${groupId}/events/${eventId}?section=plan&comentarios=${(limit ?? COMMENT_PAGE_SIZE) + COMMENT_PAGE_SIZE}#comments-title`}
+          href={`${commentsUrl}&comentarios=${nextCursor}#comments-title`}
           scroll={false}
           prefetch={false}
         >
           Ver comentarios anteriores
-          <span className="small muted"> ({total - shown} más)</span>
         </Link>
       )}
       {threads.length ? (
@@ -171,23 +167,29 @@ export async function CommentsPanel({
           </p>
         </div>
       )}
-      {canComment && (
-        <ActionForm
-          action={createComment}
-          label="Enviar"
-          className={styles.composer}
-        >
-          {hidden}
-          <textarea
-            className="input"
-            name="body"
-            required
-            maxLength={2000}
-            rows={2}
-            aria-label="Escribe un comentario"
-            placeholder="Escribe al grupo…"
-          />
-        </ActionForm>
+      {pastPage ? (
+        <Link className={styles.more} href={`${commentsUrl}#comments-title`}>
+          Volver a los comentarios recientes
+        </Link>
+      ) : (
+        canComment && (
+          <ActionForm
+            action={createComment}
+            label="Enviar"
+            className={styles.composer}
+          >
+            {hidden}
+            <textarea
+              className="input"
+              name="body"
+              required
+              maxLength={2000}
+              rows={2}
+              aria-label="Escribe un comentario"
+              placeholder="Escribe al grupo…"
+            />
+          </ActionForm>
+        )
       )}
     </Card>
   );

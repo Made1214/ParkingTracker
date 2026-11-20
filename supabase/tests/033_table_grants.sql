@@ -1,21 +1,10 @@
 begin;
-select plan(9);
+select plan(10);
 
--- anon no tiene nada en el esquema public: ni el esquema, ni tablas, vistas,
--- secuencias o funciones.
--- Se mira el permiso directo de anon, no `has_schema_privilege`: Postgres 15+
--- da USAGE sobre `public` a PUBLIC y anon lo heredaría aunque la migración se lo
--- haya quitado (en Staging ese permiso de PUBLIC ya no existe, en el stack local
--- sí). Sin permisos de tabla, ese USAGE heredado no da acceso a nada.
+-- La sonda anónima solo tiene acceso a una función que devuelve una constante.
 select ok(
-  not exists (
-    select 1
-    from pg_namespace n, aclexplode(n.nspacl) a
-    where n.nspname = 'public'
-      and a.grantee = (select oid from pg_roles where rolname = 'anon')
-      and a.privilege_type = 'USAGE'
-  ),
-  'anon has no direct USAGE grant on schema public'
+  has_schema_privilege('anon', 'public', 'USAGE'),
+  'anon can resolve the health probe in schema public'
 );
 select is(
   (select count(*) from pg_class c
@@ -28,10 +17,14 @@ select is(
 select is(
   (select count(*) from pg_proc p
     where p.pronamespace = 'public'::regnamespace
+      and p.oid <> 'public.database_healthcheck()'::regprocedure
       and has_function_privilege('anon', p.oid, 'EXECUTE')),
   0::bigint,
-  'anon cannot execute any function in public'
+  'anon cannot execute other functions in public'
 );
+set local role anon;
+select ok(public.database_healthcheck(), 'anon can execute the database health probe');
+reset role;
 
 -- authenticated no puede saltarse RLS: TRUNCATE no pasa por ella.
 select is(

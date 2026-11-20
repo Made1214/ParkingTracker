@@ -131,6 +131,7 @@ describe("settleDebt", () => {
       event_id: ids.event,
       debtor,
       creditor: ids.luis,
+      cents: "1234",
     });
 
   it("salda la deuda de la salida", async () => {
@@ -142,6 +143,7 @@ describe("settleDebt", () => {
       p_event_id: ids.event,
       p_debtor: ids.ana,
       p_creditor: ids.luis,
+      p_amount: 12.34,
     });
   });
 

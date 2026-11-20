@@ -2,15 +2,15 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/features/auth";
-export async function listEvents(groupId: string) {
+// Devuelve los conteos completos del grupo sin descargar sus salidas.
+export async function getEventCounts(groupId: string) {
   const { supabase } = await requireUser(`/groups/${groupId}`);
+  if (!z.guid().safeParse(groupId).success) notFound();
   const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("group_id", groupId)
-    .order("starts_at");
+    .rpc("get_group_event_counts", { p_group_id: groupId })
+    .single();
   if (error) throw new Error("No se pudieron cargar los eventos.");
-  return data.map(withEffectiveStatus);
+  return data;
 }
 export const EVENT_PAGE_SIZE = 20;
 export type EventTab = "proximas" | "pasadas";
@@ -39,6 +39,7 @@ export async function listEventPage(
   cursor?: string,
 ) {
   const { supabase } = await requireUser(`/groups/${groupId}`);
+  if (!z.guid().safeParse(groupId).success) notFound();
   const now = new Date().toISOString();
   let after: { id: string; starts_at: string } | null = null;
   if (cursor && z.guid().safeParse(cursor).success) {
@@ -80,6 +81,7 @@ export async function listEventPage(
   };
 }
 
+// Carga la salida, su grupo y los permisos de la persona que la consulta.
 export async function getEvent(groupId: string, eventId: string) {
   const { supabase, user } = await requireUser(
     `/groups/${groupId}/events/${eventId}`,
@@ -97,12 +99,16 @@ export async function getEvent(groupId: string, eventId: string) {
     .maybeSingle();
   if (error) throw new Error("No se pudo cargar el evento.");
   if (!data) notFound();
-  const { data: membership, error: membershipError } = await supabase
-    .from("group_members")
-    .select("role")
-    .eq("group_id", groupId)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data: membership, error: membershipError }, { data: group }] =
+    await Promise.all([
+      supabase
+        .from("group_members")
+        .select("role")
+        .eq("group_id", groupId)
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase.from("groups").select("name").eq("id", groupId).maybeSingle(),
+    ]);
   if (membershipError)
     throw new Error("No se pudieron comprobar los permisos del evento.");
   const organizer =
@@ -119,6 +125,7 @@ export async function getEvent(groupId: string, eventId: string) {
         : null;
   return {
     event: withEffectiveStatus(data),
+    groupName: group?.name ?? "Grupo",
     organizer,
     user,
     canManage:

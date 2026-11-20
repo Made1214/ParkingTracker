@@ -81,7 +81,7 @@ src/
 │ ├── validations/ # Esquemas Zod compartidos
 │ └── utils/ # fechas, moneda, balances
 ├── hooks/ # useEvento, useBalance, useRealtime...
-└── types/ # database.types.ts (generado) + dominio
+└── types/ # src/shared/supabase/types.generated.ts + dominio
 ## 3.2 Patrones y convenciones
 *   **Server Components por defecto:** las páginas leen datos en el servidor (SEO, menos JS). Componentes interactivos marcados con "use client".
 *   **Mutaciones con Server Actions** validadas con Zod + revalidación de caché (revalidatePath). Las lecturas reactivas (votos, comentarios) usan TanStack Query + Realtime.

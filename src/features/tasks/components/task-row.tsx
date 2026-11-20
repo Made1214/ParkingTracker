@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
+import { ActionForm } from "@/shared/ui/action-form";
 import { Input } from "@/shared/ui/input";
 import type { ActionState } from "@/shared/lib/forms";
 import { panamaInput, panamaTime, shortDate } from "@/shared/lib/utils";
@@ -31,9 +32,11 @@ import {
   type TaskStatus,
 } from "./task-types";
 import styles from "./tasks.module.css";
+import { manageTask } from "../api/actions";
 
 const statusIcons = { pending: Circle, in_progress: CircleDot, done: Check };
 
+// Presenta una tarea y las acciones que la persona puede realizar sobre ella.
 export function TaskRow({
   task,
   members,
@@ -57,6 +60,7 @@ export function TaskRow({
 }) {
   const id = useId();
   const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(task.title);
   const [status, setStatus] = useState(task.status);
   const [assigneeId, setAssigneeId] = useState(task.assigneeId ?? "");
   const [dueAtInput, setDueAtInput] = useState(
@@ -73,7 +77,10 @@ export function TaskRow({
       if (result.success) {
         restoreFocus.current = editing ? "edit" : "complete";
         setEditing(false);
-        onSaved(data.get("status") as TaskStatus, task.title);
+        onSaved(
+          data.get("status") as TaskStatus,
+          String(data.get("title") ?? task.title),
+        );
       }
       return result;
     },
@@ -87,6 +94,7 @@ export function TaskRow({
     assignee?.name ??
     (task.assigneeId ? "Miembro no disponible" : "Sin asignar");
   const changed =
+    title.trim() !== task.title ||
     status !== task.status ||
     assigneeId !== (task.assigneeId ?? "") ||
     (task.canEditDueAt &&
@@ -207,6 +215,7 @@ export function TaskRow({
             onClick={() => {
               if (editing) closeEditor();
               else {
+                setTitle(task.title);
                 setStatus(task.status);
                 setAssigneeId(task.assigneeId ?? "");
                 setDueAtInput(task.dueAt ? panamaInput(task.dueAt) : "");
@@ -222,6 +231,22 @@ export function TaskRow({
           </button>
         )}
       </div>
+      {!readOnly && !task.assigneeId && task.status !== "done" && (
+        <ActionForm action={manageTask} label="Asignarme" tone="outline">
+          <input type="hidden" name="group_id" value={groupId} />
+          <input type="hidden" name="event_id" value={eventId} />
+          <input type="hidden" name="task_id" value={task.id} />
+          <input type="hidden" name="operation" value="claim" />
+        </ActionForm>
+      )}
+      {editing && canEdit && task.canEditDueAt && (
+        <ActionForm action={manageTask} label="Eliminar tarea" tone="danger">
+          <input type="hidden" name="group_id" value={groupId} />
+          <input type="hidden" name="event_id" value={eventId} />
+          <input type="hidden" name="task_id" value={task.id} />
+          <input type="hidden" name="operation" value="delete" />
+        </ActionForm>
+      )}
       {editing && canEdit && (
         <form
           id={`${id}-editor`}
@@ -243,6 +268,18 @@ export function TaskRow({
           <input type="hidden" name="task_id" value={task.id} />
           <fieldset disabled={pending} className={styles.editFields}>
             <legend className="sr-only">Estado y responsable</legend>
+            {task.canEditDueAt && (
+              <label>
+                Título
+                <Input
+                  name="title"
+                  required
+                  maxLength={120}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                />
+              </label>
+            )}
             <fieldset className={styles.statusField}>
               <legend>Estado</legend>
               <div className={styles.statusOptions}>

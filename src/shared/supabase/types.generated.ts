@@ -1077,6 +1077,56 @@ export type Database = {
       }
     }
     Functions: {
+      claim_task: {
+        Args: { p_group_id: string; p_event_id: string; p_task_id: string }
+        Returns: boolean
+      }
+      delete_event_draft: {
+        Args: { p_group_id: string; p_event_id: string }
+        Returns: string[]
+      }
+      update_manual_expense: {
+        Args: {
+          p_expense_id: string
+          p_event_id: string
+          p_description: string
+          p_amount: number
+          p_paid_by: string
+          p_category: string
+          p_shares: Json
+        }
+        Returns: undefined
+      }
+      get_event_poll_results: {
+        Args: { p_event_id: string }
+        Returns: { poll_id: string; option_id: string; label: string; votes: number; is_winner: boolean }[]
+      }
+      get_dashboard_balance: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_dashboard_debts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amount: number
+          creditors: string[]
+          event_id: string
+          group_id: string
+          title: string
+        }[]
+      }
+      get_group_event_counts: {
+        Args: { p_group_id: string }
+        Returns: { finished: number; upcoming: number; drafts: number; cancelled: number }[]
+      }
+      get_group_stats: {
+        Args: { p_group_id: string }
+        Returns: Json
+      }
+      database_healthcheck: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       cast_vote: {
         Args: { p_option_ids: string[]; p_poll_id: string }
         Returns: undefined
@@ -1231,7 +1281,7 @@ export type Database = {
         Returns: undefined
       }
       settle_event_debt: {
-        Args: { p_creditor: string; p_debtor: string; p_event_id: string }
+        Args: { p_amount?: number; p_creditor: string; p_debtor: string; p_event_id: string }
         Returns: number
       }
       suggest_settlements: {

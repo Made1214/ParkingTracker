@@ -24,9 +24,11 @@ const WEBP_HEADER = new Uint8Array([
 const group = "10000000-0000-4000-8000-000000000001";
 const eventId = "20000000-0000-4000-8000-000000000001";
 
+// Prepara la salida, la cuota y el resultado de guardar la foto.
 function setup(
   status: "draft" | "published" | "cancelled" | "finished" = "published",
   insertError: { code?: string } | null = null,
+  remainingBytes = 104857600,
 ) {
   const event = {
     select: vi.fn().mockReturnThis(),
@@ -39,10 +41,21 @@ function setup(
   const photos = {
     insert: vi.fn().mockResolvedValue({ error: insertError }),
   };
+  const quota = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({
+      data: { bytes_used: 0, bytes_quota: remainingBytes },
+      error: null,
+    }),
+  };
   mocks.session.mockResolvedValue({
     user: { id: "00000000-0000-4000-8000-000000000002" },
     supabase: {
-      from: (table: string) => (table === "events" ? event : photos),
+      from: (table: string) => {
+        if (table === "events") return event;
+        return table === "group_storage_usage" ? quota : photos;
+      },
     },
   });
   const form = new FormData();
@@ -117,5 +130,11 @@ describe("uploadPhoto server action", () => {
     const { form } = setup("published", { code: "53100" });
     expect((await uploadPhoto({}, form)).error).toContain("límite");
     expect(mocks.remove).toHaveBeenCalledOnce();
+  });
+
+  it("rejects an upload that exceeds the available quota before contacting Cloudinary", async () => {
+    const { form } = setup("published", null, 5);
+    expect((await uploadPhoto({}, form)).error).toContain("límite");
+    expect(mocks.upload).not.toHaveBeenCalled();
   });
 });

@@ -1,18 +1,33 @@
 import "server-only";
 import { requireUser } from "@/features/auth";
+import {
+  createdAtCursor,
+  olderThanCursor,
+} from "@/shared/lib/created-at-cursor";
 
-/** Fotos de una salida (más recientes primero) y cuota del grupo. */
-export async function getPhotos(groupId: string, eventId: string) {
+const PAGE_SIZE = 24;
+
+/** Obtiene una página de fotos de la salida y la cuota del grupo. */
+export async function getPhotos(
+  groupId: string,
+  eventId: string,
+  cursor?: string,
+) {
   const { supabase, user } = await requireUser(
     `/groups/${groupId}/events/${eventId}`,
   );
+  const after = olderThanCursor(cursor);
+  let query = supabase
+    .from("photos")
+    .select("id, uploaded_by, created_at, width, height")
+    .eq("group_id", groupId)
+    .eq("event_id", eventId);
+  if (after) query = query.or(after);
   const [photos, members, usage, event] = await Promise.all([
-    supabase
-      .from("photos")
-      .select("id, uploaded_by, created_at, width, height")
-      .eq("group_id", groupId)
-      .eq("event_id", eventId)
-      .order("created_at", { ascending: false }),
+    query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(PAGE_SIZE + 1),
     supabase
       .from("group_members")
       .select("user_id, role, profiles(display_name)")
@@ -37,12 +52,19 @@ export async function getPhotos(groupId: string, eventId: string) {
   const isAdmin = members.data.some(
     (m) => m.user_id === user.id && m.role === "admin",
   );
+  const canUpload =
+    event.data?.status === "published" || event.data?.status === "finished";
+  const page = photos.data.slice(0, PAGE_SIZE);
   return {
-    canUpload:
-      event.data?.status === "published" || event.data?.status === "finished",
+    canUpload,
+    pastPage: !!after,
+    nextCursor:
+      photos.data.length > PAGE_SIZE
+        ? createdAtCursor(page[PAGE_SIZE - 1])
+        : null,
     usedBytes: usage.data?.bytes_used ?? 0,
     quotaBytes: usage.data?.bytes_quota ?? 104857600,
-    photos: photos.data.map((photo) => ({
+    photos: page.map((photo) => ({
       id: photo.id,
       author:
         photo.uploaded_by === user.id
@@ -53,7 +75,7 @@ export async function getPhotos(groupId: string, eventId: string) {
       createdAt: photo.created_at,
       width: photo.width,
       height: photo.height,
-      canDelete: photo.uploaded_by === user.id || isAdmin,
+      canDelete: canUpload && (photo.uploaded_by === user.id || isAdmin),
     })),
   };
 }

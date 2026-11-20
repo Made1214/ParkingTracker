@@ -7,7 +7,6 @@ import { getGroupStats } from "./queries";
 
 const group = "10000000-0000-4000-8000-000000000001";
 const E1 = "20000000-0000-4000-8000-000000000001";
-const E2 = "20000000-0000-4000-8000-000000000002";
 const E3 = "20000000-0000-4000-8000-000000000003";
 const SELF = "00000000-0000-4000-8000-000000000010";
 const ANA = "00000000-0000-4000-8000-000000000011";
@@ -15,67 +14,43 @@ const LUIS = "00000000-0000-4000-8000-000000000012";
 
 type Result = { data: unknown; error: object | null };
 
-/** Cadena de PostgREST awaitable que resuelve `result`. */
-function table(result: Result) {
-  const query: Record<string, unknown> = {
-    select: vi.fn(() => query),
-    eq: vi.fn(() => query),
-    in: vi.fn(() => query),
-    order: vi.fn(() => query),
-    maybeSingle: vi.fn(() => query),
-    then: (resolve: (value: unknown) => void) => resolve(result),
-  };
-  return query;
-}
-
-function setup(tables: Record<string, Result>) {
-  const from = vi.fn((name: string) =>
-    table(tables[name] ?? { data: null, error: null }),
-  );
+/** Prepara la respuesta agregada de Postgres para un grupo visible. */
+function setup(result: Result = populated()) {
+  const rpc = vi.fn().mockResolvedValue(result);
   mocks.session.mockResolvedValue({
     user: { id: SELF },
-    supabase: { from },
+    supabase: { rpc },
   });
-  return { from };
+  return rpc;
 }
 
 /** Un grupo con dos salidas terminadas, una por venir y tres miembros. */
-function populated(
-  overrides: Record<string, Result> = {},
-): Record<string, Result> {
+function populated(): Result {
   return {
-    groups: { data: { name: "Los de siempre" }, error: null },
-    events: {
-      data: [
+    data: {
+      groupName: "Los de siempre",
+      members: 3,
+      history: [
         {
           id: E3,
           title: "Cine",
           location: "Multiplaza",
-          starts_at: "2026-06-01T15:00:00Z",
-          ends_at: "2026-06-01T23:00:00Z",
-          status: "finished",
+          startsAt: "2026-06-01T15:00:00Z",
+          going: 1,
+          photos: 1,
+          cents: 1000,
         },
         {
           id: E1,
           title: "Asado",
           location: "Playa Santa Clara",
-          starts_at: "2026-05-02T15:00:00Z",
-          ends_at: "2026-05-02T20:00:00Z",
-          status: "finished",
-        },
-        {
-          id: E2,
-          title: "Cumple",
-          location: "Casa",
-          starts_at: "2026-06-20T15:00:00Z",
-          ends_at: "2026-06-20T22:00:00Z",
-          status: "published",
+          startsAt: "2026-05-02T15:00:00Z",
+          going: 2,
+          photos: 3,
+          cents: 8550,
         },
       ],
-      error: null,
-    },
-    member_participation: {
-      data: [
+      ranking: [
         {
           user_id: SELF,
           display_name: "Made",
@@ -95,33 +70,15 @@ function populated(
           events_invited: 3,
         },
       ],
-      error: null,
+      months: { "2026-05": 1, "2026-06": 2 },
+      averageAttendance: 50,
+      totalCents: 9550,
+      averageCents: 4775,
+      photoCount: 4,
+      usedBytes: 52428800,
+      quotaBytes: 104857600,
     },
-    event_expense_summary: {
-      data: [
-        { event_id: E1, total_amount: 85.5 },
-        { event_id: E3, total_amount: 10 },
-      ],
-      error: null,
-    },
-    event_attendance: {
-      data: [{ event_id: E3 }, { event_id: E1 }, { event_id: E1 }],
-      error: null,
-    },
-    photos: {
-      data: [
-        { event_id: E3 },
-        { event_id: E1 },
-        { event_id: E1 },
-        { event_id: E1 },
-      ],
-      error: null,
-    },
-    group_storage_usage: {
-      data: { bytes_used: 52428800, bytes_quota: 104857600 },
-      error: null,
-    },
-    ...overrides,
+    error: null,
   };
 }
 
@@ -137,9 +94,11 @@ describe("group statistics aggregation", () => {
   afterEach(() => vi.useRealTimers());
 
   it("aggregates history, ranking, months and money", async () => {
-    const { from } = setup(populated());
+    const rpc = setup();
     const stats = await getGroupStats(group);
-    expect(from).toHaveBeenCalledTimes(7);
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("get_group_stats", {
+      p_group_id: group,
+    });
     expect(stats.groupName).toBe("Los de siempre");
     expect(stats.members).toBe(3);
     expect(stats.history).toEqual([
@@ -210,13 +169,20 @@ describe("group statistics aggregation", () => {
 
   it("returns empty aggregates for a group without activity", async () => {
     setup({
-      groups: { data: { name: "Nuevo" }, error: null },
-      events: { data: [], error: null },
-      member_participation: { data: [], error: null },
-      event_expense_summary: { data: [], error: null },
-      event_attendance: { data: [], error: null },
-      photos: { data: [], error: null },
-      group_storage_usage: { data: null, error: null },
+      data: {
+        groupName: "Nuevo",
+        members: 0,
+        history: [],
+        ranking: [],
+        months: {},
+        averageAttendance: null,
+        totalCents: 0,
+        averageCents: 0,
+        photoCount: 0,
+        usedBytes: 0,
+        quotaBytes: 104857600,
+      },
+      error: null,
     });
     const stats = await getGroupStats(group);
     expect(stats.history).toEqual([]);
@@ -232,21 +198,21 @@ describe("group statistics aggregation", () => {
   });
 
   it("fails loudly when any aggregate query fails", async () => {
-    setup(populated({ events: { data: null, error: { code: "PGRST" } } }));
+    setup({ data: null, error: { code: "PGRST" } });
     await expect(getGroupStats(group)).rejects.toThrow(
       "No se pudieron cargar las estadísticas.",
     );
   });
 
   it("does not reveal groups hidden by RLS", async () => {
-    setup(populated({ groups: { data: null, error: null } }));
+    setup({ data: null, error: null });
     await expect(getGroupStats(group)).rejects.toThrow("not found");
     expect(mocks.notFound).toHaveBeenCalledOnce();
   });
 
   it("rejects malformed group identifiers before querying", async () => {
-    const { from } = setup(populated());
+    const rpc = setup();
     await expect(getGroupStats("not-a-guid")).rejects.toThrow("not found");
-    expect(from).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
   });
 });

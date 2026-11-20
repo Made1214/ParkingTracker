@@ -299,6 +299,13 @@
   background: var(--surface);
   box-shadow: var(--shadow-md);
 }
+.removeForm[data-editable] {
+  display: grid;
+  gap: var(--space-3);
+  width: min(24rem, calc(100vw - 3rem));
+  max-height: min(65dvh, 32rem);
+  overflow-y: auto;
+}
 .row {
   display: flex;
   flex-wrap: wrap;

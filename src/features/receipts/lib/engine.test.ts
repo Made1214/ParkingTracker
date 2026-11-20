@@ -344,21 +344,62 @@ describe("computeReceipt", () => {
     expect(totals(confirmed)).toEqual({ ana: 1070, carlos: 1070 });
   });
 
+  it("bloquea un impuesto positivo aplicado a artículos sin base neta", () => {
+    const result = computeReceipt(
+      receipt({
+        items: [item("a", 1000, { taxId: "t", discountCents: 1000 })],
+        allocations: [to("a", "ana")],
+        taxes: [tax("t", 70)],
+        printedTotalCents: 70,
+      }),
+    );
+    expect(result.canFinalize).toBe(false);
+    expect(codes(result)).toContain("tax_without_base");
+  });
+
   it("13d. impuesto incluido en precios no se suma al total", () => {
     const r = computeReceipt(
       receipt({
         items: [item("a", 1070, { taxId: "t" })],
         allocations: [to("a", "ana")],
-        taxes: [tax("t", 70, { included: true })],
+        taxes: [tax("t", 70, { included: true, rateBp: 700 })],
         printedTotalCents: 1070,
       }),
     );
     expect(r.canFinalize).toBe(true);
+    expect(codes(r)).not.toContain("tax_rate_mismatch");
     expect(r.people[0]).toMatchObject({
       totalCents: 1070,
       includedTaxCents: 70,
       taxCents: 0,
     });
+  });
+
+  it("reparte el impuesto según el consumo que queda tras el descuento global", () => {
+    const result = computeReceipt(
+      receipt({
+        items: [
+          item("a", 1000, { taxId: "t" }),
+          item("b", 1000, { taxId: "t" }),
+        ],
+        allocations: [to("a", "ana"), to("b", "carlos")],
+        charges: [
+          {
+            id: "promo",
+            kind: "discount",
+            label: "Promoción",
+            status: "paid",
+            amountCents: -500,
+            split: { method: "equal", participantIds: ["ana"] },
+          },
+        ],
+        taxes: [tax("t", 105, { rateBp: 700 })],
+        printedTotalCents: 1605,
+      }),
+    );
+    expect(result.canFinalize).toBe(true);
+    expect(codes(result)).not.toContain("tax_rate_mismatch");
+    expect(totals(result)).toEqual({ ana: 535, carlos: 1070 });
   });
 
   it("14. factura exenta: no se inventan impuestos", () => {

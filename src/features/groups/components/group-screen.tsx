@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { ArrowLeft, Settings2, TrendingUp } from "lucide-react";
+import { Settings2, TrendingUp } from "lucide-react";
 import {
   EventList,
   CreateEventForm,
   listEventPage,
-  listEvents,
+  getEventCounts,
   type EventTab,
 } from "@/features/events";
 import { publicEnv } from "@/shared/lib/env";
 import { initials } from "@/shared/lib/utils";
+import { Breadcrumbs } from "@/shared/ui/breadcrumbs";
 import { Card } from "@/shared/ui/card";
 import { getGroup } from "../api/queries";
 import { InviteCode } from "./invite-code";
@@ -16,6 +17,7 @@ import { GroupImage } from "./group-image";
 import styles from "./group.module.css";
 import { Motion } from "@/shared/ui/motion";
 
+// Presenta las próximas salidas y el historial del grupo.
 export async function GroupScreen({
   groupId,
   tab,
@@ -26,9 +28,13 @@ export async function GroupScreen({
   /** Id de la última salida de la página anterior (`?desde=`). */
   cursor?: string;
 }) {
-  const [{ group, members, user }, events, page] = await Promise.all([
+  const [
+    { group, members, user },
+    { finished, upcoming, drafts, cancelled },
+    page,
+  ] = await Promise.all([
     getGroup(groupId),
-    listEvents(groupId),
+    getEventCounts(groupId),
     listEventPage(groupId, tab, cursor),
   ]);
   const name = (member: (typeof members)[number]) =>
@@ -52,10 +58,6 @@ export async function GroupScreen({
     year: "numeric",
     timeZone: "America/Panama",
   }).format(new Date(group.created_at));
-  const finished = events.filter((e) => e.status === "finished").length;
-  const upcoming = events.filter((e) => e.status === "published").length;
-  const drafts = events.filter((e) => e.status === "draft").length;
-  const cancelled = events.filter((e) => e.status === "cancelled").length;
   const tabs = [
     { value: "proximas", label: "Próximas", count: upcoming + drafts },
     { value: "pasadas", label: "Pasadas", count: finished + cancelled },
@@ -68,9 +70,9 @@ export async function GroupScreen({
   return (
     <>
       <header className={styles.hero}>
-        <Link className={styles.back} href="/groups">
-          <ArrowLeft size={16} aria-hidden="true" /> Inicio
-        </Link>
+        <Breadcrumbs
+          items={[{ label: "Inicio", href: "/groups" }, { label: group.name }]}
+        />
         <div className={styles.heroBody}>
           <span className={styles.avatar}>
             {group.avatar_public_id ? (

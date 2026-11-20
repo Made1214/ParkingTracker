@@ -1,28 +1,21 @@
 import "server-only";
 import { requireUser } from "@/features/auth";
+import {
+  createdAtCursor,
+  olderThanCursor,
+} from "@/shared/lib/created-at-cursor";
 
 /** Hilos que se muestran por página (docs/05-API §1: `limit` 20 por defecto). */
 export const COMMENT_PAGE_SIZE = 20;
-const MAX_THREADS = 200;
-
-/** Normaliza `?comentarios=` a un múltiplo de la página, entre 20 y 200. */
-export function commentLimit(value?: string | string[]) {
-  const n = Number(Array.isArray(value) ? value[0] : value);
-  if (!Number.isFinite(n) || n <= COMMENT_PAGE_SIZE) return COMMENT_PAGE_SIZE;
-  return Math.min(
-    MAX_THREADS,
-    Math.ceil(n / COMMENT_PAGE_SIZE) * COMMENT_PAGE_SIZE,
-  );
-}
 
 /**
- * Hilo de comentarios de una salida: los `limit` hilos más recientes con
+ * Página de comentarios de una salida con
  * todas sus respuestas (una respuesta solo puede colgar de una raíz).
  */
 export async function getComments(
   groupId: string,
   eventId: string,
-  limit = COMMENT_PAGE_SIZE,
+  cursor?: string,
 ) {
   const { supabase, user } = await requireUser(
     `/groups/${groupId}/events/${eventId}`,
@@ -33,13 +26,15 @@ export async function getComments(
       .select("id, parent_id, body, author_id, created_at, updated_at")
       .eq("group_id", groupId)
       .eq("event_id", eventId);
+  const after = olderThanCursor(cursor);
+  let rootQuery = scope().is("parent_id", null);
+  if (after) rootQuery = rootQuery.or(after);
   const [roots, total, members, event] = await Promise.all([
     // Uno de más para saber si hay hilos anteriores.
-    scope()
-      .is("parent_id", null)
+    rootQuery
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
-      .limit(limit + 1),
+      .limit(COMMENT_PAGE_SIZE + 1),
     supabase
       .from("comments")
       .select("id", { count: "exact", head: true })
@@ -58,8 +53,9 @@ export async function getComments(
   ]);
   if (roots.error || total.error || members.error || event.error)
     throw new Error("No se pudieron cargar los comentarios.");
-  const hasMore = roots.data.length > limit;
-  const visibleRoots = roots.data.slice(0, limit).reverse();
+  const hasMore = roots.data.length > COMMENT_PAGE_SIZE;
+  const visibleRoots = roots.data.slice(0, COMMENT_PAGE_SIZE).reverse();
+  const oldest = visibleRoots[0];
   const replies = visibleRoots.length
     ? await scope()
         .in(
@@ -97,8 +93,8 @@ export async function getComments(
     now: Date.now(),
     canComment,
     total: total.count ?? 0,
-    hasMore,
-    limit,
+    pastPage: !!after,
+    nextCursor: hasMore ? createdAtCursor(oldest) : null,
     threads: visibleRoots.map((root) => ({
       ...shape(root),
       replies: replies.data

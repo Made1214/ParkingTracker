@@ -22,6 +22,8 @@ function db(
       const pollId = (call.ops[0][1][0] as { p_poll_id: string }).p_poll_id;
       return results[pollId] ?? { data: [] };
     }
+    if (call.table === "rpc:get_event_poll_results")
+      return tables[call.table] ?? { data: [] };
     return tables[call.table] ?? {};
   });
   mocks.session.mockResolvedValue({
@@ -89,20 +91,17 @@ describe("getPolls", () => {
   };
 
   it("adjunta los resultados de cada votación y los permisos", async () => {
-    const fake = db(
-      {
-        polls: { data: [{ id: "p1" }, { id: "p2" }] },
-        group_members: { data: { role: "admin" } },
-        events: { data: event },
+    const fake = db({
+      polls: { data: [{ id: "p1" }, { id: "p2" }] },
+      group_members: { data: { role: "admin" } },
+      events: { data: event },
+      "rpc:get_event_poll_results": {
+        data: [{ poll_id: "p1", option_id: "o1", votes: 2 }],
       },
-      {
-        p1: { data: [{ option_id: "o1", votes: 2 }] },
-        p2: { data: [] },
-      },
-    );
+    });
     const result = await getPolls(ids.group, ids.event);
     expect(result.polls).toEqual([
-      { id: "p1", results: [{ option_id: "o1", votes: 2 }] },
+      { id: "p1", results: [{ poll_id: "p1", option_id: "o1", votes: 2 }] },
       { id: "p2", results: [] },
     ]);
     expect(result).toMatchObject({
@@ -120,6 +119,7 @@ describe("getPolls", () => {
         .ops.filter(([n]) => n === "eq")
         .map(([, a]) => a),
     ).toContainEqual(["poll_votes.user_id", ids.ana]);
+    expect(fake.to("rpc:get_event_poll_results")).toHaveLength(1);
   });
 
   it("solo quien organiza o un admin agenda, y solo en salidas publicadas", async () => {
@@ -150,14 +150,12 @@ describe("getPolls", () => {
     await expect(getPolls(ids.group, ids.event)).rejects.toThrow(
       "No se pudieron cargar las votaciones.",
     );
-    db(
-      {
-        polls: { data: [{ id: "p1" }] },
-        group_members: { data: null },
-        events: { data: event },
-      },
-      { p1: { error: { code: "XX" } } },
-    );
+    db({
+      polls: { data: [{ id: "p1" }] },
+      group_members: { data: null },
+      events: { data: event },
+      "rpc:get_event_poll_results": { error: { code: "XX" } },
+    });
     await expect(getPolls(ids.group, ids.event)).rejects.toThrow(
       "No se pudieron cargar los resultados.",
     );
@@ -166,16 +164,10 @@ describe("getPolls", () => {
 
 describe("getLivePoll", () => {
   it("toma la votación abierta más reciente que no ha vencido", async () => {
-    db(
+    const fake = db(
       {
         polls: {
           data: [
-            {
-              id: "vencida",
-              question: "¿?",
-              closes_at: "2026-11-10T14:00:00Z",
-              poll_options: [],
-            },
             {
               id: "p1",
               question: "¿A dónde?",
@@ -211,6 +203,14 @@ describe("getLivePoll", () => {
         ],
       },
     });
+    expect(fake.to("polls")[0].ops).toContainEqual([
+      "eq",
+      ["events.status", "published"],
+    ]);
+    expect(fake.to("polls")[0].ops).toContainEqual([
+      "gt",
+      ["events.ends_at", new Date(NOW).toISOString()],
+    ]);
   });
 
   it("sin votos los porcentajes son cero, en el orden de las opciones", async () => {
