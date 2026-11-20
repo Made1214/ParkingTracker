@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(27);
 
 -- Luis (2) organiza; Sofía (3) y Darío (4) son miembros. Externo (ff) no.
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000ff', 'externo@example.com');
@@ -90,7 +90,12 @@ select throws_ok($$select pg_temp.commit_check($q$delete from public.expenses wh
   (select id from public.expenses where receipt_id = 'b0000000-0000-0000-0000-000000000001' limit 1)$q$)$$,
   '23514', 'receipt expenses must add up to its total', 'a receipt expense cannot be deleted by hand');
 select throws_ok($$delete from public.receipts where id = 'b0000000-0000-0000-0000-000000000001'$$,
-  '23503', null, 'a finalized receipt cannot be deleted while it has expenses');
+  '23514', 'receipt is finalized', 'a finalized receipt cannot be deleted');
+select is(pg_temp.affected($$update public.expenses set description = 'Otro'
+  where receipt_id = 'b0000000-0000-0000-0000-000000000001'$$), 0,
+  'linked expenses cannot be edited directly');
+select throws_ok($$update public.expense_splits set settled = true$$,
+  '42501', null, 'expense splits cannot be settled directly');
 select throws_ok($$insert into public.expense_guest_shares (group_id, expense_id, guest_id, share_amount)
   select group_id, id, 'a0000000-0000-0000-0000-000000000002', 1 from public.expenses
   where receipt_id = 'b0000000-0000-0000-0000-000000000001' limit 1$$,
@@ -115,6 +120,10 @@ update public.expense_guest_shares set settled = false, settled_at = null
   where guest_id = 'a0000000-0000-0000-0000-000000000001';
 select throws_ok($$select public.reopen_receipt('b0000000-0000-0000-0000-000000000001', 2)$$,
   '40001', 'receipt version conflict', 'reopening checks the version');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000004","role":"authenticated"}', true);
+select throws_ok($$select public.reopen_receipt('b0000000-0000-0000-0000-000000000001', 3)$$,
+  '42501', null, 'another member cannot reopen the receipt');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
 select lives_ok($$select pg_temp.commit_check($q$select public.reopen_receipt('b0000000-0000-0000-0000-000000000001', 3)$q$)$$,
   'the receipt is reopened for corrections');
 select is((select count(*)::int from public.expenses where receipt_id = 'b0000000-0000-0000-0000-000000000001'), 0,

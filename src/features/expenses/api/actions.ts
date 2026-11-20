@@ -60,23 +60,37 @@ export async function deleteExpense(
   return { success: "Gasto eliminado." };
 }
 
+// Envía el importe mostrado para evitar confirmar un saldo que ya cambió.
 export async function settleDebt(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const ids = refs.extend({ debtor: z.guid(), creditor: z.guid() }).safeParse({
-    group_id: text(form, "group_id"),
-    event_id: text(form, "event_id"),
-    debtor: text(form, "debtor"),
-    creditor: text(form, "creditor"),
-  });
+  const ids = refs
+    .extend({
+      debtor: z.guid(),
+      creditor: z.guid(),
+      cents: z.coerce.number().int().positive(),
+    })
+    .safeParse({
+      group_id: text(form, "group_id"),
+      event_id: text(form, "event_id"),
+      debtor: text(form, "debtor"),
+      creditor: text(form, "creditor"),
+      cents: text(form, "cents"),
+    });
   if (!ids.success) return { error: "La deuda no es válida." };
   const { supabase } = await requireUser();
   const { error } = await supabase.rpc("settle_event_debt", {
     p_event_id: ids.data.event_id,
     p_debtor: ids.data.debtor,
     p_creditor: ids.data.creditor,
+    p_amount: ids.data.cents / 100,
   });
+  if (error?.code === "22023")
+    return {
+      error:
+        "El importe ya cambió o incluye deudas de otras personas. Actualiza la salida para revisar los saldos.",
+    };
   if (error) return { error: expenseError(error.code, error.message) };
   revalidatePath(eventPath(ids.data.group_id, ids.data.event_id));
   return { success: "Marcado como saldado." };

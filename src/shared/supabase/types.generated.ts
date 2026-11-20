@@ -1231,7 +1231,7 @@ export type Database = {
         Returns: undefined
       }
       settle_event_debt: {
-        Args: { p_creditor: string; p_debtor: string; p_event_id: string }
+        Args: { p_amount?: number; p_creditor: string; p_debtor: string; p_event_id: string }
         Returns: number
       }
       suggest_settlements: {

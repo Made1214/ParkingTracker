@@ -28,9 +28,8 @@ from public.get_group_balances('10000000-0000-0000-0000-000000000001');
 
 create temporary table balances_before as
 select * from public.get_group_balances('10000000-0000-0000-0000-000000000001');
-update public.expense_splits set settled = true, settled_at = now()
-where expense_id = '81000000-0000-0000-0000-000000000001'
-  and user_id = '00000000-0000-0000-0000-000000000002';
+select public.settle_event_debt('80000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 10);
 select is(sum(net_amount), 0::numeric, 'partial settlement preserves zero sum')
 from public.get_group_balances('10000000-0000-0000-0000-000000000001');
 select is(b.net_amount - old.net_amount, -10::numeric, 'settlement reduces payer credit')
@@ -41,8 +40,11 @@ from public.get_group_balances('10000000-0000-0000-0000-000000000001') b
 join balances_before old using (user_id) where user_id = '00000000-0000-0000-0000-000000000002';
 select lives_ok($$select * from public.suggest_settlements('10000000-0000-0000-0000-000000000001')$$, 'first suggestion succeeds');
 select lives_ok($$select * from public.suggest_settlements('10000000-0000-0000-0000-000000000001')$$, 'repeated suggestion succeeds in same transaction');
+-- Prepara el estado histórico con todas las cuotas, incluida la del pagador.
+reset role;
 update public.expense_splits set settled = true, settled_at = now()
 where expense_id = '81000000-0000-0000-0000-000000000001';
+set local role authenticated;
 select is(settled_amount, 30::numeric, 'fully settled total counted once')
 from public.event_expense_summary where event_id = '80000000-0000-0000-0000-000000000001';
 select is(sum(net_amount), 0::numeric, 'full settlement preserves zero sum')

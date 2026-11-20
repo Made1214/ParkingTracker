@@ -120,6 +120,7 @@ export async function ExpensesPanel({
                         className={styles.settle}
                       >
                         {hidden}
+                        <input type="hidden" name="cents" value={debt.cents} />
                         <input
                           type="hidden"
                           name="debtor"
